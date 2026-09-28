@@ -73,27 +73,25 @@ body.touch.ingame #touchUI{display:block}
 #rotHint small{max-width:330px;font:13px/1.45 'Alegreya',serif;letter-spacing:.04em;color:#aeb5c1}
 #btnRotate{min-width:210px;min-height:48px}
 @keyframes rotateHint{50%{transform:rotate(90deg)}}
-@media (orientation:portrait){
- body.touch.ingame #touchUI{display:none}
- body.touch.ingame #rotHint{display:flex}
-}
+body.touch.orientation-blocked #touchUI{display:none}
+body.touch.orientation-blocked #rotHint{display:flex}
 body.touch #hudBC{display:none}
 body.touch #muteHint{display:none}
 body.touch #hudTL{top:max(8px,var(--safe-top));left:max(8px,var(--safe-left));gap:7px}
 body.touch #hudTR{top:max(8px,var(--safe-top));right:max(8px,var(--safe-right));gap:7px}
 body.touch .portrait{width:46px;height:46px;font-size:24px}
-body.touch .barsCol{width:clamp(166px,24vw,226px);gap:3px}
+body.touch .barsCol{width:clamp(156px,23vw,214px);gap:3px}
 body.touch .bar{height:18px}
 body.touch .bar.rage{height:12px}
-body.touch .mrow{gap:3px}
-body.touch .wpn{font-size:9px;letter-spacing:.13em}
-body.touch #hudTC{top:max(6px,var(--safe-top));width:min(38vw,390px);padding:6px 12px}
+body.touch .mrow{display:none}
+body.touch .wpn{font-size:9px;letter-spacing:.16em;margin-top:1px}
+body.touch #hudTC{top:max(6px,var(--safe-top));width:min(35vw,360px);padding:5px 12px}
 body.touch #biomeTag{font-size:8px;letter-spacing:.28em}
 body.touch #waveLabel{font-size:9px;margin-top:1px}
-body.touch #waveNum{font-size:24px}
+body.touch #waveNum{font-size:22px}
 body.touch #foesLeft{font-size:9px}
 body.touch #chips{font-size:10px;letter-spacing:.08em;margin-top:2px;white-space:nowrap}
-body.touch #xpBar{width:min(200px,28vw);height:5px;margin-top:4px}
+body.touch #xpBar{width:min(190px,26vw);height:5px;margin-top:3px}
 body.touch #bossWrap{top:clamp(88px,18dvh,112px);width:min(440px,58vw)}
 body.touch #breakInfo{top:clamp(120px,24dvh,148px);font-size:12px}
 body.touch #hint{left:24%;bottom:max(10px,var(--safe-bottom));max-width:42vw;font-size:12px;white-space:normal;text-align:center}
@@ -103,12 +101,20 @@ body.touch.shop-open .tbtn{opacity:.12;pointer-events:none}
 @media (max-height:500px) and (orientation:landscape){
  body.touch #hudTL{transform:scale(.88);transform-origin:top left}
  body.touch #hudTR{transform:scale(.88);transform-origin:top right}
- body.touch #hudTC{width:34vw;padding:4px 10px}
+ body.touch #hudTC{width:32vw;padding:4px 10px}
  body.touch #biomeTag,body.touch #eventTag{display:none}
  body.touch #waveNum{font-size:20px}
  body.touch #chips{font-size:9px}
  body.touch #bossWrap{top:76px}
  body.touch #breakInfo{top:108px}
+}
+
+@media (max-width:720px) and (orientation:landscape){
+ body.touch .barsCol{width:132px}
+ body.touch .portrait{width:42px;height:42px;font-size:22px}
+ body.touch #hudTC{width:30vw}
+ body.touch #chips{font-size:8px}
+ body.touch #xpBar{width:23vw}
 }
 
 #hud{position:absolute;inset:0;z-index:5;pointer-events:none;font-family:'Forum',serif}
@@ -196,9 +202,9 @@ body.touch.shop-open .tbtn{opacity:.12;pointer-events:none}
 #shopHint{font-size:11px;letter-spacing:.12em;color:#7d8695;text-align:center;margin-top:4px}
 .sold{text-align:center;color:#7d8695;font-style:italic;padding:12px}
 
-.screen{position:absolute;inset:0;z-index:10;display:flex;align-items:center;justify-content:center;overflow-y:auto;
+.screen{position:absolute;inset:0;z-index:10;display:flex;align-items:center;justify-content:center;overflow-y:auto;overflow-x:hidden;
   background:radial-gradient(ellipse at 50% 42%,rgba(10,13,19,.35) 0%,rgba(5,7,11,.86) 78%)}
-.scInner{text-align:center;max-width:980px;padding:26px;animation:scIn .5s ease;margin:auto}
+.scInner{text-align:center;width:min(100%,980px);min-width:0;padding:26px;animation:scIn .5s ease;margin:auto}
 @keyframes scIn{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:none}}
 .runeRow{font-size:19px;letter-spacing:1.1em;color:var(--gold);opacity:.65;margin-bottom:8px;text-shadow:0 0 12px rgba(216,169,60,.5)}
 h1{font-family:'Forum';font-weight:400;font-size:clamp(56px,10vw,126px);line-height:.95;letter-spacing:.16em;color:var(--bone);
@@ -223,9 +229,10 @@ h1{font-family:'Forum';font-weight:400;font-size:clamp(56px,10vw,126px);line-hei
 .credit{margin-top:18px;font-size:11px;letter-spacing:.2em;color:#525b6a}
 
 .secHead{font-family:'Forum';letter-spacing:.3em;color:var(--gold);font-size:14px;border-bottom:1px solid #2c3340;padding-bottom:4px;margin:14px 0 10px;text-align:left}
-.prepCols{display:grid;grid-template-columns:1fr 1fr;gap:10px 34px;max-width:900px;margin:0 auto}
-@media(max-width:780px){.prepCols{grid-template-columns:1fr}}
-.hgrid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.prepCols{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:10px 34px;max-width:900px;margin:0 auto}
+.prepCols>div{min-width:0}
+@media(max-width:780px){.prepCols{grid-template-columns:minmax(0,1fr)}}
+.hgrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;min-width:0}
 .hcard{position:relative;text-align:left;background:linear-gradient(180deg,#181e29,#0e1219);border:1px solid #3a4150;padding:12px;cursor:pointer;transition:.15s;
  clip-path:polygon(0 0,calc(100% - 12px) 0,100% 12px,100% 100%,12px 100%,0 calc(100% - 12px))}
 .hcard:hover{border-color:#8a6d2a;transform:translateY(-3px)}
@@ -237,12 +244,13 @@ h1{font-family:'Forum';font-weight:400;font-size:clamp(56px,10vw,126px);line-hei
 .hCost{position:absolute;top:10px;right:12px;font-family:'Forum';color:var(--gold-hi);font-size:13px}
 .hSel{position:absolute;top:10px;right:12px;font-size:11px;letter-spacing:.2em;color:var(--gold)}
 .oath{display:flex;gap:10px;align-items:center;background:#10151d;border:1px solid var(--line);padding:8px 10px;margin-bottom:8px;cursor:pointer;transition:.15s;text-align:left}
+.oath>div{min-width:0}
 .oath:hover{border-color:#8a6d2a}
 .oath.on{border-color:var(--ember);background:#1c1410;box-shadow:0 0 14px rgba(255,120,40,.15)}
 .oath.ch.on{border-color:var(--ice);background:#0e1a20;box-shadow:0 0 14px rgba(143,216,232,.15)}
 .oath .oRune{font-size:20px;color:var(--gold);width:24px;text-align:center;flex:none}
 .oath .oName{font-family:'Forum';font-size:14px;letter-spacing:.08em}
-.oath .oDesc{font-size:12px;color:#9aa3b2}
+.oath .oDesc{font-size:12px;color:#9aa3b2;overflow-wrap:anywhere}
 .oath .oMult{margin-left:auto;font-family:'Forum';color:#7d8695;white-space:nowrap}
 .oath.on .oMult{color:var(--gold-hi)}
 .oathMult{text-align:center;font-family:'Forum';letter-spacing:.25em;color:var(--gold-hi);margin:8px 0;font-size:15px;text-shadow:0 0 12px rgba(216,169,60,.4)}
@@ -322,6 +330,28 @@ h2{font-family:'Forum';font-weight:400;font-size:clamp(30px,5vw,52px);letter-spa
 .stoggle.on::after{left:26px;background:var(--gold)}
 .sbtn{font-family:'Forum';letter-spacing:.12em;font-size:12px;background:#1c1608;border:1px solid var(--gold-dim);color:var(--gold-hi);padding:7px 14px;cursor:pointer}
 .sbtn.danger{border-color:#6b3226;color:#ff9a8a;background:#1c0f0c}
+
+@media (max-width:640px){
+ body.touch .screen{align-items:flex-start;background:#05070b;padding:var(--safe-top) var(--safe-right) var(--safe-bottom) var(--safe-left)}
+ body.touch .scInner{width:100%;max-width:100%;margin:0 auto;padding:18px 12px 28px;overflow-x:hidden}
+ body.touch .runeRow{font-size:14px;letter-spacing:.55em;margin-bottom:6px}
+ body.touch h1{font-size:clamp(48px,18vw,72px)}
+ body.touch h2{font-size:clamp(25px,8vw,36px);letter-spacing:.12em;overflow-wrap:anywhere}
+ body.touch .sub{font-size:14px}
+ body.touch .prepCols{width:100%;gap:4px}
+ body.touch .secHead{font-size:12px;letter-spacing:.14em;overflow-wrap:anywhere}
+ body.touch .hcard{min-width:0;padding:11px}
+ body.touch .hDesc{overflow-wrap:anywhere}
+ body.touch .oath{width:100%;min-width:0;align-items:flex-start;padding:9px 8px}
+ body.touch .oath .oMult{font-size:11px}
+ body.touch .controlsGrid{grid-template-columns:minmax(0,1fr);font-size:11.5px}
+ body.touch .controlsGrid div{min-width:0;flex-wrap:wrap}
+ body.touch .desktopControls{display:none}
+ body.touch #prepScreen .btn{width:100%;min-height:48px;margin:5px 0 0;padding-left:12px;padding-right:12px}
+ body.touch .settingsList{width:100%;margin-top:12px}
+ body.touch .srow{min-width:0;flex-wrap:wrap}
+}
+@media (max-width:360px){body.touch .hgrid{grid-template-columns:minmax(0,1fr)}}
 
 .chrCols{display:grid;grid-template-columns:1fr 1fr;gap:14px 30px;max-width:960px;margin:14px auto 0;text-align:left}
 @media(max-width:820px){.chrCols{grid-template-columns:1fr}}
@@ -452,8 +482,8 @@ h2{font-family:'Forum';font-weight:400;font-size:clamp(30px,5vw,52px);letter-spa
           <div class="secHead">КЛЯТВЫ — СЛАВА × МНОЖИТЕЛЬ</div>
           <div id="oathList"></div>
           <div id="oathMult" class="oathMult">МНОЖИТЕЛЬ СЛАВЫ ×1</div>
-          <div class="secHead">УПРАВЛЕНИЕ</div>
-          <div class="controlsGrid">
+          <div class="secHead desktopControls">УПРАВЛЕНИЕ</div>
+          <div class="controlsGrid desktopControls">
             <div><kbd>W A S D</kbd> воин I</div>
             <div><kbd>ЛКМ</kbd> атака · <kbd>ПКМ</kbd> топор</div>
             <div><kbd>C / СКМ</kbd> парирование</div>
@@ -676,6 +706,7 @@ function resize(){
  document.documentElement.style.setProperty('--app-height',H+'px');
  cvs.width=W*DPR;cvs.height=H*DPR;ctx.setTransform(DPR,0,0,DPR,0,0);
  fog.width=W*DPR;fog.height=H*DPR;
+ if(typeof syncOrientationPause==='function')syncOrientationPause();
 }
 addEventListener('resize',resize);
 addEventListener('orientationchange',function(){setTimeout(resize,120);setTimeout(resize,420);});
@@ -1083,6 +1114,7 @@ function rubbleDecal(x,y,r){bgc.save();bgc.globalAlpha=0.5;
 
 /* ============ state ============ */
 let state='title',mode='solo',players=[];
+let orientationPaused=false;
 let team={level:1,xp:0,xpNext:8,gold:0};
 let enemies=[],projs=[],parts=[],pickups=[],texts=[],trails=[],telegraphs=[],portals=[],zones=[];
 let barrels=[],altars=[];
@@ -1097,6 +1129,18 @@ const shop={open:false,offers:[],goldShown:-1};
 const PAL=[
  {cape:'#232b3a',armor:'#77808f',trim:'#d8a93c',helm:'#9aa5b1',shield:'#6d5122',shieldRim:'#d8a93c'},
  {cape:'#16283a',armor:'#5d7c92',trim:'#8fd8e8',helm:'#a9c1cc',shield:'#2e4a5a',shieldRim:'#8fd8e8'}];
+
+/* Ставит активный мобильный бой на паузу в портретном режиме и продолжает только после возврата в landscape. */
+function syncOrientationPause(){
+ const portrait=touchMode&&H>W;
+ if(portrait&&state==='playing'){
+  orientationPaused=true;state='paused';touchAttack=false;touchMove.x=0;touchMove.y=0;
+  document.body.classList.add('orientation-blocked');AU.duck(0.08);
+ }else if(!portrait&&orientationPaused){
+  orientationPaused=false;document.body.classList.remove('orientation-blocked');
+  if(state==='paused'){state='playing';AU.duck(AU.vol);}
+ }else document.body.classList.toggle('orientation-blocked',portrait&&orientationPaused);
+}
 
 /* ============ heroes / oaths / meta ============ */
 const HEROES={
@@ -2700,7 +2744,7 @@ function setBars(s,pl){
  $('mDodge'+s).style.width=save.oaths.iron?'0%':(1-clamp(pl.dodgeCd/pl.dodgeCdMax,0,1))*100+'%';
  $('mParry'+s).style.width=(1-clamp(pl.parryCd/pl.parryCdMax,0,1))*100+'%';
  $('mStance'+s).style.width=(1-clamp(pl.stanceCd/STANCE_CD[pl.weapon],0,1))*100+'%';
- $('wpn'+s).textContent=WEAPNAME[pl.weapon]+' · '+(pl.idx===0?(touchMode?'[КНОПКА F]':'[F]'):'[ENTER]');
+ $('wpn'+s).textContent=touchMode?WEAPNAME[pl.weapon]:(WEAPNAME[pl.weapon]+' · '+(pl.idx===0?'[F]':'[ENTER]'));
  const c=$('combo'+s);
  if(pl.combo>=2){c.classList.remove('hidden');
   c.textContent='СЕРИЯ ×'+pl.combo+(pl.combo>=7?' · +35%':(pl.combo>=5?' · +20%':(pl.combo>=3?' · +10%':'')));
@@ -2708,7 +2752,7 @@ function setBars(s,pl){
  else c.classList.add('hidden');
 }
 function syncHUD(){
- document.body.classList.toggle('ingame',state==='playing');
+ document.body.classList.toggle('ingame',state==='playing'||orientationPaused);
  if(!players.length)return;
  setBars('1',players[0]);
  if(mode==='coop'&&players[1])setBars('2',players[1]);
@@ -2851,7 +2895,8 @@ function renderSettings(){
 }
 function backToTitle(){
  enemies=[];projs=[];pickups=[];texts=[];trails=[];telegraphs=[];portals=[];zones=[];barrels=[];altars=[];players=[];
- curEvent=null;resetPillars();buildBG();state='title';dailyMode=false;
+ curEvent=null;resetPillars();buildBG();state='title';dailyMode=false;orientationPaused=false;
+ document.body.classList.remove('orientation-blocked');
  updateTitleStats();showOnly('titleScreen');
 }
 
@@ -2867,7 +2912,7 @@ function startGame(m){
  if(touchMode)requestLandscape();
  AU.init();AU.sClick();AU.duck(AU.vol);
  save.stats.runs++;persist();
- initRun(m);state='playing';
+ initRun(m);state='playing';syncOrientationPause();
  for(let i=0;i<ALL_SCREENS.length;i++)$(ALL_SCREENS[i]).classList.add('hidden');
  let oathN=0;for(let i=0;i<OATHS.length;i++)if(save.oaths[OATHS[i].id])oathN++;
  if(runStats&&oathN===4)runStats.oathAll=true;
