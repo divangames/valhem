@@ -12,7 +12,7 @@
 <meta property="og:title" content="VALHEM">
 <meta property="og:description" content="Бесконечная сага павшего воина: шесть земель, фазовые боссы, кооп и чертог славы.">
 <meta property="og:type" content="website">
-<link rel="manifest" id="manifestLink">
+<link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='80' font-size='80' fill='%23d8a93c'>ᚡ</text></svg>">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -22,14 +22,16 @@
   --gold:#d8a93c; --gold-hi:#ffd97a; --gold-dim:#7c6128;
   --ember:#ff8a4a; --blood:#c23a2e; --ice:#8fd8e8; --bone:#e9e1cc;
   --ink:#05070b; --panel:rgba(13,17,24,.92); --line:#3a4150;
+  --safe-top:env(safe-area-inset-top,0px); --safe-right:env(safe-area-inset-right,0px);
+  --safe-bottom:env(safe-area-inset-bottom,0px); --safe-left:env(safe-area-inset-left,0px);
 }
 *{margin:0;padding:0;box-sizing:border-box}
-html,body{height:100%;overflow:hidden;background:var(--ink)}
+html,body{width:100%;height:100%;overflow:hidden;overscroll-behavior:none;background:var(--ink)}
 body{font-family:'Alegreya',Georgia,serif;color:var(--bone);-webkit-font-smoothing:antialiased;user-select:none;cursor:crosshair;
  -webkit-tap-highlight-color:transparent}
-#stage{position:fixed;inset:0}
+#stage{position:fixed;inset:0;width:100%;height:var(--app-height,100dvh);overflow:hidden}
 body.touch #stage{touch-action:none}
-canvas{position:absolute;inset:0;display:block}
+canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
 .hidden{display:none !important}
 .screen{touch-action:pan-y}
 
@@ -40,32 +42,74 @@ canvas{position:absolute;inset:0;display:block}
   background:radial-gradient(ellipse at center, transparent 45%, rgba(255,60,20,.28) 100%)}
 #fx-berserk.on{opacity:1}
 
-/* ---- touch UI ---- */
+/* ---- сенсорное управление ---- */
 #touchUI{position:absolute;inset:0;z-index:7;pointer-events:none;display:none}
 body.touch.ingame #touchUI{display:block}
-#joyZone{position:absolute;left:0;top:0;width:46%;height:100%;pointer-events:auto;touch-action:none}
-#joyBase{position:absolute;width:112px;height:112px;border:2px solid rgba(216,169,60,.35);border-radius:50%;
- background:rgba(10,13,19,.35);display:none;pointer-events:none}
-#joyKnob{position:absolute;width:52px;height:52px;border-radius:50%;background:rgba(216,169,60,.55);
- left:30px;top:30px;pointer-events:none;box-shadow:0 0 14px rgba(216,169,60,.4)}
+#joyZone{position:absolute;left:0;top:0;width:48%;height:100%;pointer-events:auto;touch-action:none}
+#joyBase{position:absolute;width:clamp(92px,19dvh,112px);height:clamp(92px,19dvh,112px);
+ border:2px solid rgba(216,169,60,.35);border-radius:50%;background:rgba(10,13,19,.35);
+ display:none;pointer-events:none;transform:translate(-50%,-50%)}
+#joyKnob{position:absolute;width:46%;height:46%;border-radius:50%;background:rgba(216,169,60,.55);
+ left:27%;top:27%;pointer-events:none;box-shadow:0 0 14px rgba(216,169,60,.4)}
 .tbtn{position:absolute;pointer-events:auto;border-radius:50%;border:2px solid rgba(216,169,60,.45);
  background:rgba(13,17,24,.55);color:var(--gold-hi);font-family:'Forum';display:flex;align-items:center;justify-content:center;
- flex-direction:column;touch-action:none;user-select:none;-webkit-user-select:none;line-height:1}
+ flex-direction:column;touch-action:none;user-select:none;-webkit-user-select:none;line-height:1;
+ transition:transform .08s ease,background-color .08s ease,opacity .15s ease}
 .tbtn span{font-size:8px;letter-spacing:.06em;color:#c8b98f;margin-top:2px}
-.tbtn.on{background:rgba(216,169,60,.4)}
+.tbtn.on{background:rgba(216,169,60,.4);transform:scale(.92)}
 .tbtn.ready{border-color:var(--ember);box-shadow:0 0 18px rgba(255,120,40,.65)}
-#tbAtk{right:22px;bottom:64px;width:96px;height:96px;font-size:30px}
-#tbAxe{right:128px;bottom:132px;width:66px;height:66px;font-size:22px}
-#tbDodge{right:28px;bottom:176px;width:66px;height:66px;font-size:22px}
-#tbParry{right:128px;bottom:26px;width:66px;height:66px;font-size:22px}
-#tbStance{right:214px;bottom:84px;width:58px;height:58px;font-size:19px}
-#tbBerserk{right:214px;bottom:160px;width:58px;height:58px;font-size:19px}
-#tbSwap{right:286px;bottom:120px;width:48px;height:48px;font-size:15px}
-#rotHint{display:none;position:absolute;top:10px;left:50%;transform:translateX(-50%);z-index:9;font-family:'Forum';
- letter-spacing:.2em;font-size:12px;color:var(--gold-hi);background:rgba(13,17,24,.85);border:1px solid var(--gold-dim);padding:6px 14px}
-@media (orientation: portrait){body.touch.ingame #rotHint{display:block}}
+#tbAtk{right:max(16px,var(--safe-right));bottom:max(18px,var(--safe-bottom));width:clamp(70px,14dvh,88px);height:clamp(70px,14dvh,88px);font-size:28px}
+#tbDodge{right:max(22px,var(--safe-right));bottom:clamp(104px,20dvh,128px);width:clamp(52px,10dvh,64px);height:clamp(52px,10dvh,64px);font-size:21px}
+#tbAxe{right:clamp(106px,18dvh,126px);bottom:clamp(98px,19dvh,120px);width:clamp(52px,10dvh,64px);height:clamp(52px,10dvh,64px);font-size:21px}
+#tbParry{right:clamp(106px,18dvh,126px);bottom:max(18px,var(--safe-bottom));width:clamp(52px,10dvh,64px);height:clamp(52px,10dvh,64px);font-size:21px}
+#tbStance{right:clamp(174px,30dvh,198px);bottom:max(18px,var(--safe-bottom));width:clamp(48px,9dvh,58px);height:clamp(48px,9dvh,58px);font-size:18px}
+#tbBerserk{right:clamp(174px,30dvh,198px);bottom:clamp(82px,16dvh,98px);width:clamp(48px,9dvh,58px);height:clamp(48px,9dvh,58px);font-size:18px}
+#tbSwap{right:clamp(232px,40dvh,266px);bottom:max(18px,var(--safe-bottom));width:48px;height:48px;font-size:15px}
+#rotHint{display:none;position:absolute;inset:0;z-index:20;align-items:center;justify-content:center;flex-direction:column;
+ gap:12px;padding:24px;text-align:center;font-family:'Forum';letter-spacing:.16em;color:var(--gold-hi);
+ background:radial-gradient(circle at center,#141821,#05070b 72%);pointer-events:auto}
+#rotHint .rotRune{font-size:54px;color:var(--gold);animation:rotateHint 1.8s ease-in-out infinite}
+#rotHint strong{font-size:clamp(17px,5vw,25px);font-weight:400}
+#rotHint small{max-width:330px;font:13px/1.45 'Alegreya',serif;letter-spacing:.04em;color:#aeb5c1}
+#btnRotate{min-width:210px;min-height:48px}
+@keyframes rotateHint{50%{transform:rotate(90deg)}}
+@media (orientation:portrait){
+ body.touch.ingame #touchUI{display:none}
+ body.touch.ingame #rotHint{display:flex}
+}
 body.touch #hudBC{display:none}
 body.touch #muteHint{display:none}
+body.touch #hudTL{top:max(8px,var(--safe-top));left:max(8px,var(--safe-left));gap:7px}
+body.touch #hudTR{top:max(8px,var(--safe-top));right:max(8px,var(--safe-right));gap:7px}
+body.touch .portrait{width:46px;height:46px;font-size:24px}
+body.touch .barsCol{width:clamp(166px,24vw,226px);gap:3px}
+body.touch .bar{height:18px}
+body.touch .bar.rage{height:12px}
+body.touch .mrow{gap:3px}
+body.touch .wpn{font-size:9px;letter-spacing:.13em}
+body.touch #hudTC{top:max(6px,var(--safe-top));width:min(38vw,390px);padding:6px 12px}
+body.touch #biomeTag{font-size:8px;letter-spacing:.28em}
+body.touch #waveLabel{font-size:9px;margin-top:1px}
+body.touch #waveNum{font-size:24px}
+body.touch #foesLeft{font-size:9px}
+body.touch #chips{font-size:10px;letter-spacing:.08em;margin-top:2px;white-space:nowrap}
+body.touch #xpBar{width:min(200px,28vw);height:5px;margin-top:4px}
+body.touch #bossWrap{top:clamp(88px,18dvh,112px);width:min(440px,58vw)}
+body.touch #breakInfo{top:clamp(120px,24dvh,148px);font-size:12px}
+body.touch #hint{left:24%;bottom:max(10px,var(--safe-bottom));max-width:42vw;font-size:12px;white-space:normal;text-align:center}
+body.touch #shop{right:max(8px,var(--safe-right));width:min(270px,43vw);max-height:calc(100% - var(--safe-top) - var(--safe-bottom) - 16px);overflow-y:auto}
+body.touch.shop-open .tbtn{opacity:.12;pointer-events:none}
+
+@media (max-height:500px) and (orientation:landscape){
+ body.touch #hudTL{transform:scale(.88);transform-origin:top left}
+ body.touch #hudTR{transform:scale(.88);transform-origin:top right}
+ body.touch #hudTC{width:34vw;padding:4px 10px}
+ body.touch #biomeTag,body.touch #eventTag{display:none}
+ body.touch #waveNum{font-size:20px}
+ body.touch #chips{font-size:9px}
+ body.touch #bossWrap{top:76px}
+ body.touch #breakInfo{top:108px}
+}
 
 #hud{position:absolute;inset:0;z-index:5;pointer-events:none;font-family:'Forum',serif}
 .panel{background:var(--panel);border:1px solid var(--line);
@@ -318,7 +362,12 @@ h2{font-family:'Forum';font-weight:400;font-size:clamp(30px,5vw,52px);letter-spa
     <div class="tbtn" id="tbBerserk">ᚦ<span>ЯРОСТЬ</span></div>
     <div class="tbtn" id="tbSwap">F<span>ОРУЖИЕ</span></div>
   </div>
-  <div id="rotHint">⟳ ПОВЕРНИ УСТРОЙСТВО ГОРИЗОНТАЛЬНО</div>
+  <div id="rotHint" role="dialog" aria-live="polite" aria-label="Требуется горизонтальная ориентация">
+    <div class="rotRune" aria-hidden="true">▭</div>
+    <strong>ПОВЕРНИ УСТРОЙСТВО ГОРИЗОНТАЛЬНО</strong>
+    <small>Игра рассчитана на альбомный режим. Если автоповорот выключен системой, включи его в панели телефона.</small>
+    <button class="btn small" id="btnRotate" type="button">ВО ВЕСЬ ЭКРАН</button>
+  </div>
 
   <div id="hud">
     <div id="hudTL">
@@ -592,13 +641,6 @@ const $=function(id){return document.getElementById(id);};
 
 /* ============ PWA ============ */
 (function(){
- const ICON="<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'><rect width='512' height='512' fill='#05070b'/><circle cx='256' cy='256' r='196' fill='none' stroke='#d8a93c' stroke-width='10' opacity='0.5'/><text x='256' y='352' font-size='260' text-anchor='middle' fill='#d8a93c' font-family='serif'>ᚡ</text></svg>";
- const man={name:'VALHEM — сага о бесконечной битве',short_name:'VALHEM',start_url:'.',scope:'.',
-  display:'fullscreen',orientation:'any',background_color:'#05070b',theme_color:'#05070b',
-  description:'Бесконечный викинг-роглайт: шесть земель, фазовые ётуны, кооп и чертог славы.',
-  icons:[{src:'data:image/svg+xml;utf8,'+encodeURIComponent(ICON),sizes:'any',type:'image/svg+xml',purpose:'any'}]};
- try{const link=$('manifestLink');
-  link.href=URL.createObjectURL(new Blob([JSON.stringify(man)],{type:'application/manifest+json'}));}catch(e){}
  if('serviceWorker' in navigator && location.protocol.indexOf('http')===0){
   window.addEventListener('load',function(){navigator.serviceWorker.register('sw.js').catch(function(){});});}
 })();
@@ -620,14 +662,24 @@ function fmtTime(s){return Math.floor(s/60)+':'+String(Math.floor(s%60)).padStar
 const cvs=$('game'),ctx=cvs.getContext('2d');
 const fog=document.createElement('canvas'),fc=fog.getContext('2d');
 let W=innerWidth,H=innerHeight,DPR=1;
+/* Возвращает фактически видимую область, включая изменение высоты адресной строкой мобильного браузера. */
+function viewportSize(){
+ const vv=window.visualViewport;
+ return {w:Math.max(1,Math.round(vv?vv.width:document.documentElement.clientWidth)),
+  h:Math.max(1,Math.round(vv?vv.height:document.documentElement.clientHeight))};
+}
+/* Синхронизирует CSS-контейнер и оба canvas с реальным мобильным viewport. */
 function resize(){
  const scale=(save.sett.scale||100)/100;
  DPR=Math.min(2,(devicePixelRatio||1)*scale);
- W=innerWidth;H=innerHeight;
+ const vp=viewportSize();W=vp.w;H=vp.h;
+ document.documentElement.style.setProperty('--app-height',H+'px');
  cvs.width=W*DPR;cvs.height=H*DPR;ctx.setTransform(DPR,0,0,DPR,0,0);
  fog.width=W*DPR;fog.height=H*DPR;
 }
 addEventListener('resize',resize);
+addEventListener('orientationchange',function(){setTimeout(resize,120);setTimeout(resize,420);});
+if(window.visualViewport)visualViewport.addEventListener('resize',resize);
 
 /* ============ save ============ */
 const DEF={glory:0,best:0,dailyBest:0,lastDay:'',hero:'viking',
@@ -663,6 +715,25 @@ function detectTouch(){
  document.body.classList.toggle('touch',touchMode);
 }
 detectTouch();
+/* Запрашивает полноэкранный альбомный режим там, где мобильный браузер разрешает это из жеста пользователя. */
+async function requestLandscape(){
+ if(!touchMode)return false;
+ const root=document.documentElement;
+ try{
+  const active=document.fullscreenElement||document.webkitFullscreenElement;
+  const request=root.requestFullscreen||root.webkitRequestFullscreen;
+  if(!active&&request)await request.call(root);
+ }catch(e){}
+ try{
+  if(screen.orientation&&screen.orientation.lock)await screen.orientation.lock('landscape');
+ }catch(e){}
+ setTimeout(resize,80);setTimeout(resize,350);
+ return innerWidth>=innerHeight;
+}
+if(window.matchMedia){
+ const coarseQuery=matchMedia('(pointer: coarse)');
+ if(coarseQuery.addEventListener)coarseQuery.addEventListener('change',detectTouch);
+}
 function partCap(){return touchMode?260:430;}
 
 /* ============ achievements / challenges ============ */
@@ -1613,8 +1684,8 @@ function genOffers(){const w=wave.num,u=pick(UPG);
   {id:'upg',name:u.name,desc:u.desc,cost:120+w*6,upg:u}];
  if(runStats)runStats.shopBought=0;
 }
-function openShop(){shop.open=true;renderShop();AU.sClick();$('shop').classList.remove('hidden');}
-function closeShop(){shop.open=false;$('shop').classList.add('hidden');}
+function openShop(){shop.open=true;renderShop();AU.sClick();$('shop').classList.remove('hidden');document.body.classList.add('shop-open');}
+function closeShop(){shop.open=false;$('shop').classList.add('hidden');document.body.classList.remove('shop-open');}
 function renderShop(){
  const el=$('shopItems');el.innerHTML='';shop.goldShown=team.gold;
  if(!shop.offers.length)el.innerHTML='<div class="sold">Сундук пуст. Приходи после следующей волны.</div>';
@@ -2793,6 +2864,7 @@ function openPrep(daily){
  renderPrep();showOnly('prepScreen');
 }
 function startGame(m){
+ if(touchMode)requestLandscape();
  AU.init();AU.sClick();AU.duck(AU.vol);
  save.stats.runs++;persist();
  initRun(m);state='playing';
@@ -2847,10 +2919,13 @@ function toggleMute(){
  if(AU.mGain)AU.mGain.gain.linearRampToValueAtTime(AU.muted?0:(save.sett.vol/100),AU.t()+0.1);
  const b=$('btnMute');if(b)b.textContent='ЗВУК: '+(AU.muted?'ВЫКЛ':'ВКЛ');
 }
-function toggleFS(){
+async function toggleFS(){
  try{
-  if(document.fullscreenElement)document.exitFullscreen();
-  else if(document.documentElement.requestFullscreen)document.documentElement.requestFullscreen();
+  if(document.fullscreenElement||document.webkitFullscreenElement){
+   if(screen.orientation&&screen.orientation.unlock)screen.orientation.unlock();
+   const exit=document.exitFullscreen||document.webkitExitFullscreen;if(exit)await exit.call(document);
+  }else if(touchMode)await requestLandscape();
+  else if(document.documentElement.requestFullscreen)await document.documentElement.requestFullscreen();
  }catch(e){}
 }
 updateTitleStats();resize();
@@ -2863,6 +2938,7 @@ $('settShake').onclick=function(){save.sett.shake=!save.sett.shake;persist();ren
 $('settHitstop').onclick=function(){save.sett.hitstop=!save.sett.hitstop;persist();renderSettings();};
 $('settSlowmo').onclick=function(){save.sett.slowmo=!save.sett.slowmo;persist();renderSettings();};
 $('btnFS').onclick=function(){toggleFS();};
+$('btnRotate').onclick=function(){requestLandscape();};
 let wipeArmed=false;
 $('btnWipe').onclick=function(){
  const b=$('btnWipe');
@@ -2875,34 +2951,40 @@ $('btnWipe').onclick=function(){
 (function(){
  const zone=$('joyZone'),base=$('joyBase'),knob=$('joyKnob');
  let joyId=null,cx=0,cy=0;
- function setKnob(dx,dy){knob.style.left=(30+dx)+'px';knob.style.top=(30+dy)+'px';}
- zone.addEventListener('touchstart',function(e){
-  if(joyId!==null)return;
-  const t=e.changedTouches[0];joyId=t.identifier;cx=t.clientX;cy=t.clientY;
-  base.style.display='block';
-  base.style.left=(cx-56)+'px';base.style.top=(cy-56)+'px';
-  setKnob(0,0);e.preventDefault();},{passive:false});
- zone.addEventListener('touchmove',function(e){
-  for(let i=0;i<e.changedTouches.length;i++){const t=e.changedTouches[i];
-   if(t.identifier===joyId){
-    let dx=t.clientX-cx,dy=t.clientY-cy;const d=Math.hypot(dx,dy),max=46;
-    if(d>max){dx=dx/d*max;dy=dy/d*max;}
-    setKnob(dx,dy);
-    const dz=8;touchMove.x=Math.abs(dx)<dz?0:dx/max;touchMove.y=Math.abs(dy)<dz?0:dy/max;
-    e.preventDefault();}}},{passive:false});
+ function setKnob(dx,dy){knob.style.transform='translate('+dx+'px,'+dy+'px)';}
+ zone.addEventListener('pointerdown',function(e){
+  if(joyId!==null||e.button>0)return;
+  const rect=$('stage').getBoundingClientRect();
+  joyId=e.pointerId;cx=e.clientX;cy=e.clientY;
+  base.style.display='block';base.style.left=(e.clientX-rect.left)+'px';base.style.top=(e.clientY-rect.top)+'px';
+  setKnob(0,0);try{zone.setPointerCapture(joyId);}catch(err){}e.preventDefault();
+ });
+ zone.addEventListener('pointermove',function(e){
+  if(e.pointerId!==joyId)return;
+  let dx=e.clientX-cx,dy=e.clientY-cy;const d=Math.hypot(dx,dy),max=Math.max(34,base.offsetWidth*.41);
+  if(d>max){dx=dx/d*max;dy=dy/d*max;}
+  setKnob(dx,dy);
+  const dz=Math.max(7,max*.17);touchMove.x=Math.abs(dx)<dz?0:dx/max;touchMove.y=Math.abs(dy)<dz?0:dy/max;
+  e.preventDefault();
+ });
  function endJoy(e){
-  for(let i=0;i<e.changedTouches.length;i++){
-   if(e.changedTouches[i].identifier===joyId){joyId=null;touchMove.x=0;touchMove.y=0;base.style.display='none';}}
+  if(e.pointerId!==joyId)return;
+  joyId=null;touchMove.x=0;touchMove.y=0;base.style.display='none';setKnob(0,0);e.preventDefault();
  }
- zone.addEventListener('touchend',endJoy);zone.addEventListener('touchcancel',endJoy);
+ zone.addEventListener('pointerup',endJoy);zone.addEventListener('pointercancel',endJoy);
  function bindTB(id,down,up){
   const el=$(id);
-  el.addEventListener('touchstart',function(e){e.preventDefault();e.stopPropagation();el.classList.add('on');down();},{passive:false});
-  const end=function(e){e.preventDefault();e.stopPropagation();el.classList.remove('on');if(up)up();};
-  el.addEventListener('touchend',end);el.addEventListener('touchcancel',end);
-  el.addEventListener('mousedown',function(e){e.preventDefault();el.classList.add('on');down();});
-  el.addEventListener('mouseup',function(e){el.classList.remove('on');if(up)up();});
-  el.addEventListener('mouseleave',function(e){el.classList.remove('on');if(up)up();});
+  let activePointer=null;
+  el.addEventListener('pointerdown',function(e){
+   if(activePointer!==null||e.button>0)return;
+   activePointer=e.pointerId;e.preventDefault();e.stopPropagation();el.classList.add('on');
+   try{el.setPointerCapture(activePointer);}catch(err){}down();
+  });
+  const end=function(e){
+   if(e.pointerId!==activePointer)return;
+   activePointer=null;e.preventDefault();e.stopPropagation();el.classList.remove('on');if(up)up();
+  };
+  el.addEventListener('pointerup',end);el.addEventListener('pointercancel',end);
  }
  const p0=function(){return players[0];};
  bindTB('tbAtk',function(){touchAttack=true;},function(){touchAttack=false;});
@@ -2978,7 +3060,7 @@ $('btnStartCoop').onclick=function(){startGame('coop');};
 $('btnAgain').onclick=function(){startGame(mode);};
 $('btnToHall').onclick=function(){AU.sClick();backToTitle();renderHall();showOnly('hallScreen');};
 $('btnRestart').onclick=function(){startGame(mode);};
-$('btnResume').onclick=function(){pauseGame(false);};
+$('btnResume').onclick=function(){if(touchMode)requestLandscape();pauseGame(false);};
 $('btnMute').onclick=toggleMute;
 
 /* ============ loop ============ */
