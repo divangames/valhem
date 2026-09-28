@@ -93,7 +93,8 @@ rem Убираем кавычки из ввода, чтобы сообщение
 set "COMMIT_MESSAGE=%COMMIT_MESSAGE:"=%"
 if not defined COMMIT_MESSAGE set "COMMIT_MESSAGE=Update game"
 
-git add -A -- . ":(exclude)back"
+rem .gitignore сам исключает back; отдельный pathspec игнорируемой папки вызывает ошибку Git.
+git add -A -- .
 if errorlevel 1 goto command_failed
 
 git diff --cached --quiet
@@ -119,7 +120,8 @@ call :check_git || goto pause_menu
 call :configure_remote || goto pause_menu
 call :check_branch || goto pause_menu
 
-git add -A -- . ":(exclude)back"
+rem .gitignore сам исключает back; отдельный pathspec игнорируемой папки вызывает ошибку Git.
+git add -A -- .
 if errorlevel 1 goto command_failed
 git diff --cached --quiet
 if errorlevel 2 goto command_failed

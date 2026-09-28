@@ -517,7 +517,7 @@ h2{font-family:'Forum';font-weight:400;font-size:clamp(30px,5vw,52px);letter-spa
     <div class="scInner">
       <div class="runeRow">ᚠ ᚢ ᚦ ᚨ ᚱ ᚲ ᚷ ᚹ</div>
       <h1>VALHEM</h1>
-      <div><span class="packBadge">РЕЛИЗ v1.3 «ПУТИ САГИ» · ПОЛНЫЙ СБОРНИК</span></div>
+      <div><span class="packBadge">РЕЛИЗ v1.5 «ЯРЛЫ И ЭЛИТА» · ПОЛНЫЙ СБОРНИК</span></div>
       <p class="tag">Шесть земель, фазовые ётуны, стойкость и добивания, парирование и серии ударов, кооп на одном экране, чертог славы и ежедневные саги. Играй на клавиатуре или на стекле планшета.</p>
       <div class="orn">ᛟ</div>
       <button id="btnPrep" class="btn">В ПОХОД</button>
@@ -528,7 +528,7 @@ h2{font-family:'Forum';font-weight:400;font-size:clamp(30px,5vw,52px);letter-spa
       <button id="btnSettings" class="btn">НАСТРОЙКИ</button>
       <div id="titleStats"></div>
       <div id="dailyLine"></div>
-      <div class="credit">VALHEM v1.3 «ПУТИ САГИ» · ОФЛАЙН-САГА В ТВОЁМ БРАУЗЕРЕ</div>
+      <div class="credit">VALHEM v1.5 «ЯРЛЫ И ЭЛИТА» · ОФЛАЙН-САГА В ТВОЁМ БРАУЗЕРЕ</div>
     </div>
   </section>
 
@@ -658,7 +658,7 @@ h2{font-family:'Forum';font-weight:400;font-size:clamp(30px,5vw,52px);letter-spa
           <button class="sbtn danger" id="btnWipe">СТЕРЕТЬ</button>
         </div>
         <div class="srow">
-          <label>Версия<span class="sdesc">VALHEM v1.3 «ПУТИ САГИ» · КАРТА МАРШРУТА + УЗЛЫ + РИСК/НАГРАДА</span></label>
+          <label>Версия<span class="sdesc">VALHEM v1.5 «ЯРЛЫ И ЭЛИТА» · МИНИ-БОССЫ + АКТИВНЫЕ ЭЛИТНЫЕ СПОСОБНОСТИ</span></label>
           <span class="sval">ᛟ</span>
         </div>
       </div>
@@ -730,17 +730,15 @@ h2{font-family:'Forum';font-weight:400;font-size:clamp(30px,5vw,52px);letter-spa
 
 <script>
 'use strict';
-/* CHANGELOG v1.3 «ПУТИ САГИ»
-- Выбор пути превращён в полноценную карту маршрута между волнами.
-- Добавлены узлы: Поле резни, Охота на элиту, Кузня, Алтарь, Событие, Тайник, Костёр, Кровь норнам и Неизвестный путь.
-- Выбранный узел реально меняет следующую волну: количество врагов, шанс элиток, награду золотом или временный боевой бафф.
-- Перед каждой пятой волной показывается отдельный путь к Ётуну с тремя вариантами подготовки к боссу.
-- Кузня выдаёт дар, ориентированный на текущее оружие. Алтарь даёт усиление на следующую волну.
-- События и неизвестные узлы используют систему риск/награда и могут менять билд прямо по ходу забега.
-- Карта хранит короткую историю пройденного маршрута и показывает номер следующей волны.
-- Клавиши 1–3 теперь выбирают реальные текущие узлы карты.
+/* CHANGELOG v1.5 «ЯРЛЫ И ЭЛИТА»
+- В волнах III, VIII, XIII и далее появляется Ярл — мини-босс между обычными волнами и Ётуном.
+- У каждого биома свой Ярл: Драугр-Ярл, Волчий Ярл, Ярл Скади, Пламенный Ярл, Могильный Ярл и Ярл Биврёста.
+- Ярлы имеют собственную полоску HP/STAGGER, увеличенный размер, награду и уникальную активную способность земли.
+- Элитные модификаторы получили активные умения: стремительный рывок, кровавое поглощение, взрывной импульс, бастион щита и усиленный призыв некроманта.
+- Убийства Ярлов учитываются в статистике и открывают новые достижения.
+- Все системы v1.1–v1.4 сохранены: добивания, STAGGER, синергии даров, карта маршрута и уникальные Ётуны.
 */
-var VERSION='1.3 «ПУТИ САГИ»';
+var VERSION='1.5 «ЯРЛЫ И ЭЛИТА»';
 const TAU=Math.PI*2;
 const clamp=function(v,a,b){return v<a?a:(v>b?b:v);};
 const lerp=function(a,b,t){return a+(b-a)*t;};
@@ -855,6 +853,8 @@ const ACH=[
  {id:'troll1',n:'УБИЙЦА ВЕЛИКАНОВ',d:'Повергни первого ётуна'},
  {id:'troll5',n:'ГРОЗА ЁТУНОВ',d:'Повергни пять ётунов'},
  {id:'elite10',n:'ОХОТНИК НА ЭЛИТУ',d:'Убей 10 элитных врагов'},
+ {id:'jarl1',n:'СЛОМАТЬ КОРОНУ',d:'Повергни первого Ярла'},
+ {id:'jarl10',n:'ГРОЗА ЯРЛОВ',d:'Повергни 10 Ярлов за все саги'},
  {id:'wave5',n:'ЗАКАЛЁННЫЙ',d:'Достигни волны V'},
  {id:'wave10',n:'ВЕТЕРАН',d:'Достигни волны X'},
  {id:'wave15',n:'ЛЕГЕНДА СЕВЕРА',d:'Достигни волны XV'},
@@ -1026,6 +1026,61 @@ const BIOMES=[
 let curBiome=BIOMES[0];
 function biomeForWave(n){return BIOMES[Math.floor((n-1)/5)%BIOMES.length];}
 const EVNAME={dark:'ТЬМА',storm:'МЕТЕЛЬ',rocks:'КАМЕПАД'};
+const BOSS_ARCH={
+ hall:{tag:'РУННЫЙ СТРАЖ',p2:'РУНЫ ПРОБУЖДАЮТСЯ — НЕ СТОЙ НА ПЕЧАТЯХ',p3:'ЧЕРТОГ РУШИТСЯ — РАЗЛОМЫ ПОВСЮДУ',col:'216,169,60'},
+ forest:{tag:'КОРНЕВОЙ ЁТУН',p2:'ЛЕС СЖИМАЕТ КОЛЬЦО — БЕРЕГИСЬ КОРНЕЙ',p3:'ЗОВ СТАИ — ВОЛКИ И КОРНИ ИДУТ ВМЕСТЕ',col:'130,205,90'},
+ ice:{tag:'ИНЕИСТЫЙ ЁТУН',p2:'МОРОЗ СКОВЫВАЕТ НОГИ — ДВИГАЙСЯ ЗАРАНЕЕ',p3:'ЛЕДЯНАЯ БУРЯ — БЕЗОПАСНОГО МЕСТА ВСЁ МЕНЬШЕ',col:'143,216,232'},
+ fire:{tag:'СЫН МУСПЕЛЯ',p2:'ЛАВА ПРОСЫПАЕТСЯ — НЕ ДЕРИСЬ НА ОДНОМ МЕСТЕ',p3:'ПЛАМЯ СУРТА — АРЕНА ГОРИТ',col:'255,120,45'},
+ hel:{tag:'ПАСТЫРЬ МЁРТВЫХ',p2:'ХЕЛЬ ТЯНЕТ ДУШУ — ВЫЙДИ ИЗ КРУГА',p3:'МЁРТВЫЕ ВОССТАЮТ — УНИЧТОЖАЙ ПРИЗРАКОВ',col:'185,140,230'},
+ asgard:{tag:'СТРАЖ БИВРЁСТА',p2:'НЕБО ОТВЕЧАЕТ МОЛНИЯМИ — СМОТРИ ПОД НОГИ',p3:'СУД АСГАРДА — МОЛНИИ БЬЮТ СЕРИЯМИ',col:'255,215,120'}
+};
+const JARL_ARCH={
+ hall:{base:'brute',name:'ДРАУГР-ЯРЛ',tag:'КОСТЯНОЙ ВОЕВОДА',col:'216,169,60'},
+ forest:{base:'wolf',name:'ВОЛЧИЙ ЯРЛ',tag:'КЛЫК МИДГАРДА',col:'130,205,90'},
+ ice:{base:'archer',name:'ЯРЛ СКАДИ',tag:'ЛЕДЯНОЙ ОХОТНИК',col:'143,216,232'},
+ fire:{base:'brute',name:'ПЛАМЕННЫЙ ЯРЛ',tag:'РУКА МУСПЕЛЯ',col:'255,120,45'},
+ hel:{base:'wraith',name:'МОГИЛЬНЫЙ ЯРЛ',tag:'ПАСТЫРЬ ДУШ',col:'185,140,230'},
+ asgard:{base:'valkyrie',name:'ЯРЛ БИВРЁСТА',tag:'КОПЬЁ АСГАРДА',col:'255,215,120'}
+};
+function jarlArch(kind){return JARL_ARCH[kind||curBiome.id]||JARL_ARCH.hall;}
+function bossArch(e){return BOSS_ARCH[(e&&e.bossKind)||curBiome.id]||BOSS_ARCH.hall;}
+function bossSummon(e,type,count){for(let k=0;k<count;k++)spawnEnemy(type,e.x+rand(-100,100),e.y+rand(-100,100),true);}
+function bossPhaseShift(e,next){
+ if(!e||e.phase>=next)return;e.phase=next;
+ if(next===2)e.speed*=1.18;else e.speed*=1.10;
+ const a=bossArch(e);showBanner('ФАЗА '+roman(next),next===2?a.p2:a.p3);AU.sBerserk();shake=Math.max(shake,next===2?8:10);
+ parts.push({type:'ring',x:e.x,y:e.y,t:0,life:0.45,size:next===2?145:185,col:a.col});
+ if(e.bossKind==='hall')bossSummon(e,'draugr',next===2?2:3);
+ else if(e.bossKind==='forest')bossSummon(e,'wolf',next===2?2:4);
+ else if(e.bossKind==='ice')bossSummon(e,'archer',next===2?1:2);
+ else if(e.bossKind==='fire')bossSummon(e,'brute',next===2?1:2);
+ else if(e.bossKind==='hel')bossSummon(e,'wraith',next===2?2:4);
+ else if(e.bossKind==='asgard')bossSummon(e,'valkyrie',next===2?1:2);
+}
+function bossSpecial(e,tgt){
+ if(!e||!tgt||e.specialCd>0||e.staggerT>0)return;
+ const ph=e.phase||1,kind=e.bossKind||'hall';
+ if(kind==='hall'){
+  e.specialCd=ph>=3?3.2:4.4;const n=ph>=3?6:4;
+  for(let k=0;k<n;k++){const a=k/n*TAU+e.t*0.15;telegraphs.push({x:clamp(tgt.x+Math.cos(a)*95,ARENA.wall+60,ARENA.w-ARENA.wall-60),y:clamp(tgt.y+Math.sin(a)*95,ARENA.wall+60,ARENA.h-ARENA.wall-60),r:54,t:0,dur:0.85,dmg:e.dmg*0.72,kind:'rune'});}AU.sWarn();
+ }else if(kind==='forest'){
+  e.specialCd=ph>=3?3.5:4.8;const n=ph>=3?4:3;
+  for(let k=0;k<n;k++){telegraphs.push({x:clamp(tgt.x+rand(-125,125),ARENA.wall+55,ARENA.w-ARENA.wall-55),y:clamp(tgt.y+rand(-125,125),ARENA.wall+55,ARENA.h-ARENA.wall-55),r:60,t:0,dur:0.9,dmg:e.dmg*0.55,kind:'root'});}AU.sWarn();
+ }else if(kind==='ice'){
+  e.specialCd=ph>=3?3.0:4.2;const n=ph>=3?6:4;
+  for(let k=0;k<n;k++){const a=k/n*TAU+rand(-0.15,0.15),rr=ph>=3?rand(60,145):rand(40,110);telegraphs.push({x:clamp(tgt.x+Math.cos(a)*rr,ARENA.wall+55,ARENA.w-ARENA.wall-55),y:clamp(tgt.y+Math.sin(a)*rr,ARENA.wall+55,ARENA.h-ARENA.wall-55),r:48,t:0,dur:0.82,dmg:e.dmg*0.62,kind:'ice'});}AU.sWarn();
+ }else if(kind==='fire'){
+  e.specialCd=ph>=3?2.7:3.8;const n=ph>=3?4:2;
+  for(let k=0;k<n;k++){zones.push({x:clamp(tgt.x+rand(-145,145),ARENA.wall+70,ARENA.w-ARENA.wall-70),y:clamp(tgt.y+rand(-145,145),ARENA.wall+70,ARENA.h-ARENA.wall-70),r:ph>=3?68:58,t:0,dur:ph>=3?4.2:3.4,kind:'fire'});}setHint('ЁТУН РАЗЛИВАЕТ ЛАВУ!',1.8);AU.sWarn();
+ }else if(kind==='hel'){
+  e.specialCd=ph>=3?3.6:5.0;telegraphs.push({x:e.x,y:e.y,r:ph>=3?220:180,t:0,dur:1.05,dmg:e.dmg*0.65,kind:'soul',source:e});
+  if(ph>=2&&enemies.length<44)bossSummon(e,'wraith',ph>=3?2:1);AU.sNecro();
+ }else if(kind==='asgard'){
+  e.specialCd=ph>=3?2.35:3.3;const n=ph>=3?5:3;
+  for(let k=0;k<n;k++)telegraphs.push({x:clamp(tgt.x+rand(-145,145),ARENA.wall+55,ARENA.w-ARENA.wall-55),y:clamp(tgt.y+rand(-145,145),ARENA.wall+55,ARENA.h-ARENA.wall-55),r:46,t:0,dur:0.68,dmg:e.dmg*0.78,kind:'lightning'});AU.sWarn();
+ }
+}
+
 
 /* ============ world ============ */
 const ARENA={w:2240,h:1600,wall:46};
@@ -1387,7 +1442,7 @@ function makePlayer(idx){
   rage:0,berserk:0,rageMul:1,axeCd:0,axeCdMax:2.1,axeCount:1,
   dmgMul:1,armorMul:1,crit:0.05,lifesteal:0,pickupR:95,arc:1.9,range:66,
   weapon:'sword',hammerOut:false,revives:0,burnPow:false,frostPow:false,
-  execBonus:0,execHeal:0,stormPow:false,glassPow:false,upgOwned:{},synergySeen:{},
+  execBonus:0,execHeal:0,stormPow:false,glassPow:false,upgOwned:{},synergySeen:{},snareT:0,chillT:0,
   buffs:{speed:0,damage:0,shield:0}};
 }
 function initRun(m){
@@ -1426,13 +1481,15 @@ function waveComp(n,b){
  const q=[];
  function add(t,c){for(let i=0;i<c;i++)q.push(t);}
  if(n%5===0){q.push('troll');add('draugr',Math.floor(n/2));return shuffle(q);}
+ const jarlWave=n>=3&&n%5===3;
  add('draugr',4+n);
  if(n>=2)add('wolf',Math.min(8,n-1));
  if(n>=3)add('archer',Math.min(7,Math.floor(n/2)));
  if(n>=4)add('brute',Math.min(5,Math.floor((n-2)/2)));
  if(b&&b.id==='hel')add('wraith',Math.min(7,2+Math.floor(n/3)));
  if(b&&b.id==='asgard')add('valkyrie',Math.min(7,1+Math.floor(n/3)));
- return shuffle(q);
+ shuffle(q);if(jarlWave)q.unshift('jarl');
+ return q;
 }
 function nearestPlayer(x,y){let bst=null,bd=Infinity;
  for(let i=0;i<players.length;i++){const pl=players[i];if(!pl.alive)continue;
@@ -1452,11 +1509,15 @@ function spawnEnemy(type,fx,fy,noElite){
  const e={type:type,x:x,y:y,hp:b.hp*hpS,maxHp:b.hp*hpS,speed:b.speed*spS,dmg:b.dmg*dmgS,r:b.r,xp:b.xp,
   gold:Math.max(1,Math.round(randi(b.g[0],b.g[1])*(routeActive.goldMul||1))),atk:b.atk,atkCd:rand(0.4,1),hitT:0,windup:0,kx:0,ky:0,t:rand(0,9),fa:0,stun:0,
   shootT:rand(1,2),lgCd:rand(0.8,1.6),lungeT:0,lx:0,ly:0,slamCd:2.2,slamming:false,
-  phase:1,bossName:'',chargeCd:3,chargeWind:0,charging:0,chargeHit:false,cdx:0,cdy:0,cwx:0,cwy:0,eruptCd:4,
-  fly:false,mod:null,st:null,castT:2.5,stagger:0,maxStagger:STAGGER_BASE[type]||55,staggerT:0};
- if(type==='troll'){e.bossName=pick(curBiome.boss);
+  phase:1,bossName:'',bossKind:'hall',specialCd:rand(2.8,4.4),chargeCd:3,chargeWind:0,charging:0,chargeHit:false,cdx:0,cdy:0,cwx:0,cwy:0,eruptCd:4,
+  fly:false,mod:null,st:null,castT:2.5,stagger:0,maxStagger:STAGGER_BASE[type]||55,staggerT:0,
+  isJarl:false,jarlName:'',jarlKind:'',jarlCd:0,eliteCd:rand(2.2,4.2),eliteRushT:0,eliteRushX:0,eliteRushY:0,guardT:0};
+ if(type==='troll'){e.bossName=pick(curBiome.boss);e.bossKind=curBiome.id;e.specialCd=rand(2.4,3.8);
   if(coop){e.hp*=1.5;e.maxHp*=1.5;}
-  if(curBiome.id==='asgard'){e.fly=true;e.speed*=1.15;}}
+  if(curBiome.id==='asgard'){e.fly=true;e.speed*=1.15;}
+  if(curBiome.id==='ice')e.maxStagger*=1.08;
+  if(curBiome.id==='fire')e.dmg*=1.08;
+  if(curBiome.id==='hel')e.hp*=1.08,e.maxHp=e.hp;}
  if(type!=='troll'&&!noElite&&n>=3){
   const chance=Math.min(0.88,0.08+n*0.015+(routeActive.eliteBoost||0));
   if(rand(0,1)<chance){
@@ -1464,12 +1525,61 @@ function spawnEnemy(type,fx,fy,noElite){
    if(type==='draugr'||type==='brute')pool.push('shield');
    if(type==='draugr'||type==='archer')pool.push('necro');
    e.mod=pick(pool);
-   e.hp*=2.2;e.maxHp=e.hp;e.gold*=3;e.xp+=2;}}
+   e.hp*=2.2;e.maxHp=e.hp;e.gold*=3;e.xp+=2;
+   if(e.mod==='swift')e.speed*=1.38;}}
  e.maxStagger*=e.type==='troll'?(coop?1.25:1):(e.mod?1.35:1);
  enemies.push(e);portals.push({x:x,y:y,t:0,life:0.7});
  if(wave.num===1&&enemies.length===1)firstEnemyCoach();
  for(let i=0;i<6;i++)parts.push({type:'smoke',x:x+rand(-8,8),y:y+rand(-8,8),vx:rand(-20,20),vy:rand(-20,20),t:0,life:rand(0.4,0.8),size:rand(4,9)});
  if(type==='troll')AU.sWarn();
+ return e;
+}
+function spawnJarl(){
+ const a=jarlArch(curBiome.id),e=spawnEnemy(a.base,undefined,undefined,true);if(!e)return null;
+ e.isJarl=true;e.jarlName=a.name;e.jarlKind=curBiome.id;e.jarlCd=rand(1.8,2.8);e.eliteCd=999;
+ e.hp*=4.2;e.maxHp=e.hp;e.dmg*=1.28;e.speed*=1.08;e.r*=1.28;e.gold=Math.round(e.gold*5+25+wave.num*3);e.xp+=10;
+ e.maxStagger=(STAGGER_BASE[a.base]||70)*3.1;e.stagger=0;e.staggerT=0;
+ showBanner(a.name,a.tag+' · МИНИ-БОСС');AU.sWarn();
+ parts.push({type:'ring',x:e.x,y:e.y,t:0,life:0.6,size:e.r+70,col:a.col});
+ return e;
+}
+function jarlSpecial(e,tgt){
+ if(!e||!e.isJarl||!tgt||e.jarlCd>0||e.staggerT>0)return;
+ const kind=e.jarlKind||curBiome.id;e.jarlCd=rand(3.1,4.4);
+ if(kind==='hall'){
+  for(let k=0;k<5;k++){const a=k/5*TAU+e.t*.25;telegraphs.push({x:clamp(tgt.x+Math.cos(a)*90,ARENA.wall+55,ARENA.w-ARENA.wall-55),y:clamp(tgt.y+Math.sin(a)*90,ARENA.wall+55,ARENA.h-ARENA.wall-55),r:42,t:0,dur:.72,dmg:e.dmg*.65,kind:'rune'});}
+  setHint('ЯРЛ ЧЕРТИТ БОЕВЫЕ РУНЫ',1.4);AU.sWarn();
+ }else if(kind==='forest'){
+  telegraphs.push({x:tgt.x,y:tgt.y,r:58,t:0,dur:.78,dmg:e.dmg*.55,kind:'root'});
+  if(enemies.length<42)for(let k=0;k<2;k++)spawnEnemy('wolf',e.x+rand(-70,70),e.y+rand(-70,70),true);AU.sWarn();
+ }else if(kind==='ice'){
+  for(let k=0;k<4;k++)telegraphs.push({x:clamp(tgt.x+rand(-110,110),ARENA.wall+55,ARENA.w-ARENA.wall-55),y:clamp(tgt.y+rand(-110,110),ARENA.wall+55,ARENA.h-ARENA.wall-55),r:44,t:0,dur:.74,dmg:e.dmg*.62,kind:'ice'});AU.sWarn();
+ }else if(kind==='fire'){
+  telegraphs.push({x:e.x,y:e.y,r:125,t:0,dur:.8,dmg:e.dmg*.78,kind:'eliteBoom',source:e});
+  zones.push({x:clamp(tgt.x+rand(-70,70),ARENA.wall+70,ARENA.w-ARENA.wall-70),y:clamp(tgt.y+rand(-70,70),ARENA.wall+70,ARENA.h-ARENA.wall-70),r:55,t:0,dur:3.0,kind:'fire'});AU.sWarn();
+ }else if(kind==='hel'){
+  telegraphs.push({x:e.x,y:e.y,r:145,t:0,dur:.92,dmg:e.dmg*.58,kind:'soul',source:e});
+  if(enemies.length<42)spawnEnemy('wraith',e.x+rand(-80,80),e.y+rand(-80,80),true);AU.sNecro();
+ }else if(kind==='asgard'){
+  for(let k=0;k<4;k++)telegraphs.push({x:clamp(tgt.x+rand(-120,120),ARENA.wall+55,ARENA.w-ARENA.wall-55),y:clamp(tgt.y+rand(-120,120),ARENA.wall+55,ARENA.h-ARENA.wall-55),r:42,t:0,dur:.58,dmg:e.dmg*.72,kind:'lightning'});AU.sWarn();
+ }
+}
+function eliteSpecial(e,tgt,dt){
+ if(!e||!e.mod||e.isJarl||!tgt)return;
+ e.eliteCd-=dt;if(e.guardT>0)e.guardT-=dt;if(e.eliteRushT>0)e.eliteRushT-=dt;
+ if(e.eliteCd>0)return;
+ if(e.mod==='swift'){
+  e.eliteCd=rand(2.6,3.4);e.eliteRushT=.34;const a=angTo(e.x,e.y,tgt.x,tgt.y);e.eliteRushX=Math.cos(a);e.eliteRushY=Math.sin(a);
+  addText(e.x,e.y-e.r-24,'СТРЕМИТЕЛЬНЫЙ РЫВОК','#9fd4ff',11);AU.sDodge();
+ }else if(e.mod==='vamp'){
+  e.eliteCd=rand(4.2,5.4);telegraphs.push({x:e.x,y:e.y,r:110,t:0,dur:.86,dmg:e.dmg*.5,kind:'soul',source:e});AU.sNecro();
+ }else if(e.mod==='boom'){
+  e.eliteCd=rand(3.8,4.8);telegraphs.push({x:e.x,y:e.y,r:92,t:0,dur:.7,dmg:e.dmg*.68,kind:'eliteBoom',source:e});AU.sWarn();
+ }else if(e.mod==='shield'){
+  e.eliteCd=rand(4.6,5.8);e.guardT=2.2;addText(e.x,e.y-e.r-26,'БАСТИОН!','#d7e0e8',12);parts.push({type:'ring',x:e.x,y:e.y,t:0,life:.45,size:e.r+34,col:'200,215,225'});AU.sBlock();
+ }else if(e.mod==='necro'){
+  e.eliteCd=5.8;e.castT=Math.min(e.castT,.4);
+ }
 }
 function summonAdds(e){for(let i=0;i<3;i++)spawnEnemy('draugr',e.x+rand(-70,70),e.y+rand(-70,70),true);showBanner('ЁТУН ПРИЗЫВАЕТ СЛУГ');}
 function shootBolt(e,ang){projs.push({type:'bolt',x:e.x+Math.cos(ang)*e.r,y:e.y+Math.sin(ang)*e.r,vx:Math.cos(ang)*330,vy:Math.sin(ang)*330,dmg:e.dmg,r:5,life:2.6,ownE:e});AU.osc('triangle',500,220,0.15,0.08);}
@@ -1610,7 +1720,7 @@ function executionTarget(pl){
  for(let i=0;i<enemies.length;i++){const e=enemies[i],d=Math.hypot(e.x-pl.x,e.y-pl.y);
   if(d>e.r+62)continue;
   const hp=e.hp/e.maxHp;const exB=pl.execBonus||0;
-  const ok=e.type==='troll'?(e.staggerT>0&&hp<=0.22+exB):((e.mod||e.type==='brute')&&(e.staggerT>0||hp<=0.16+exB));
+  const ok=e.type==='troll'?(e.staggerT>0&&hp<=0.22+exB):(e.isJarl?(e.staggerT>0&&hp<=0.28+exB):((e.mod||e.type==='brute')&&(e.staggerT>0||hp<=0.16+exB)));
   if(ok&&d<bd){best=e;bd=d;}}
  return best;
 }
@@ -1652,6 +1762,7 @@ function strikeEnemy(sx,sy,e,dmg,ang,kb,pl,opts){
    dmg*=0.15;kb*=0.25;
    for(let i=0;i<5;i++)parts.push({type:'spark',x:e.x+Math.cos(aIn2)*e.r,y:e.y+Math.sin(aIn2)*e.r,vx:rand(-160,160),vy:rand(-160,160),t:0,life:0.25,size:1.7});
    addText(e.x,e.y-e.r-10,'БЛОК','#aab4c0',12);AU.sBlock();}}
+ if(e.mod==='shield'&&e.guardT>0){dmg*=0.45;kb*=0.5;}
  dmg=Math.max(1,Math.round(dmg));
  e.hp-=dmg;e.hitT=0.12;e.kx+=Math.cos(ang)*kb;e.ky+=Math.sin(ang)*kb;
  for(let i=0;i<(crit?7:4);i++)parts.push({type:'blood',x:e.x,y:e.y,vx:Math.cos(ang)*rand(40,180)+rand(-50,50),vy:Math.sin(ang)*rand(40,180)+rand(-50,50),t:0,life:rand(0.25,0.5),size:rand(2,4)});
@@ -1689,11 +1800,13 @@ function killEnemy(e){
  if((save.kills.draugr?save.kills.draugr.count:0)>=100)ach('draugr100');
  if(e.type==='troll'){if((save.kills.troll?save.kills.troll.count:0)>=1)ach('troll1');
   if((save.kills.troll?save.kills.troll.count:0)>=5)ach('troll5');}
+ if(e.isJarl){save.stats.jarls=(save.stats.jarls||0)+1;ach('jarl1');if(save.stats.jarls>=10)ach('jarl10');
+  showBanner('ЯРЛ ПОВЕРЖЕН',e.jarlName+' · +25 ЗОЛОТА');team.gold+=25;AU.sGlory();}
  let el=0;for(const k in save.kills)if(k.indexOf('mod_')===0)el+=save.kills[k].count;
  if(el>=10)ach('elite10');
  if(runStats&&players.some(function(p){return p.berserk>0;})){runStats.berkKills++;if(runStats.berkKills>=10)ach('berk10');}
- AU.sDie();bloodDecal(e.x,e.y,e.type==='troll'||e.type==='brute');
- for(let k=0;k<(e.type==='troll'?26:10);k++)parts.push({type:'blood',x:e.x,y:e.y,vx:rand(-190,190),vy:rand(-190,190),t:0,life:rand(0.3,0.6),size:rand(2,5)});
+ AU.sDie();bloodDecal(e.x,e.y,e.type==='troll'||e.type==='brute'||e.isJarl);
+ for(let k=0;k<(e.type==='troll'?26:(e.isJarl?20:10));k++)parts.push({type:'blood',x:e.x,y:e.y,vx:rand(-190,190),vy:rand(-190,190),t:0,life:rand(0.3,0.6),size:rand(2,5)});
  for(let k=0;k<e.xp;k++)pickups.push({type:'rune',x:e.x,y:e.y,vx:rand(-95,95),vy:rand(-95,95),val:1,t:rand(0,9)});
  const g=e.gold;
  if(g>0){const nn=clamp(Math.ceil(g/5),1,10);
@@ -2123,7 +2236,7 @@ function beginWave(n){
  if(n>=4&&Math.random()<0.55)curEvent={type:pick(['dark','storm','rocks']),t:0,rockT:2};
  const boss=n%5===0;
  if(changed)showBanner(b.name,'ВОЛНА '+roman(n)+(boss?' · ЁТУН':''));
- else showBanner('ВОЛНА '+roman(n),boss?'ЗЕМЛЯ ДРОЖИТ… ЁТУН ИДЁТ':(n===3?'ПРОБУДИЛИСЬ ЭЛИТНЫЕ ВРАГИ':''));
+ else showBanner('ВОЛНА '+roman(n),boss?'ЗЕМЛЯ ДРОЖИТ… ЁТУН ИДЁТ':(n%5===3?'ЗНАМЯ ЯРЛА ПОДНЯТО — МИНИ-БОСС':''));
  if(curEvent)setHint('СОБЫТИЕ: '+EVNAME[curEvent.type],3);
  AU.sHorn();
 }
@@ -2181,7 +2294,7 @@ function ambient(rdt){
 }
 function updatePlayer(pl,dt){
  pl.atkCd-=dt;pl.axeCd-=dt;pl.dodgeCd-=dt;pl.iframes-=dt;
- pl.parryCd-=dt;pl.parryT-=dt;pl.stanceCd-=dt;
+ pl.parryCd-=dt;pl.parryT-=dt;pl.stanceCd-=dt;pl.snareT=Math.max(0,(pl.snareT||0)-dt);pl.chillT=Math.max(0,(pl.chillT||0)-dt);
  if(pl.counterT>0)pl.counterT-=dt;
  if(pl.comboT>0){pl.comboT-=dt;if(pl.comboT<=0)resetCombo(pl);}
  for(const k in pl.buffs)if(pl.buffs[k]>0)pl.buffs[k]-=dt;
@@ -2189,7 +2302,7 @@ function updatePlayer(pl,dt){
  const mv=getMove(pl),mx=mv.mx,my=mv.my;
  pl.bob+=dt*(Math.hypot(pl.vx,pl.vy)>30?1:0.3);
  if(pl.dodgeT>0){pl.dodgeT-=dt;pl.vx=pl.dodgeDX*780;pl.vy=pl.dodgeDY*780;}
- else{let sp=pl.speed*(pl.berserk>0?1.5:1);if(pl.buffs.speed>0)sp*=1.25;
+ else{let sp=pl.speed*(pl.berserk>0?1.5:1);if(pl.buffs.speed>0)sp*=1.25;if(pl.snareT>0)sp*=0.34;if(pl.chillT>0)sp*=0.62;
   const k=curBiome.id==='ice'?3.2:10;
   pl.vx+=(mx*sp-pl.vx)*Math.min(1,dt*k);pl.vy+=(my*sp-pl.vy)*Math.min(1,dt*k);}
  pl.x+=pl.vx*dt;pl.y+=pl.vy*dt;collideWorld(pl);
@@ -2243,7 +2356,7 @@ function update(rdt){
   wave.t-=dt;
   if(wave.t<=0&&wave.queue.length&&enemies.length<42){
    const burst=Math.min(wave.queue.length,1+(wave.num>3?1:0));
-   for(let i=0;i<burst;i++)spawnEnemy(wave.queue.pop());
+   for(let i=0;i<burst;i++){const qt=wave.queue.pop();if(qt==='jarl')spawnJarl();else spawnEnemy(qt);}
    wave.t=Math.max(0.22,0.7-wave.num*0.03);}
   if(!wave.queue.length&&enemies.length===0)waveClear();}
 
@@ -2290,7 +2403,7 @@ function update(rdt){
  }
 
  for(let i=enemies.length-1;i>=0;i--){
-  const e=enemies[i];e.t+=dt;if(e.hitT>0)e.hitT-=dt;e.atkCd-=dt;e.thermoCd=Math.max(0,(e.thermoCd||0)-dt);e.shatterCd=Math.max(0,(e.shatterCd||0)-dt);
+  const e=enemies[i];e.t+=dt;if(e.hitT>0)e.hitT-=dt;e.atkCd-=dt;e.thermoCd=Math.max(0,(e.thermoCd||0)-dt);e.shatterCd=Math.max(0,(e.shatterCd||0)-dt);if(e.isJarl)e.jarlCd-=dt;
    if(e.staggerT>0){e.staggerT-=dt;if(e.staggerT<=0){e.staggerT=0;e.stagger=0;}}
   if(e.st){
    if(e.st.bleed){const s=e.st.bleed;s.t-=dt;e.hp-=s.dps*dt;
@@ -2310,6 +2423,7 @@ function update(rdt){
     AU.sNecro();
     for(let k=0;k<6;k++)parts.push({type:'spark',x:e.x,y:e.y,vx:rand(-70,70),vy:rand(-110,-30),t:0,life:0.5,size:1.8});}}
   const tgt=nearestPlayer(e.x,e.y);if(!tgt)continue;
+  jarlSpecial(e,tgt);eliteSpecial(e,tgt,dt);
   const ang=angTo(e.x,e.y,tgt.x,tgt.y),d=Math.hypot(tgt.x-e.x,tgt.y-e.y);
   let dvx=0,dvy=0;
   if(e.type==='draugr'){const a2=ang+Math.sin(e.t*2.7+i)*0.35;
@@ -2343,15 +2457,10 @@ function update(rdt){
    else{dvx=Math.cos(ang)*e.speed;dvy=Math.sin(ang)*e.speed;
     if(d<e.r+tgt.r+22&&e.atkCd<=0){e.windup=0.5;e.atkCd=e.atk;}}}
   else if(e.type==='troll'){
-   e.slamCd-=dt;e.chargeCd-=dt;e.eruptCd-=dt;
-   if(e.phase===1&&e.hp<e.maxHp*0.66){e.phase=2;e.speed*=1.25;
-    showBanner('ФАЗА II','ЁТУН ВПАДАЕТ В ЯРОСТЬ — БЕРЕГИСЬ РЫВКА');AU.sBerserk();shake=8;
-    parts.push({type:'ring',x:e.x,y:e.y,t:0,life:0.4,size:140,col:'255,138,60'});
-    for(let k=0;k<2;k++)spawnEnemy('draugr',e.x+rand(-80,80),e.y+rand(-80,80),true);}
-   if(e.phase===2&&e.hp<e.maxHp*0.33){e.phase=3;e.speed*=1.12;
-    showBanner('ФАЗА III','ЗЕМЛЯ РВЁТСЯ ПОД НОГАМИ');AU.sBerserk();shake=10;
-    parts.push({type:'ring',x:e.x,y:e.y,t:0,life:0.4,size:180,col:'255,64,48'});
-    for(let k=0;k<3;k++)spawnEnemy('draugr',e.x+rand(-90,90),e.y+rand(-90,90),true);}
+   e.slamCd-=dt;e.chargeCd-=dt;e.eruptCd-=dt;e.specialCd-=dt;
+   if(e.phase===1&&e.hp<e.maxHp*0.66)bossPhaseShift(e,2);
+   if(e.phase===2&&e.hp<e.maxHp*0.33)bossPhaseShift(e,3);
+   bossSpecial(e,tgt);
    if(e.chargeWind>0){e.chargeWind-=dt;
     const a=angTo(e.x,e.y,tgt.x,tgt.y);e.cwx=Math.cos(a);e.cwy=Math.sin(a);
     if(e.chargeWind<=0){e.charging=0.7;e.chargeHit=false;e.cdx=e.cwx;e.cdy=e.cwy;AU.sHammer();}}
@@ -2359,20 +2468,22 @@ function update(rdt){
     dvx=e.cdx*e.speed*3.4;dvy=e.cdy*e.speed*3.4;
     if(!e.chargeHit&&d<e.r+tgt.r+10){e.chargeHit=true;enemyBites(e,tgt,e.dmg*1.2,ang);
      tgt.vx+=e.cdx*420;tgt.vy+=e.cdy*420;shake=Math.max(shake,9);}
-    if(e.charging<=0)e.chargeCd=4.5;}
+    if(e.charging<=0)e.chargeCd=e.bossKind==='forest'?5.4:4.5;}
    else if(e.windup>0){e.windup-=dt;
     if(e.windup<=0){e.slamming=false;e.slamCd=e.phase>=2?2.4:3.2;}}
    else{
     dvx=Math.cos(ang)*e.speed;dvy=Math.sin(ang)*e.speed;
-    if(e.phase>=2&&d<430&&d>140&&e.chargeCd<=0){e.chargeWind=0.55;AU.sWarn();}
+    const canCharge=e.bossKind!=='hel'&&e.bossKind!=='ice';
+    if(canCharge&&e.phase>=2&&d<430&&d>140&&e.chargeCd<=0){e.chargeWind=e.bossKind==='asgard'?0.42:0.55;AU.sWarn();}
     else if(d<240&&e.slamCd<=0&&!e.slamming){e.slamming=true;e.windup=0.85;
-     telegraphs.push({x:tgt.x,y:tgt.y,r:135,t:0,dur:0.85,dmg:e.dmg*1.3,slam:true});AU.sWarn();}
+     telegraphs.push({x:tgt.x,y:tgt.y,r:e.bossKind==='fire'?155:135,t:0,dur:0.85,dmg:e.dmg*1.3,slam:true,kind:e.bossKind==='ice'?'ice':(e.bossKind==='forest'?'root':null)});AU.sWarn();}
     if(d<e.r+tgt.r+8&&e.atkCd<=0){e.atkCd=e.atk;enemyBites(e,tgt,e.dmg*0.7,ang);}
-    if(e.phase===3&&e.eruptCd<=0){e.eruptCd=5;
+    if(e.phase===3&&e.eruptCd<=0){e.eruptCd=e.bossKind==='asgard'?4.0:5;
      for(let k=0;k<3;k++){const a=k/3*TAU+rand(0,1.2);
       telegraphs.push({x:clamp(tgt.x+Math.cos(a)*95,ARENA.wall+60,ARENA.w-ARENA.wall-60),
-       y:clamp(tgt.y+Math.sin(a)*95,ARENA.wall+60,ARENA.h-ARENA.wall-60),r:70,t:0,dur:0.9,dmg:e.dmg*0.8});}
+       y:clamp(tgt.y+Math.sin(a)*95,ARENA.wall+60,ARENA.h-ARENA.wall-60),r:70,t:0,dur:0.9,dmg:e.dmg*0.8,kind:e.bossKind==='asgard'?'lightning':(e.bossKind==='hall'?'rune':null)});}
      AU.sWarn();}}}
+  if(e.eliteRushT>0){dvx=e.eliteRushX*e.speed*3.1;dvy=e.eliteRushY*e.speed*3.1;if(d<e.r+tgt.r+8&&e.atkCd<=0){e.atkCd=.7;enemyBites(e,tgt,e.dmg*1.05,ang);}}
   const sm=e.st&&e.st.frost?0.6:1;
   const evSp=curEvent&&curEvent.type==='storm'?1.08:1;
   e.fa=ang;
@@ -2446,10 +2557,20 @@ function update(rdt){
   if(t.t>=t.dur){
    if(t.rock)blast(t.x,t.y,t.r,26,t.dmg);
    else if(t.slam)blast(t.x,t.y,t.r,20,t.dmg);
-   else{for(let k=0;k<players.length;k++){const pl=players[k];
-     if(pl.alive&&Math.hypot(pl.x-t.x,pl.y-t.y)<t.r+pl.r)damagePlayer(pl,t.dmg,angTo(t.x,t.y,pl.x,pl.y));}}
-   for(let k=0;k<14;k++){const a=k/14*TAU;parts.push({type:'smoke',x:t.x+Math.cos(a)*t.r*0.7,y:t.y+Math.sin(a)*t.r*0.7,vx:Math.cos(a)*rand(40,120),vy:Math.sin(a)*rand(40,120),t:0,life:rand(0.4,0.7),size:rand(5,10)});}
-   shake=Math.max(shake,t.rock?8:10);AU.sBoom(0.5);telegraphs.splice(i,1);}}
+   else{
+    let soulHits=0;
+    for(let k=0;k<players.length;k++){const pl=players[k];if(!pl.alive||Math.hypot(pl.x-t.x,pl.y-t.y)>=t.r+pl.r)continue;
+     damagePlayer(pl,t.dmg,angTo(t.x,t.y,pl.x,pl.y),t.source||null);
+     if(t.kind==='root'){pl.snareT=Math.max(pl.snareT||0,1.7);addText(pl.x,pl.y-34,'КОРНИ!','#9fd45f',13);}
+     else if(t.kind==='ice'){pl.chillT=Math.max(pl.chillT||0,2.4);addText(pl.x,pl.y-34,'СКОВАН!','#9fe8ff',13);}
+     else if(t.kind==='lightning'){pl.vx+=Math.cos(angTo(t.x,t.y,pl.x,pl.y))*180;pl.vy+=Math.sin(angTo(t.x,t.y,pl.x,pl.y))*180;addText(pl.x,pl.y-34,'МОЛНИЯ!','#ffe49a',13);}
+     else if(t.kind==='soul'){soulHits++;addText(pl.x,pl.y-34,'ДУША УХОДИТ!','#d8b4ff',13);}
+    }
+    if(t.kind==='soul'&&t.source&&enemies.indexOf(t.source)>=0&&soulHits){t.source.hp=Math.min(t.source.maxHp,t.source.hp+t.source.maxHp*0.045*soulHits);addText(t.source.x,t.source.y-t.source.r-32,'ПОГЛОЩЕНИЕ','#d8b4ff',13);}
+   }
+   const pc=t.kind==='root'?'110,180,70':(t.kind==='ice'?'143,216,232':(t.kind==='soul'?'185,140,230':(t.kind==='lightning'?'255,220,120':(t.kind==='rune'?'216,169,60':(t.kind==='eliteBoom'?'255,95,55':'120,130,145')))));
+   for(let k=0;k<14;k++){const a=k/14*TAU;parts.push({type:t.kind==='lightning'?'spark':'smoke',x:t.x+Math.cos(a)*t.r*0.7,y:t.y+Math.sin(a)*t.r*0.7,vx:Math.cos(a)*rand(40,120),vy:Math.sin(a)*rand(40,120),t:0,life:rand(0.35,0.7),size:rand(2,10),col:pc});}
+   shake=Math.max(shake,t.rock?8:10);AU.sBoom(t.kind==='lightning'?0.35:0.5);telegraphs.splice(i,1);}}
 
  for(let i=pickups.length-1;i>=0;i--){const r=pickups[i];r.t+=dt;
   r.x+=r.vx*dt;r.y+=r.vy*dt;r.vx-=r.vx*4*dt;r.vy-=r.vy*4*dt;
@@ -2519,11 +2640,12 @@ function draw(ts){
   ctx.beginPath();ctx.arc(p.x,p.y,10+k*46,0,TAU);ctx.stroke();
   ctx.globalCompositeOperation='source-over';}
  for(let i=0;i<telegraphs.length;i++){const t=telegraphs[i],k=t.t/t.dur;
-  ctx.fillStyle='rgba(255,70,30,'+(0.1+0.1*Math.sin(ts*22)+k*0.12)+')';
+  const c=t.kind==='root'?'120,200,80':(t.kind==='ice'?'143,216,232':(t.kind==='soul'?'185,140,230':(t.kind==='lightning'?'255,220,120':(t.kind==='rune'?'216,169,60':'255,90,42'))));
+  ctx.fillStyle='rgba('+c+','+(0.08+0.08*Math.sin(ts*22)+k*0.12)+')';
   ctx.beginPath();ctx.arc(t.x,t.y,t.r,0,TAU);ctx.fill();
-  ctx.strokeStyle='rgba(255,90,42,0.85)';ctx.lineWidth=3;ctx.setLineDash([10,8]);
+  ctx.strokeStyle='rgba('+c+',0.9)';ctx.lineWidth=t.kind==='lightning'?4:3;ctx.setLineDash(t.kind==='lightning'?[4,5]:[10,8]);
   ctx.beginPath();ctx.arc(t.x,t.y,t.r,0,TAU);ctx.stroke();ctx.setLineDash([]);
-  ctx.strokeStyle='rgba(255,160,80,0.6)';ctx.lineWidth=2;
+  ctx.strokeStyle='rgba('+c+',0.62)';ctx.lineWidth=2;
   ctx.beginPath();ctx.arc(t.x,t.y,t.r*(1-k),0,TAU);ctx.stroke();}
  for(let i=0;i<pickups.length;i++)drawPickup(pickups[i],ts);
  const items=[];
@@ -2855,9 +2977,13 @@ function drawEnemy(e,ts){
   ctx.strokeStyle=MODCOL[e.mod];ctx.globalAlpha=0.45+0.2*Math.sin(ts*5+e.t);ctx.lineWidth=3;
   ctx.beginPath();ctx.arc(0,0,e.r+7+Math.sin(ts*5+e.t)*2.5,0,TAU);ctx.stroke();
   ctx.globalAlpha=1;ctx.globalCompositeOperation='source-over';}
+ if(e.isJarl){
+  const ja=jarlArch(e.jarlKind);ctx.globalCompositeOperation='lighter';ctx.strokeStyle='rgba('+ja.col+','+(0.5+0.2*Math.sin(ts*5))+')';ctx.lineWidth=4;
+  ctx.beginPath();ctx.arc(0,0,e.r+10+Math.sin(ts*4)*2,0,TAU);ctx.stroke();ctx.globalCompositeOperation='source-over';
+ }
  if(e.type==='troll'&&e.phase>=2){
   ctx.globalCompositeOperation='lighter';
-  const col=e.phase===2?'255,138,60':'255,64,48';
+  const col=e.bossKind==='forest'?'130,205,90':(e.bossKind==='ice'?'143,216,232':(e.bossKind==='fire'?'255,100,40':(e.bossKind==='hel'?'185,140,230':(e.bossKind==='asgard'?'255,215,120':(e.phase===2?'255,138,60':'255,64,48')))));
   ctx.strokeStyle='rgba('+col+','+(0.4+0.25*Math.sin(ts*7))+')';ctx.lineWidth=4;
   ctx.beginPath();ctx.arc(0,0,e.r+9+Math.sin(ts*7)*3,0,TAU);ctx.stroke();
   ctx.globalCompositeOperation='source-over';}
@@ -2954,7 +3080,8 @@ function drawEnemy(e,ts){
    if(e.fly){ctx.strokeStyle='rgba(240,235,220,0.7)';ctx.lineWidth=4;
     ctx.beginPath();ctx.moveTo(-R*0.7,-R*0.2);ctx.quadraticCurveTo(-R*1.8,-R*0.8,-R*2.1,-R*1.6+Math.sin(ts*9)*4);ctx.stroke();
     ctx.beginPath();ctx.moveTo(R*0.7,-R*0.2);ctx.quadraticCurveTo(R*1.8,-R*0.8,R*2.1,-R*1.6+Math.sin(ts*9+1)*4);ctx.stroke();}
-   ctx.fillStyle=e.phase===3?'#6b4a3a':'#57724c';ctx.beginPath();ctx.arc(0,0,R,0,TAU);ctx.fill();
+   const bc=e.bossKind==='forest'?'#4f7145':(e.bossKind==='ice'?'#668fa8':(e.bossKind==='fire'?'#8a4a2e':(e.bossKind==='hel'?'#5b496d':(e.bossKind==='asgard'?'#8a7746':(e.phase===3?'#6b4a3a':'#57724c')))));
+   ctx.fillStyle=bc;ctx.beginPath();ctx.arc(0,0,R,0,TAU);ctx.fill();
    ctx.strokeStyle='#233020';ctx.lineWidth=3;ctx.stroke();
    ctx.fillStyle='rgba(35,48,32,0.8)';
    ctx.beginPath();ctx.arc(-R*0.4,R*0.2,R*0.3,0,TAU);ctx.fill();
@@ -3142,16 +3269,17 @@ function syncHUD(){
   $('cdBerserk').style.transform=save.oaths.fury?'scaleY(1)':(p1.berserk>0?'scaleY(0)':'scaleY('+(1-clamp(p1.rage/100,0,1))+')');
   $('abBerserk').classList.toggle('ready',!save.oaths.fury&&p1.rage>=100&&p1.berserk<=0);}
  if(touchMode&&players[0])$('tbBerserk').classList.toggle('ready',!save.oaths.fury&&players[0].rage>=100&&players[0].berserk<=0);
- let boss=null;for(let i=0;i<enemies.length;i++)if(enemies[i].type==='troll')boss=enemies[i];
+ let boss=null;for(let i=0;i<enemies.length;i++)if(enemies[i].type==='troll'){boss=enemies[i];break;}
+ if(!boss)for(let i=0;i<enemies.length;i++)if(enemies[i].isJarl){boss=enemies[i];break;}
  $('bossWrap').classList.toggle('hidden',!boss);
  if(boss){$('bossFill').style.width=clamp(boss.hp/boss.maxHp*100,0,100)+'%';
   $('bossStaggerFill').style.width=clamp(boss.stagger/boss.maxStagger*100,0,100)+'%';
   $('bossStaggerBar').classList.toggle('broken',boss.staggerT>0);
-  $('bossName').textContent=boss.bossName+(boss.fly?' · ПАРИТ':'')+(boss.phase>1?' · ФАЗА '+roman(boss.phase):'')+(boss.staggerT>0?' · СЛОМЛЕН':'');}
+  $('bossName').textContent=boss.isJarl?(boss.jarlName+' · '+jarlArch(boss.jarlKind).tag+(boss.staggerT>0?' · СЛОМЛЕН':'')):(boss.bossName+' · '+bossArch(boss).tag+(boss.fly?' · ПАРИТ':'')+(boss.phase>1?' · ФАЗА '+roman(boss.phase):'')+(boss.staggerT>0?' · СЛОМЛЕН':''));}
  const bi=$('breakInfo');
  const ex=state==='playing'&&players[0]?executionTarget(players[0]):null;
  if(ex){bi.classList.remove('hidden');
-  bi.textContent=(touchMode?'АТАКА':'[E]')+' · ДОБИТЬ '+(ex.type==='troll'?'ЁТУНА':'ЭЛИТУ')+(ex.staggerT>0?' · СТОЙКОСТЬ СЛОМЛЕНА':'');}
+  bi.textContent=(touchMode?'АТАКА':'[E]')+' · ДОБИТЬ '+(ex.type==='troll'?'ЁТУНА':(ex.isJarl?'ЯРЛА':'ЭЛИТУ'))+(ex.staggerT>0?' · СТОЙКОСТЬ СЛОМЛЕНА':'');}
  else if(state==='playing'&&wave.breakT>0){bi.classList.remove('hidden');
   bi.textContent='СЛЕДУЮЩАЯ ВОЛНА ЧЕРЕЗ '+Math.ceil(wave.breakT)+' · [E] ТРУБИТЬ В РОГ';}
  else bi.classList.add('hidden');
@@ -3229,7 +3357,8 @@ function renderChronicle(){
  $('chrStats').innerHTML=
   '<div>Походов: <b>'+st.runs+'</b></div><div>Убийств: <b>'+st.kills+'</b></div>'
   +'<div>Время в бою: <b>'+fmtTime(st.time)+'</b></div><div>Парирований: <b>'+st.parries+'</b></div>'
-  +'<div>Отбитых стрел: <b>'+st.refl+'</b></div><div>Ётунов: <b>'+((save.kills.troll?save.kills.troll.count:0))+'</b></div>';
+  +'<div>Отбитых стрел: <b>'+st.refl+'</b></div><div>Ётунов: <b>'+((save.kills.troll?save.kills.troll.count:0))+'</b></div>'
+  +'<div>Ярлов: <b>'+(st.jarls||0)+'</b></div>';
  $('achProg').textContent=achCount()+' / '+ACH.length;
  const g=$('achGrid');g.innerHTML='';
  for(let i=0;i<ACH.length;i++){const a=ACH[i],got=!!save.ach[a.id];
