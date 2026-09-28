@@ -13,6 +13,7 @@ set "VPS_USER=root"
 set "VPS_KEY=%USERPROFILE%\.ssh\valhem_deploy_ed25519"
 set "VPS_HEALTH_URL=https://213.139.209.107/api/health"
 if /i "%~1"=="--check" goto check_only
+if /i "%~1"=="--deploy-pages" goto deploy_pages_cli
 if /i "%~1"=="--deploy-vps" goto deploy_vps_cli
 if /i "%~1"=="--deploy-all" goto deploy_all_cli
 
@@ -359,6 +360,15 @@ exit /b 0
 call :test_server || exit /b 1
 call :deploy_vps || exit /b 1
 echo [OK] Сервер VPS успешно обновлён и отвечает на проверку.
+exit /b 0
+
+:deploy_pages_cli
+call :check_git || exit /b 1
+call :configure_remote || exit /b 1
+call :check_branch || exit /b 1
+call :commit_and_push "Update GitHub Pages" 1 || exit /b 1
+call :wait_pages || exit /b 1
+echo [OK] GitHub Pages успешно обновлён.
 exit /b 0
 
 :deploy_all_cli

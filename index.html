@@ -600,7 +600,7 @@ body.touch .netInput{width:100%;max-width:none;font-size:16px;min-height:48px}
 @media(max-width:760px){.onlineSetup{grid-template-columns:1fr}.onlinePane{min-height:0}.roomCode{font-size:24px}}
 
 
-/* ===== v2.4.0 SELF-CONTAINED STARTUP ===== */
+/* ===== v2.4.1 SELF-CONTAINED STARTUP ===== */
 #startup{position:fixed;inset:0;z-index:1000;display:flex;align-items:center;justify-content:center;padding:24px;
  background:radial-gradient(ellipse at 50% 42%,#17191d 0%,#101318 58%,#0b0e13 100%);color:var(--bone);
  transition:opacity .28s ease,transform .28s ease}
@@ -710,7 +710,7 @@ body.touch .netInput{width:100%;max-width:none;font-size:16px;min-height:48px}
     <div class="scInner">
       <div class="runeRow">ᚠ ᚢ ᚦ ᚨ ᚱ ᚲ ᚷ ᚹ</div>
       <h1>VALHEM</h1>
-      <div><span class="packBadge">РЕЛИЗ v2.4.0 «ПРАВА ДРУЖИНЫ»</span></div>
+      <div><span class="packBadge">РЕЛИЗ v2.4.1 «НАДЁЖНЫЙ ЗАПУСК»</span></div>
       <p class="tag">Шесть земель, фазовые ётуны, реликвии и оружейное мастерство, стойкость и добивания, кооп на одном экране, чертог славы и ежедневные саги. Играй на клавиатуре или на стекле планшета.</p>
       <div class="orn">ᛟ</div>
       <div class="titleMenu" aria-label="Главные пути">
@@ -720,7 +720,7 @@ body.touch .netInput{width:100%;max-width:none;font-size:16px;min-height:48px}
         <button id="btnSettings" class="titleChoice compact"><strong>РУНЫ ОЧАГА</strong><small>Звук, экран и управление</small></button>
       </div>
       <div id="titleStats"></div>
-      <div class="credit">VALHEM v2.4.0 «ПРАВА ДРУЖИНЫ» · MOBILE FIRST</div>
+      <div class="credit">VALHEM v2.4.1 «НАДЁЖНЫЙ ЗАПУСК» · MOBILE FIRST</div>
     </div>
   </section>
 
@@ -975,7 +975,7 @@ body.touch .netInput{width:100%;max-width:none;font-size:16px;min-height:48px}
           <button class="sbtn danger" id="btnWipe">СТЕРЕТЬ</button>
         </div>
         <div class="srow">
-          <label>Версия<span class="sdesc">VALHEM v2.4.0 «ПРАВА ДРУЖИНЫ» · VERIFIED ONLINE RECORDS</span></label>
+          <label>Версия<span class="sdesc">VALHEM v2.4.1 «НАДЁЖНЫЙ ЗАПУСК» · VERIFIED ONLINE RECORDS</span></label>
           <span class="sval">ᛟ</span>
         </div>
       </div>
@@ -1054,7 +1054,7 @@ body.touch .netInput{width:100%;max-width:none;font-size:16px;min-height:48px}
  - Положение игроков, враги, снаряды и эффекты синхронизируются через защищённый WebSocket.
  - Имена игроков отображаются над персонажами; одиночный и локальный режимы сохранены.
 */
- var VERSION='2.4.0 «ПРАВА ДРУЖИНЫ»';
+ var VERSION='2.4.1 «НАДЁЖНЫЙ ЗАПУСК»';
 const TAU=Math.PI*2;
 const clamp=function(v,a,b){return v<a?a:(v>b?b:v);};
 const lerp=function(a,b,t){return a+(b-a)*t;};
@@ -1331,10 +1331,12 @@ ctx:null,mGain:null,vol:0.5,muted:false,nextT:0,mstep:0,musicOn:false,
 init:function(){
  if(this.ctx){if(this.ctx.state==='suspended')this.ctx.resume();return;}
  const C=window.AudioContext||window.webkitAudioContext;if(!C)return;
- this.ctx=new C();this.mGain=this.ctx.createGain();this.mGain.gain.value=(save.sett.vol/100)*(this.muted?0:1);
- this.mGain.connect(this.ctx.destination);
- this.drone();this.musicOn=true;this.nextT=this.ctx.currentTime+0.2;
- const self=this;setInterval(function(){if(self.ctx&&self.musicOn)self.music();},70);
+ try{
+  this.ctx=new C();this.mGain=this.ctx.createGain();this.mGain.gain.value=(save.sett.vol/100)*(this.muted?0:1);
+  this.mGain.connect(this.ctx.destination);
+  this.drone();this.musicOn=true;this.nextT=this.ctx.currentTime+0.2;
+  const self=this;setInterval(function(){if(self.ctx&&self.musicOn)self.music();},70);
+ }catch(error){this.ctx=null;this.mGain=null;this.musicOn=false;}
 },
 t:function(){return this.ctx?this.ctx.currentTime:0;},
 setVol:function(v){this.vol=v;if(this.mGain)this.mGain.gain.linearRampToValueAtTime(this.muted?0:v,this.t()+0.15);},
@@ -4170,7 +4172,8 @@ function loop(now){
  draw(now/1000);syncHUD();
 }
 // Первый кадр запускается после подтверждения входа на стартовом экране.
-window.startValhem=function(){AU.init();last=performance.now();requestAnimationFrame(loop);};
+let gameLoopStarted=false;
+window.startValhem=function(){if(gameLoopStarted)return;gameLoopStarted=true;try{AU.init();}catch(error){}last=performance.now();requestAnimationFrame(loop);};
 </script>
 <section id="startup" aria-label="Запуск VALHEM">
  <div class="startupCard">
@@ -4235,15 +4238,20 @@ window.startValhem=function(){AU.init();last=performance.now();requestAnimationF
    if(enter){
     enter.classList.remove('hidden');
     enter.textContent='НАЖМИ ДЛЯ СТАРТА';
-    enter.onclick=function(){
+    const enterGame=function(event){
+     if(event&&event.cancelable)event.preventDefault();
      if(started)return;
      started=true;
+     enter.disabled=true;
+     startup.classList.add('startupExit');
      try{
       window.startValhem();
-      startup.classList.add('startupExit');
-      setTimeout(function(){if(startup&&startup.parentNode)startup.parentNode.removeChild(startup);},360);
-     }catch(err){started=false;fail(err&&err.message?err.message:'Обнови страницу.');}
+     }catch(err){console.error(err);}
+     setTimeout(function(){if(startup&&startup.parentNode)startup.parentNode.removeChild(startup);},220);
     };
+    enter.addEventListener('pointerup',enterGame,{passive:false});
+    enter.addEventListener('click',enterGame);
+    enter.addEventListener('keydown',function(event){if(event.key==='Enter'||event.key===' '){enterGame(event);}});
    }
   }catch(err){fail(err&&err.message?err.message:'Обнови страницу.');}
  }
