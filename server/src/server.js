@@ -1,4 +1,5 @@
 import http from 'node:http';
+import {createHash, timingSafeEqual} from 'node:crypto';
 import {resolve} from 'node:path';
 import {WebSocketServer} from 'ws';
 import {JsonStore, storePath} from './store.js';
@@ -6,14 +7,15 @@ import {RoomRegistry} from './rooms.js';
 
 const PORT = Number(process.env.PORT || 8080);
 const HOST = process.env.HOST || '127.0.0.1';
-const VERSION = '0.2.0';
+const VERSION = '0.3.0';
 const DATA_DIR = resolve(process.env.DATA_DIR || './data');
 const ROOM_TTL_MS = Number(process.env.ROOM_TTL_MS || 45_000);
+const ROOM_RECONNECT_TTL_MS = Number(process.env.ROOM_RECONNECT_TTL_MS || 120_000);
 const allowedOrigins = new Set(String(process.env.ALLOWED_ORIGINS || 'https://divangames.github.io,http://localhost:8080,http://127.0.0.1:8080').split(',').map((item) => item.trim()).filter(Boolean));
 
 const store = new JsonStore(storePath(DATA_DIR));
 await store.load();
-const rooms = new RoomRegistry(ROOM_TTL_MS);
+const rooms = new RoomRegistry(ROOM_TTL_MS, ROOM_RECONNECT_TTL_MS);
 
 function cleanText(value, max, fallback = '') {
   return String(value ?? '').replace(/[<>\u0000-\u001f]/g, '').trim().slice(0, max) || fallback;
@@ -22,6 +24,26 @@ function cleanText(value, max, fallback = '') {
 function cleanId(value) {
   const id = String(value || '').trim();
   return /^[a-zA-Z0-9_-]{8,80}$/.test(id) ? id : '';
+}
+
+function cleanToken(value) {
+  const token = String(value || '').trim();
+  return /^[a-zA-Z0-9_-]{24,180}$/.test(token) ? token : '';
+}
+
+function tokenHash(value) {
+  return createHash('sha256').update(value).digest('hex');
+}
+
+function sameHash(a, b) {
+  if (!a || !b || a.length !== b.length) return false;
+  return timingSafeEqual(Buffer.from(a), Buffer.from(b));
+}
+
+function worldOwner(input) {
+  const clientId = cleanId(input.clientId);
+  const token = cleanToken(input.token);
+  return clientId && token ? {clientId, hash: tokenHash(token)} : null;
 }
 
 function number(value, min, max) {
@@ -78,6 +100,49 @@ async function route(req, res) {
     return entry ? json(res, 200, entry) : json(res, 404, {error: 'Сохранение не найдено'});
   }
 
+  if (req.method === 'POST' && path === '/api/world/load') {
+    const input = await body(req);
+    const owner = worldOwner(input);
+    if (!owner) return json(res, 400, {error: 'Некорректный владелец мира'});
+    const entry = store.getWorld(owner.clientId);
+    if (!entry) return json(res, 200, {world: null});
+    if (!sameHash(entry.tokenHash, owner.hash)) return json(res, 403, {error: 'Этот мир принадлежит другому устройству'});
+    if (!entry.checkpoint) return json(res, 200, {world: null});
+    const {tokenHash: _tokenHash, ...world} = entry;
+    return json(res, 200, {world});
+  }
+
+  if (req.method === 'POST' && path === '/api/world/save') {
+    const input = await body(req);
+    const owner = worldOwner(input);
+    if (!owner || !input.checkpoint || typeof input.checkpoint !== 'object') return json(res, 400, {error: 'Некорректное сохранение мира'});
+    const previous = store.getWorld(owner.clientId);
+    if (previous && !sameHash(previous.tokenHash, owner.hash)) return json(res, 403, {error: 'Этот мир принадлежит другому устройству'});
+    const checkpoint = input.checkpoint;
+    const wave = number(checkpoint.wave, 0, 10_000);
+    const entry = {
+      tokenHash: owner.hash,
+      worldName: cleanText(input.worldName, 28, 'Мир скальда'),
+      ownerName: cleanText(input.name, 18, 'СКАЛЬД'),
+      version: cleanText(input.version, 32),
+      wave,
+      updatedAt: Date.now(),
+      checkpoint: {...checkpoint, wave}
+    };
+    await store.putWorld(owner.clientId, entry);
+    return json(res, 200, {ok: true, world: {worldName: entry.worldName, ownerName: entry.ownerName, version: entry.version, wave: entry.wave, updatedAt: entry.updatedAt}});
+  }
+
+  if (req.method === 'POST' && path === '/api/world/delete') {
+    const input = await body(req);
+    const owner = worldOwner(input);
+    if (!owner) return json(res, 400, {error: 'Некорректный владелец мира'});
+    const previous = store.getWorld(owner.clientId);
+    if (previous && !sameHash(previous.tokenHash, owner.hash)) return json(res, 403, {error: 'Этот мир принадлежит другому устройству'});
+    await store.deleteWorld(owner.clientId);
+    return json(res, 200, {ok: true});
+  }
+
   if (req.method === 'POST' && path === '/api/score') {
     const input = await body(req);
     const clientId = cleanId(input.clientId);
@@ -103,14 +168,22 @@ async function route(req, res) {
   if (req.method === 'GET' && path === '/api/leaderboard') {
     const mode = ['normal', 'daily', 'weekly'].includes(url.searchParams.get('mode')) ? url.searchParams.get('mode') : 'normal';
     const period = cleanText(url.searchParams.get('period'), 24, 'all');
-    return json(res, 200, {items: store.leaderboard(mode, period, number(url.searchParams.get('limit') || 10, 1, 100))});
+    const items = store.leaderboard(mode, period, number(url.searchParams.get('limit') || 10, 1, 100)).map(({clientId: _clientId, ...item}) => item);
+    return json(res, 200, {items});
   }
 
   if (req.method === 'GET' && path === '/api/rooms') return json(res, 200, {items: rooms.list()});
   if (req.method === 'POST' && path === '/api/rooms') {
     const input = await body(req);
-    if (!cleanId(input.clientId)) return json(res, 400, {error: 'Некорректный игрок'});
-    return json(res, 201, {room: rooms.create({...input, clientId: cleanId(input.clientId)})});
+    const clientId = cleanId(input.clientId);
+    if (!clientId) return json(res, 400, {error: 'Некорректный игрок'});
+    const owner = worldOwner(input);
+    if (owner) {
+      const previous = store.getWorld(clientId);
+      if (previous && !sameHash(previous.tokenHash, owner.hash)) return json(res, 403, {error: 'Сетевой мир закреплён за другим устройством'});
+      if (!previous) await store.putWorld(clientId, {tokenHash: owner.hash, worldName: cleanText(input.worldName, 28, 'Мир скальда'), ownerName: cleanText(input.name, 18, 'СКАЛЬД'), version: cleanText(input.version, 32), wave: 0, updatedAt: Date.now(), checkpoint: null});
+    }
+    return json(res, 201, {room: rooms.create({...input, clientId})});
   }
 
   const roomMatch = path.match(/^\/api\/rooms\/([A-Z0-9]{6})(?:\/(join|leave|heartbeat))?$/i);
@@ -149,8 +222,9 @@ wss.on('connection', (ws, req) => {
   const roomCode = cleanText(url.searchParams.get('room'), 6).toUpperCase();
   const clientId = cleanId(url.searchParams.get('clientId'));
   const room = rooms.get(roomCode);
-  const member = room?.players.find((player) => player.id === clientId);
+  const member = rooms.member(roomCode, clientId);
   if (!room || !member) return ws.close(1008, 'room membership required');
+  rooms.heartbeat(roomCode, clientId);
   ws.valhem = {roomCode, clientId, host: member.host};
   ws.send(JSON.stringify({type: 'ready', version: VERSION, room}));
   const relay = (message, predicate) => {
@@ -161,6 +235,7 @@ wss.on('connection', (ws, req) => {
   };
   ws.on('message', (raw) => {
     try {
+      rooms.heartbeat(roomCode, clientId);
       const msg = JSON.parse(String(raw));
       if (msg.type === 'ping') ws.send(JSON.stringify({type: 'pong', time: Date.now()}));
       else if (msg.type === 'start' && ws.valhem.host) {

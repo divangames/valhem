@@ -7,8 +7,9 @@ function cleanText(value, max, fallback = '') {
 }
 
 export class RoomRegistry {
-  constructor(ttlMs = 45_000) {
+  constructor(ttlMs = 45_000, reconnectTtlMs = 120_000) {
     this.ttlMs = ttlMs;
+    this.reconnectTtlMs = Math.max(ttlMs, reconnectTtlMs);
     this.rooms = new Map();
   }
 
@@ -33,6 +34,7 @@ export class RoomRegistry {
       createdAt: now,
       updatedAt: now,
       started: false,
+      reservedIds: new Set([input.clientId]),
       players: [{id: input.clientId, name: cleanText(input.name, 18, 'СКАЛЬД'), host: true, seenAt: now}]
     };
     this.rooms.set(room.code, room);
@@ -43,7 +45,7 @@ export class RoomRegistry {
     this.cleanup();
     const room = this.rooms.get(String(code).toUpperCase());
     if (!room) throw Object.assign(new Error('Мир не найден или уже закрыт'), {status: 404});
-    if (room.started && !room.players.some((player) => player.id === input.clientId)) throw Object.assign(new Error('Поход уже начался'), {status: 409});
+    if (room.started && !room.players.some((player) => player.id === input.clientId) && !room.reservedIds.has(input.clientId)) throw Object.assign(new Error('Поход уже начался'), {status: 409});
     const existing = room.players.find((player) => player.id === input.clientId);
     if (!existing && room.players.length >= room.maxPlayers) throw Object.assign(new Error('В мире нет свободных мест'), {status: 409});
     this.removePlayer(input.clientId, room.code);
@@ -53,6 +55,7 @@ export class RoomRegistry {
       existing.seenAt = now;
     } else {
       room.players.push({id: input.clientId, name: cleanText(input.name, 18, 'СКАЛЬД'), host: false, seenAt: now});
+      room.reservedIds.add(input.clientId);
     }
     room.updatedAt = now;
     return this.view(room);
@@ -85,6 +88,7 @@ export class RoomRegistry {
       return null;
     }
     room.players = room.players.filter((player) => player.id !== clientId);
+    room.reservedIds.delete(clientId);
     room.updatedAt = Date.now();
     return this.view(room);
   }
@@ -99,11 +103,12 @@ export class RoomRegistry {
   cleanup(now = Date.now()) {
     for (const room of this.rooms.values()) {
       const host = room.players.find((player) => player.id === room.hostId);
-      if (!host || now - host.seenAt > this.ttlMs) {
+      const expiry = room.started ? this.reconnectTtlMs : this.ttlMs;
+      if (!host || now - host.seenAt > expiry) {
         this.rooms.delete(room.code);
         continue;
       }
-      room.players = room.players.filter((player) => player.host || now - player.seenAt <= this.ttlMs);
+      room.players = room.players.filter((player) => player.host || now - player.seenAt <= (room.started ? this.reconnectTtlMs : this.ttlMs));
     }
   }
 
@@ -111,6 +116,12 @@ export class RoomRegistry {
     this.cleanup();
     const room = this.rooms.get(String(code).toUpperCase());
     return room ? this.view(room) : null;
+  }
+
+  member(code, clientId) {
+    this.cleanup();
+    const room = this.rooms.get(String(code).toUpperCase());
+    return room?.players.find((player) => player.id === clientId) || null;
   }
 
   list() {
@@ -130,7 +141,7 @@ export class RoomRegistry {
       playerCount: room.players.length,
       started: room.started,
       createdAt: room.createdAt,
-      players: room.players.map(({id, name, host}) => ({id, name, host}))
+      players: room.players.map(({name, host, seenAt}) => ({name, host, connected: Date.now() - seenAt <= 12_000}))
     };
   }
 }

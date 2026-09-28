@@ -1,7 +1,7 @@
 import {mkdir, readFile, rename, writeFile} from 'node:fs/promises';
 import {dirname, join} from 'node:path';
 
-const EMPTY = {saves: {}, scores: []};
+const EMPTY = {saves: {}, worlds: {}, scores: []};
 
 export class JsonStore {
   constructor(file) {
@@ -16,6 +16,7 @@ export class JsonStore {
       const parsed = JSON.parse(await readFile(this.file, 'utf8'));
       this.data = {
         saves: parsed && typeof parsed.saves === 'object' ? parsed.saves : {},
+        worlds: parsed && typeof parsed.worlds === 'object' ? parsed.worlds : {},
         scores: Array.isArray(parsed?.scores) ? parsed.scores : []
       };
     } catch (error) {
@@ -40,6 +41,23 @@ export class JsonStore {
 
   getSave(clientId) {
     return this.data.saves[clientId] || null;
+  }
+
+  async putWorld(clientId, entry) {
+    this.data.worlds[clientId] = entry;
+    await this.flush();
+    return entry;
+  }
+
+  getWorld(clientId) {
+    return this.data.worlds[clientId] || null;
+  }
+
+  async deleteWorld(clientId) {
+    const existed = Boolean(this.data.worlds[clientId]);
+    delete this.data.worlds[clientId];
+    if (existed) await this.flush();
+    return existed;
   }
 
   async putScore(score) {

@@ -592,10 +592,13 @@ body.touch .netInput{width:100%;max-width:none;font-size:16px;min-height:48px}
 .roomCode{font:700 30px Forum;letter-spacing:.22em;color:var(--ice);text-align:center;margin:12px 0}
 .roomMembers{display:grid;gap:6px;margin:12px 0}.roomMember{display:flex;justify-content:space-between;border-bottom:1px solid rgba(255,255,255,.07);padding:6px 2px}
 .onlineNotice{font:12px Forum;color:#8d94a3;line-height:1.5;margin-top:10px}
+.onlineWorldBox{margin:10px 0 14px;padding:10px;border:1px solid rgba(216,169,60,.24);background:rgba(216,169,60,.055)}
+.onlineWorldState{font:13px Forum;line-height:1.45;color:#c9c2b0;margin:6px 0 9px}.onlineWorldState strong{color:var(--gold-hi)}
+.onlineWorldControls{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:7px}.onlineWorldControls .netInput{margin:0}.onlineWorldControls .sbtn{min-width:100px}
 @media(max-width:760px){.onlineSetup{grid-template-columns:1fr}.onlinePane{min-height:0}.roomCode{font-size:24px}}
 
 
-/* ===== v2.2.0 SELF-CONTAINED STARTUP ===== */
+/* ===== v2.3.0 SELF-CONTAINED STARTUP ===== */
 #startup{position:fixed;inset:0;z-index:1000;display:flex;align-items:center;justify-content:center;padding:24px;
  background:radial-gradient(ellipse at 50% 42%,#17191d 0%,#101318 58%,#0b0e13 100%);color:var(--bone);
  transition:opacity .28s ease,transform .28s ease}
@@ -705,7 +708,7 @@ body.touch .netInput{width:100%;max-width:none;font-size:16px;min-height:48px}
     <div class="scInner">
       <div class="runeRow">ᚠ ᚢ ᚦ ᚨ ᚱ ᚲ ᚷ ᚹ</div>
       <h1>VALHEM</h1>
-      <div><span class="packBadge">РЕЛИЗ v2.2.0 «ONLINE COOP»</span></div>
+      <div><span class="packBadge">РЕЛИЗ v2.3.0 «МИРЫ И ВОЗВРАЩЕНИЕ»</span></div>
       <p class="tag">Шесть земель, фазовые ётуны, реликвии и оружейное мастерство, стойкость и добивания, кооп на одном экране, чертог славы и ежедневные саги. Играй на клавиатуре или на стекле планшета.</p>
       <div class="orn">ᛟ</div>
       <div class="titleMenu" aria-label="Главные пути">
@@ -715,7 +718,7 @@ body.touch .netInput{width:100%;max-width:none;font-size:16px;min-height:48px}
         <button id="btnSettings" class="titleChoice compact"><strong>РУНЫ ОЧАГА</strong><small>Звук, экран и управление</small></button>
       </div>
       <div id="titleStats"></div>
-      <div class="credit">VALHEM v2.2.0 «ONLINE COOP» · MOBILE FIRST</div>
+      <div class="credit">VALHEM v2.3.0 «МИРЫ И ВОЗВРАЩЕНИЕ» · MOBILE FIRST</div>
     </div>
   </section>
 
@@ -761,6 +764,14 @@ body.touch .netInput{width:100%;max-width:none;font-size:16px;min-height:48px}
         <div class="onlinePane" id="onlineLobbyPane">
           <div class="secHead">ИМЯ ВОИНА</div>
           <input class="netInput" id="onlineName" maxlength="18" placeholder="Имя персонажа">
+          <div class="onlineWorldBox">
+            <div class="secHead">СЕТЕВОЙ МИР</div>
+            <div id="onlineWorldState" class="onlineWorldState">Проверяем сохранение мира…</div>
+            <div class="onlineWorldControls">
+              <select class="netInput" id="onlineWorldMode"><option value="resume">ПРОДОЛЖИТЬ СЕТЕВОЙ МИР</option><option value="new">НАЧАТЬ НОВЫЙ СЕТЕВОЙ МИР</option></select>
+              <button class="sbtn danger hidden" id="btnDeleteOnlineWorld">СТЕРЕТЬ</button>
+            </div>
+          </div>
           <div class="secHead">РАЗЖЕЧЬ СВОЙ ОЧАГ</div>
           <input class="netInput" id="onlineWorldName" maxlength="28" placeholder="Название мира">
           <select class="netInput" id="onlineVisibility"><option value="code">ПО ТАЙНОЙ РУНЕ</option><option value="public">ДЛЯ ВСЕХ ДРУЖИН</option></select>
@@ -954,7 +965,7 @@ body.touch .netInput{width:100%;max-width:none;font-size:16px;min-height:48px}
           <button class="sbtn danger" id="btnWipe">СТЕРЕТЬ</button>
         </div>
         <div class="srow">
-          <label>Версия<span class="sdesc">VALHEM v2.2.0 «ONLINE COOP» · ROOMS + REALTIME BATTLE</span></label>
+          <label>Версия<span class="sdesc">VALHEM v2.3.0 «МИРЫ И ВОЗВРАЩЕНИЕ» · ONLINE SAVES + RECONNECT</span></label>
           <span class="sval">ᛟ</span>
         </div>
       </div>
@@ -1033,7 +1044,7 @@ body.touch .netInput{width:100%;max-width:none;font-size:16px;min-height:48px}
  - Положение игроков, враги, снаряды и эффекты синхронизируются через защищённый WebSocket.
  - Имена игроков отображаются над персонажами; одиночный и локальный режимы сохранены.
 */
- var VERSION='2.2.0 «ONLINE COOP»';
+ var VERSION='2.3.0 «МИРЫ И ВОЗВРАЩЕНИЕ»';
 const TAU=Math.PI*2;
 const clamp=function(v,a,b){return v<a?a:(v>b?b:v);};
 const lerp=function(a,b,t){return a+(b-a)*t;};
@@ -1111,7 +1122,7 @@ addEventListener('orientationchange',function(){setTimeout(resize,120);setTimeou
 if(window.visualViewport)visualViewport.addEventListener('resize',resize);
 
 /* ============ save ============ */
-const DEF={glory:0,best:0,dailyBest:0,lastDay:'',weeklyBest:0,lastWeek:'',contractDay:'',contractProg:{},contractDone:{},net:{id:'',name:'СКАЛЬД',api:''},hero:'viking',
+const DEF={glory:0,best:0,dailyBest:0,lastDay:'',weeklyBest:0,lastWeek:'',contractDay:'',contractProg:{},contractDone:{},net:{id:'',token:'',name:'СКАЛЬД',api:''},hero:'viking',
  heroes:{berserk:false,maiden:false,ulf:false},
  up:{hp:0,dmg:0,spd:0,rage:0,gold:0,gift:0,valk:0},
  oaths:{iron:false,fury:false,horde:false,blood:false},
@@ -1135,10 +1146,11 @@ function load(){try{const s=JSON.parse(localStorage.getItem('valhem_save'));
  return JSON.parse(JSON.stringify(DEF));}
 let save=load();
 function persist(){try{localStorage.setItem('valhem_save',JSON.stringify(save));}catch(e){}}
-function ensureNetId(){if(!save.net)save.net={id:'',name:'СКАЛЬД',api:''};if(!save.net.id){save.net.id=(crypto&&crypto.randomUUID)?crypto.randomUUID():('g-'+Date.now().toString(36)+'-'+Math.random().toString(36).slice(2));persist();}return save.net.id;}
+function randomNetSecret(){if(window.crypto&&crypto.getRandomValues){const bytes=new Uint8Array(32);crypto.getRandomValues(bytes);return Array.from(bytes,function(v){return v.toString(16).padStart(2,'0');}).join('');}return 't-'+Date.now().toString(36)+'-'+Math.random().toString(36).slice(2)+Math.random().toString(36).slice(2);}
+function ensureNetId(){if(!save.net)save.net={id:'',token:'',name:'СКАЛЬД',api:''};if(!save.net.id)save.net.id=(window.crypto&&crypto.randomUUID)?crypto.randomUUID():('g-'+Date.now().toString(36)+'-'+Math.random().toString(36).slice(2));if(!save.net.token)save.net.token=randomNetSecret();persist();return save.net.id;}
 const DEFAULT_NET_API='https://213.139.209.107';
 function netBase(){const v=((save.net&&save.net.api)||'').trim().replace(/\/$/,'');if(v)return v;return DEFAULT_NET_API;}
-async function netCall(path,opt){const b=netBase();if(!b)throw new Error('API URL не задан');const o=opt||{};o.headers=Object.assign({'Content-Type':'application/json'},o.headers||{});const r=await fetch(b+'/api'+path,o);if(!r.ok)throw new Error('HTTP '+r.status);return r.json();}
+async function netCall(path,opt){const b=netBase();if(!b)throw new Error('API URL не задан');const o=opt||{};o.headers=Object.assign({'Content-Type':'application/json'},o.headers||{});const r=await fetch(b+'/api'+path,o);let data={};try{data=await r.json();}catch(e){}if(!r.ok)throw new Error(data.error||('HTTP '+r.status));return data;}
 function setNetStatus(text,ok){const e=$('netStatus');if(!e)return;e.textContent=text;e.className='sdesc netStatus '+(ok===true?'ok':(ok===false?'bad':''));}
 async function netTest(){try{setNetStatus('ПРОВЕРЯЕМ…');const r=await netCall('/health');setNetStatus('ONLINE · '+(r.version||'server'),true);return true;}catch(e){setNetStatus('OFFLINE · '+e.message,false);return false;}}
 async function netBackup(){try{ensureNetId();await netCall('/save',{method:'POST',body:JSON.stringify({clientId:save.net.id,name:save.net.name||'СКАЛЬД',version:VERSION,save:save})});setNetStatus('CLOUD BACKUP СОХРАНЁН',true);return true;}catch(e){setNetStatus('BACKUP НЕ УДАЛСЯ · '+e.message,false);return false;}}
@@ -1146,27 +1158,39 @@ let cloudRestoreArmed=false;
 async function netRestore(){if(!cloudRestoreArmed){cloudRestoreArmed=true;setNetStatus('RESTORE: НАЖМИ ЕЩЁ РАЗ ДЛЯ ПОДТВЕРЖДЕНИЯ');setTimeout(function(){cloudRestoreArmed=false;},4000);return;}cloudRestoreArmed=false;try{ensureNetId();const r=await netCall('/save/'+encodeURIComponent(save.net.id));if(!r.save)throw new Error('облачного сохранения нет');localStorage.setItem('valhem_save',JSON.stringify(r.save));setNetStatus('ВОССТАНОВЛЕНО · ПЕРЕЗАПУСК',true);setTimeout(function(){location.reload();},350);}catch(e){setNetStatus('RESTORE НЕ УДАЛСЯ · '+e.message,false);}}
 async function netSubmitScore(){try{ensureNetId();const md=dailyMode?'daily':(weeklyMode?'weekly':'normal'),period=dailyMode?fmtDate():(weeklyMode?weekKey():'all');await netCall('/score',{method:'POST',body:JSON.stringify({clientId:save.net.id,name:save.net.name||'СКАЛЬД',mode:md,period:period,wave:wave.num,kills:kills,level:team.level,time:Math.round(runTime),hero:save.hero,version:VERSION})});}catch(e){} }
 async function renderOnlineBoard(){const el=$('onlineRows');if(!el)return;el.innerHTML='<div class="sold">Загрузка…</div>';try{const r=await netCall('/leaderboard?mode=normal&period=all');el.innerHTML='';if(!r.items||!r.items.length){el.innerHTML='<div class="sold">Пока нет результатов.</div>';return;}r.items.slice(0,10).forEach(function(x,i){const d=document.createElement('div');d.className='boardRow';d.innerHTML='<span class="rk">'+(i+1)+'</span><span class="bw">'+roman(x.wave)+'</span><span class="bk">'+x.kills+' уб.</span><span class="bh">'+String(x.name||'СКАЛЬД').replace(/[<>]/g,'')+'</span><span class="bd">'+(x.version||'')+'</span>';el.appendChild(d);});}catch(e){el.innerHTML='<div class="sold">OFFLINE · online-рекорды недоступны</div>';}}
-let onlineRoom=null,onlinePoll=0,onlineSocket=null,onlineActive=false,onlineHost=false,onlineGuest=false,onlineLastInput=0,onlineLastSnapshot=0;
+let onlineRoom=null,onlinePoll=0,onlineSocket=null,onlineActive=false,onlineHost=false,onlineGuest=false,onlineRoleHost=false,onlineLastInput=0,onlineLastSnapshot=0;
+let onlineWorld=null,onlineResumeCheckpoint=null,onlineCheckpointSaving=false,onlineApplyingCheckpoint=false,onlineReconnectTimer=0,onlineReconnectAttempts=0,onlineSocketGeneration=0;
 let netGuestInput={mx:0,my:0,attack:false};
 function cleanOnlineName(v,max,fallback){return String(v||'').replace(/[<>]/g,'').trim().slice(0,max)||(fallback||'');}
 function onlineIdentity(){ensureNetId();const input=$('onlineName');const name=cleanOnlineName(input&&input.value,18,(save.net&&save.net.name)||'СКАЛЬД');save.net.name=name;persist();if(input)input.value=name;return {clientId:save.net.id,name:name};}
+function onlineWorldCredentials(){ensureNetId();return {clientId:save.net.id,token:save.net.token};}
+function onlineWorldDate(value){try{return new Date(value).toLocaleString('ru-RU',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'});}catch(e){return '';}}
+function renderOnlineWorld(){const stateEl=$('onlineWorldState'),modeEl=$('onlineWorldMode'),del=$('btnDeleteOnlineWorld');if(!stateEl||!modeEl||!del)return;if(onlineWorld){stateEl.textContent='';const name=document.createElement('strong');name.textContent=cleanOnlineName(onlineWorld.worldName,28,'Сетевой мир');stateEl.appendChild(name);stateEl.appendChild(document.createTextNode(' · завершена волна '+roman(onlineWorld.wave||0)));stateEl.appendChild(document.createElement('br'));stateEl.appendChild(document.createTextNode('Сохранено '+onlineWorldDate(onlineWorld.updatedAt)));modeEl.options[0].disabled=false;if(modeEl.value!=='new')modeEl.value='resume';del.classList.remove('hidden');if(!$('onlineWorldName').value)$('onlineWorldName').value=onlineWorld.worldName||'';}else{stateEl.textContent='Сохранённого сетевого мира нет. Будет создан новый.';modeEl.options[0].disabled=true;modeEl.value='new';del.classList.add('hidden');}}
+async function loadOnlineWorld(){const stateEl=$('onlineWorldState');if(stateEl)stateEl.textContent='Проверяем сохранение мира…';try{const r=await netCall('/world/load',{method:'POST',body:JSON.stringify(onlineWorldCredentials())});onlineWorld=r.world||null;renderOnlineWorld();return onlineWorld;}catch(e){onlineWorld=null;renderOnlineWorld();if(stateEl)stateEl.textContent='Сохранение недоступно · '+e.message;return null;}}
+let onlineDeleteArmed=false;
+async function deleteOnlineWorld(){const button=$('btnDeleteOnlineWorld');if(!onlineWorld)return;if(!onlineDeleteArmed){onlineDeleteArmed=true;button.textContent='ТОЧНО?';setTimeout(function(){onlineDeleteArmed=false;button.textContent='СТЕРЕТЬ';},3500);return;}onlineDeleteArmed=false;button.textContent='СТЕРЕТЬ';try{await netCall('/world/delete',{method:'POST',body:JSON.stringify(onlineWorldCredentials())});onlineWorld=null;onlineResumeCheckpoint=null;renderOnlineWorld();setOnlineStatus('СЕТЕВОЙ МИР СТЁРТ',true);}catch(e){setOnlineStatus('НЕ УДАЛОСЬ СТЕРЕТЬ · '+e.message,false);}}
 function setOnlineStatus(text,ok){const e=$('onlineStatus');if(!e)return;e.textContent=text;e.className='netStatus '+(ok===true?'ok':(ok===false?'bad':''));}
-function onlineIsHost(){return !!(onlineRoom&&onlineRoom.players.some(function(p){return p.id===ensureNetId()&&p.host;}));}
-function renderCurrentRoom(){const inRoom=!!onlineRoom;$('onlineLobbyPane').classList.toggle('hidden',inRoom);$('onlineRoomList').classList.toggle('hidden',inRoom);$('btnRefreshRooms').parentElement.classList.toggle('hidden',inRoom);$('onlineRoomPane').classList.toggle('hidden',!inRoom);if(!inRoom)return;$('onlineRoomName').textContent=onlineRoom.worldName;$('onlineRoomCode').textContent=onlineRoom.code;const members=$('onlineMembers');members.innerHTML='';onlineRoom.players.forEach(function(player){const row=document.createElement('div');row.className='roomMember';const n=document.createElement('span');n.textContent=player.name;const role=document.createElement('span');role.textContent=player.host?'ВЛАДЕЛЕЦ':'ГОСТЬ';row.appendChild(n);row.appendChild(role);members.appendChild(row);});const host=onlineIsHost(),ready=onlineRoom.playerCount>=2&&!onlineRoom.started;$('btnStartOnline').classList.toggle('hidden',!host);$('btnStartOnline').disabled=!ready;$('onlineRoomHint').textContent=onlineRoom.started?'Поход уже начался.':(host?(ready?'Товарищ готов. Можно начинать поход.':'Ждём товарища…'):'Ждём, когда владелец начнёт поход.');setOnlineStatus('ONLINE · '+onlineRoom.playerCount+' / '+onlineRoom.maxPlayers+' в мире',true);}
+function onlineIsHost(){return !!onlineRoleHost;}
+function renderCurrentRoom(){const inRoom=!!onlineRoom;$('onlineLobbyPane').classList.toggle('hidden',inRoom);$('onlineRoomList').classList.toggle('hidden',inRoom);$('btnRefreshRooms').parentElement.classList.toggle('hidden',inRoom);$('onlineRoomPane').classList.toggle('hidden',!inRoom);if(!inRoom)return;$('onlineRoomName').textContent=onlineRoom.worldName;$('onlineRoomCode').textContent=onlineRoom.code;const members=$('onlineMembers');members.innerHTML='';onlineRoom.players.forEach(function(player){const row=document.createElement('div');row.className='roomMember';const n=document.createElement('span');n.textContent=player.name;const role=document.createElement('span');role.textContent=(player.host?'ВЛАДЕЛЕЦ':'ГОСТЬ')+(player.connected===false?' · ВОЗВРАЩАЕТСЯ':'');row.appendChild(n);row.appendChild(role);members.appendChild(row);});const host=onlineIsHost(),ready=onlineRoom.playerCount>=2&&!onlineRoom.started;$('btnStartOnline').classList.toggle('hidden',!host);$('btnStartOnline').disabled=!ready;$('onlineRoomHint').textContent=onlineRoom.started?'Поход уже начался. Связь можно восстановить в течение двух минут.':(host?(ready?'Товарищ готов. Можно начинать поход.':'Ждём товарища…'):'Ждём, когда владелец начнёт поход.');setOnlineStatus('ONLINE · '+onlineRoom.playerCount+' / '+onlineRoom.maxPlayers+' в мире',true);}
 async function refreshRooms(){if(onlineRoom)return;const list=$('onlineRoomList');list.innerHTML='<div class="sold">Ищем открытые миры…</div>';try{const r=await netCall('/rooms');list.innerHTML='';if(!r.items||!r.items.length){list.innerHTML='<div class="sold">Публичных миров пока нет. Можно войти по коду.</div>';setOnlineStatus('ONLINE · сервер доступен',true);return;}r.items.forEach(function(room){const card=document.createElement('div');card.className='roomCard';const copy=document.createElement('div');const title=document.createElement('strong');title.textContent=room.worldName;const meta=document.createElement('div');meta.className='roomMeta';meta.textContent=room.players[0].name+' · '+room.playerCount+'/'+room.maxPlayers;copy.appendChild(title);copy.appendChild(meta);const join=document.createElement('button');join.className='sbtn';join.textContent='ВОЙТИ';join.onclick=function(){joinRoom(room.code);};card.appendChild(copy);card.appendChild(join);list.appendChild(card);});setOnlineStatus('ONLINE · найдено миров: '+r.items.length,true);}catch(e){list.innerHTML='<div class="sold">Сервер недоступен.</div>';setOnlineStatus('OFFLINE · '+e.message,false);}}
-async function createRoom(){const who=onlineIdentity();const worldName=cleanOnlineName($('onlineWorldName').value,28,'Мир '+who.name);try{setOnlineStatus('ОТКРЫВАЕМ МИР…');const r=await netCall('/rooms',{method:'POST',body:JSON.stringify(Object.assign({},who,{worldName:worldName,visibility:$('onlineVisibility').value,maxPlayers:2}))});onlineRoom=r.room;renderCurrentRoom();startOnlinePoll();connectOnlineSocket();}catch(e){setOnlineStatus('НЕ УДАЛОСЬ ОТКРЫТЬ · '+e.message,false);}}
-async function joinRoom(rawCode){const code=String(rawCode||$('onlineCode').value||'').toUpperCase().replace(/[^A-Z2-9]/g,'').slice(0,6);$('onlineCode').value=code;if(code.length!==6){setOnlineStatus('ВВЕДИ 6-СИМВОЛЬНЫЙ КОД',false);return;}try{setOnlineStatus('ВХОДИМ В МИР…');const r=await netCall('/rooms/'+code+'/join',{method:'POST',body:JSON.stringify(onlineIdentity())});onlineRoom=r.room;renderCurrentRoom();startOnlinePoll();connectOnlineSocket();}catch(e){setOnlineStatus('НЕ УДАЛОСЬ ВОЙТИ · '+e.message,false);}}
+async function createRoom(){const who=onlineIdentity();if($('onlineWorldMode').value==='resume'&&!onlineWorld)await loadOnlineWorld();const resume=$('onlineWorldMode').value==='resume'&&onlineWorld&&onlineWorld.checkpoint;onlineResumeCheckpoint=resume?onlineWorld.checkpoint:null;const suggested=resume&&onlineWorld.worldName?onlineWorld.worldName:('Мир '+who.name);const worldName=cleanOnlineName($('onlineWorldName').value,28,suggested);try{setOnlineStatus('ОТКРЫВАЕМ МИР…');const r=await netCall('/rooms',{method:'POST',body:JSON.stringify(Object.assign({},who,{token:save.net.token,version:VERSION,worldName:worldName,visibility:$('onlineVisibility').value,maxPlayers:2}))});onlineRoleHost=true;onlineRoom=r.room;renderCurrentRoom();startOnlinePoll();connectOnlineSocket();}catch(e){setOnlineStatus('НЕ УДАЛОСЬ ОТКРЫТЬ · '+e.message,false);}}
+async function joinRoom(rawCode){const code=String(rawCode||$('onlineCode').value||'').toUpperCase().replace(/[^A-Z2-9]/g,'').slice(0,6);$('onlineCode').value=code;if(code.length!==6){setOnlineStatus('ВВЕДИ 6-СИМВОЛЬНЫЙ КОД',false);return;}try{setOnlineStatus('ВХОДИМ В МИР…');const r=await netCall('/rooms/'+code+'/join',{method:'POST',body:JSON.stringify(onlineIdentity())});onlineRoleHost=false;onlineRoom=r.room;renderCurrentRoom();startOnlinePoll();connectOnlineSocket();}catch(e){setOnlineStatus('НЕ УДАЛОСЬ ВОЙТИ · '+e.message,false);}}
 async function pollOnlineRoom(){if(!onlineRoom)return;try{const r=await netCall('/rooms/'+onlineRoom.code+'/heartbeat',{method:'POST',body:JSON.stringify({clientId:ensureNetId()})});if(!r.room)throw new Error('мир закрыт');onlineRoom=r.room;renderCurrentRoom();}catch(e){onlineRoom=null;stopOnlinePoll();renderCurrentRoom();setOnlineStatus('МИР ЗАКРЫТ · '+e.message,false);refreshRooms();}}
 function startOnlinePoll(){stopOnlinePoll();onlinePoll=setInterval(pollOnlineRoom,3000);}
 function stopOnlinePoll(){if(onlinePoll){clearInterval(onlinePoll);onlinePoll=0;}}
-async function leaveOnlineRoom(){const room=onlineRoom;if(!room)return;onlineRoom=null;onlineActive=false;onlineHost=false;onlineGuest=false;stopOnlinePoll();closeOnlineSocket();renderCurrentRoom();try{await netCall('/rooms/'+room.code+'/leave',{method:'POST',body:JSON.stringify({clientId:ensureNetId()})});}catch(e){}if(state!=='title')backToTitle();refreshRooms();}
-function openOnline(){AU.init();AU.sClick();ensureNetId();$('onlineName').value=(save.net&&save.net.name)||'СКАЛЬД';$('onlineWorldName').value='Мир '+((save.net&&save.net.name)||'СКАЛЬДА');$('onlineCode').value='';renderCurrentRoom();showOnly('onlineScreen');if(onlineRoom){pollOnlineRoom();startOnlinePoll();connectOnlineSocket();}else refreshRooms();}
+async function leaveOnlineRoom(){const room=onlineRoom;if(!room)return;onlineRoom=null;onlineActive=false;onlineHost=false;onlineGuest=false;onlineRoleHost=false;onlineResumeCheckpoint=null;stopOnlinePoll();closeOnlineSocket();renderCurrentRoom();try{await netCall('/rooms/'+room.code+'/leave',{method:'POST',body:JSON.stringify({clientId:ensureNetId()})});}catch(e){}if(state!=='title')backToTitle();loadOnlineWorld();refreshRooms();}
+function openOnline(){AU.init();AU.sClick();ensureNetId();$('onlineName').value=(save.net&&save.net.name)||'СКАЛЬД';$('onlineWorldName').value='Мир '+((save.net&&save.net.name)||'СКАЛЬДА');$('onlineCode').value='';renderCurrentRoom();showOnly('onlineScreen');loadOnlineWorld();if(onlineRoom){pollOnlineRoom();startOnlinePoll();connectOnlineSocket();}else refreshRooms();}
 function onlineWsUrl(){return netBase().replace(/^http/,'ws')+'/ws?room='+encodeURIComponent(onlineRoom.code)+'&clientId='+encodeURIComponent(ensureNetId());}
-function closeOnlineSocket(){if(onlineSocket){const ws=onlineSocket;onlineSocket=null;try{ws.close();}catch(e){}}}
-function connectOnlineSocket(){if(!onlineRoom)return;closeOnlineSocket();const ws=new WebSocket(onlineWsUrl());onlineSocket=ws;ws.onopen=function(){setOnlineStatus('ONLINE · канал боя готов',true);};ws.onmessage=function(e){let msg;try{msg=JSON.parse(e.data);}catch(err){return;}if(msg.type==='ready'&&msg.room){onlineRoom=msg.room;renderCurrentRoom();}else if(msg.type==='start'){onlineRoom=msg.room||onlineRoom;beginOnlineRun();}else if(msg.type==='input'&&onlineHost){netGuestInput={mx:+msg.mx||0,my:+msg.my||0,attack:!!msg.attack};}else if(msg.type==='action'&&onlineHost){applyGuestAction(msg.action);}else if(msg.type==='snapshot'&&onlineGuest){applyOnlineSnapshot(msg.world);}};ws.onclose=function(){if(onlineSocket===ws){onlineSocket=null;if(onlineActive)setHint('СВЯЗЬ С СЕРВЕРОМ ПОТЕРЯНА',5);}};ws.onerror=function(){setOnlineStatus('ОШИБКА СЕТЕВОГО КАНАЛА',false);};}
+function closeOnlineSocket(){onlineSocketGeneration++;if(onlineReconnectTimer){clearTimeout(onlineReconnectTimer);onlineReconnectTimer=0;}if(onlineSocket){const ws=onlineSocket;onlineSocket=null;try{ws.close();}catch(e){}}}
+function scheduleOnlineReconnect(){if(!onlineRoom||onlineReconnectTimer)return;onlineReconnectAttempts++;const delay=Math.min(10000,700*Math.pow(1.65,Math.min(onlineReconnectAttempts,7)));setOnlineStatus('ВОССТАНАВЛИВАЕМ СВЯЗЬ · попытка '+onlineReconnectAttempts,false);if(onlineActive)setHint('СВЯЗЬ ПОТЕРЯНА · ВОЗВРАЩАЕМСЯ В МИР',4);onlineReconnectTimer=setTimeout(async function(){onlineReconnectTimer=0;if(!onlineRoom)return;try{const r=await netCall('/rooms/'+onlineRoom.code+'/join',{method:'POST',body:JSON.stringify(onlineIdentity())});onlineRoom=r.room;renderCurrentRoom();connectOnlineSocket();}catch(e){if(onlineReconnectAttempts<12)scheduleOnlineReconnect();else{setOnlineStatus('НЕ УДАЛОСЬ ВЕРНУТЬСЯ · '+e.message,false);if(onlineActive)setHint('МИР НЕДОСТУПЕН · ВЕРНИСЬ В ОНЛАЙН-МЕНЮ',6);}}},delay);}
+function connectOnlineSocket(){if(!onlineRoom)return;const generation=++onlineSocketGeneration;if(onlineSocket){try{onlineSocket.close();}catch(e){}}const ws=new WebSocket(onlineWsUrl());onlineSocket=ws;ws.onopen=function(){if(generation!==onlineSocketGeneration)return;onlineReconnectAttempts=0;setOnlineStatus(onlineActive?'ONLINE · связь восстановлена':'ONLINE · канал боя готов',true);if(onlineActive)setHint('СВЯЗЬ С МИРОМ ВОССТАНОВЛЕНА',3);};ws.onmessage=function(e){let msg;try{msg=JSON.parse(e.data);}catch(err){return;}if(msg.type==='ready'&&msg.room){onlineRoom=msg.room;renderCurrentRoom();}else if(msg.type==='start'){onlineRoom=msg.room||onlineRoom;beginOnlineRun();}else if(msg.type==='input'&&onlineHost){netGuestInput={mx:+msg.mx||0,my:+msg.my||0,attack:!!msg.attack};}else if(msg.type==='action'&&onlineHost){applyGuestAction(msg.action);}else if(msg.type==='snapshot'&&onlineGuest){applyOnlineSnapshot(msg.world);}};ws.onclose=function(){if(generation===onlineSocketGeneration&&onlineSocket===ws){onlineSocket=null;scheduleOnlineReconnect();}};ws.onerror=function(){if(generation===onlineSocketGeneration)setOnlineStatus('ОШИБКА СЕТЕВОГО КАНАЛА',false);};}
 function sendOnline(msg){if(onlineSocket&&onlineSocket.readyState===WebSocket.OPEN)onlineSocket.send(JSON.stringify(msg));}
 function requestOnlineStart(){if(onlineIsHost()&&onlineRoom&&onlineRoom.playerCount>=2)sendOnline({type:'start'});}
-function beginOnlineRun(){if(onlineActive)return;stopOnlinePoll();onlineHost=onlineIsHost();onlineGuest=!onlineHost;onlineActive=true;dailyMode=false;weeklyMode=false;startGame('coop');const host=onlineRoom.players.find(function(p){return p.host;}),guest=onlineRoom.players.find(function(p){return !p.host;});if(players[0])players[0].netName=host?host.name:'ХОЗЯИН';if(players[1])players[1].netName=guest?guest.name:'ТОВАРИЩ';setHint(onlineHost?'МИР ОТКРЫТ · ВЫ ХОЗЯИН':'ВЫ ВОШЛИ В МИР '+(host?host.name:''),5);}
+function makeOnlineCheckpoint(){return {schema:1,wave:Math.max(0,wave.num||0),team:netPlain(team,0),players:netPlain(players,0),kills:kills,runTime:Math.round(runTime),biome:curBiome.id,routePending:netPlain(routePending,0),routeHistory:netPlain(routeHistory.slice(-40),0),savedAt:Date.now()};}
+function applyOnlineCheckpoint(cp){if(!cp||cp.schema!==1)return false;onlineApplyingCheckpoint=true;try{team=Object.assign(team,cp.team||{});if(!Array.isArray(team.relics))team.relics=[];const stored=Array.isArray(cp.players)?cp.players:[];for(let i=0;i<players.length;i++){const fresh=players[i],src=stored[i]||{};Object.assign(fresh,src);fresh.idx=i;fresh.x=ARENA.w/2+(i?80:-80);fresh.y=ARENA.h/2+150;fresh.vx=0;fresh.vy=0;fresh.swing=null;fresh.thrust=null;fresh.hammerOut=false;fresh.alive=true;fresh.hp=Math.max(1,Math.min(fresh.maxHp||100,Number(fresh.hp)||1));fresh.buffs=Object.assign({speed:0,damage:0,shield:0},src.buffs||{});fresh.upgOwned=Object.assign({},src.upgOwned||{});fresh.mastery=Object.assign({},src.mastery||{});fresh.synergySeen=Object.assign({},src.synergySeen||{});}kills=Math.max(0,Number(cp.kills)||0);runTime=Math.max(0,Number(cp.runTime)||0);routeHistory=Array.isArray(cp.routeHistory)?cp.routeHistory.slice(-40):[];routePending=Object.assign(neutralRoute(),cp.routePending||{});routeActive=neutralRoute();wave={num:Math.max(0,Number(cp.wave)||0),queue:[],t:0,breakT:0};enemies=[];projs=[];pickups=[];parts=[];texts=[];trails=[];telegraphs=[];portals=[];zones=[];barrels=[];altars=[];const biome=BIOMES.find(function(b){return b.id===cp.biome;});if(biome)curBiome=biome;resetPillars();buildBG();state='playing';doRest();showBanner('СЕТЕВОЙ МИР ВОССТАНОВЛЕН','СЛЕДУЮЩАЯ ВОЛНА · '+roman(wave.num+1));return true;}finally{onlineApplyingCheckpoint=false;}}
+async function saveOnlineWorldCheckpoint(force){if(!onlineActive||!onlineHost||!onlineRoom||onlineCheckpointSaving||(!force&&state!=='playing'))return false;onlineCheckpointSaving=true;const checkpoint=makeOnlineCheckpoint();try{const body=Object.assign({},onlineWorldCredentials(),{name:(save.net&&save.net.name)||'СКАЛЬД',worldName:onlineRoom.worldName,version:VERSION,checkpoint:checkpoint});const r=await netCall('/world/save',{method:'POST',body:JSON.stringify(body)});onlineWorld=Object.assign({},r.world||{}, {checkpoint:checkpoint});renderOnlineWorld();if(force)setHint('СЕТЕВОЙ МИР СОХРАНЁН',2.5);return true;}catch(e){setOnlineStatus('МИР НЕ СОХРАНЁН · '+e.message,false);return false;}finally{onlineCheckpointSaving=false;}}
+async function finishOnlineWorld(){if(!onlineHost)return;try{await netCall('/world/delete',{method:'POST',body:JSON.stringify(onlineWorldCredentials())});onlineWorld=null;onlineResumeCheckpoint=null;}catch(e){}}
+function beginOnlineRun(){if(onlineActive)return;stopOnlinePoll();onlineHost=onlineIsHost();onlineGuest=!onlineHost;onlineActive=true;dailyMode=false;weeklyMode=false;startGame('coop');const restored=onlineHost&&applyOnlineCheckpoint(onlineResumeCheckpoint);const host=onlineRoom.players.find(function(p){return p.host;}),guest=onlineRoom.players.find(function(p){return !p.host;});if(players[0])players[0].netName=host?host.name:'ХОЗЯИН';if(players[1])players[1].netName=guest?guest.name:'ТОВАРИЩ';if(onlineHost&&!restored)saveOnlineWorldCheckpoint(true);setHint(restored?'СЕТЕВОЙ МИР ПРОДОЛЖЕН':(onlineHost?'МИР ОТКРЫТ · ВЫ ХОЗЯИН':'ВЫ ВОШЛИ В МИР '+(host?host.name:'')),5);}
 function applyGuestAction(action){const pl=players[1];if(!pl||!onlineHost)return;if(action==='attack')tryAttack(pl);else if(action==='axe')tryAxe(pl);else if(action==='dodge')tryDodge(pl);else if(action==='berserk')tryBerserk(pl);else if(action==='parry')tryParry(pl);else if(action==='stance')tryStance(pl);else if(action==='swap')trySwap(pl);else if(action==='context')contextAction(pl);}
 function sendGuestAction(action){if(onlineGuest)sendOnline({type:'action',action:action});}
 function netPlain(value,depth){if(value===null||value===undefined||typeof value==='string'||typeof value==='number'||typeof value==='boolean')return value;if(depth>4)return undefined;if(Array.isArray(value))return value.slice(-180).map(function(v){return netPlain(v,depth+1);});if(typeof value!=='object'||value instanceof Set)return undefined;const out={};for(const k in value){if(['own','ownE','srcE','source','hit'].indexOf(k)>=0)continue;const v=netPlain(value[k],depth+1);if(v!==undefined)out[k]=v;}return out;}
@@ -2605,6 +2629,7 @@ function activateRouteForWave(n){
 function doRest(){
  wave.breakT=9;merchant.active=!save.chal.noshop&&!save.chal.endless;
  if(merchant.active){genOffers();showCoach('merchant','ТОРГОВЕЦ СИНДРИ','Следуй за золотым указателем. Подойди к Синдри, чтобы открыть товары между волнами.','ᛗ',4.4,0);}
+ if(onlineActive&&onlineHost&&!onlineApplyingCheckpoint)setTimeout(function(){saveOnlineWorldCheckpoint(false);},0);
 }
 
 /* ============ shop ============ */
@@ -3928,7 +3953,7 @@ function showDeath(){
  save.board.push({w:wave.num,k:kills,h:save.hero,m:mode==='coop'?'II':'I',d:fmtDate(),ch:chalMult()>1||oathMult()>1,s:wave.num*1000+kills});
  save.board.sort(function(a,b){return b.s-a.s;});
  save.board=save.board.slice(0,10);
- persist();netSubmitScore();netBackup();
+ persist();netSubmitScore();if(onlineActive){if(onlineHost)finishOnlineWorld();}else netBackup();
  $('stGlory').textContent=dailyMode?('+'+gained+' ✦ (ТОЛЬКО РЕКОРД)'):('+'+gained+' ✦ ЭХО СЛАВЫ');
  $('gloryMult').textContent=mult>1?('×'+(Math.round(mult*100)/100)+' — '+tags.join(' + ')):'';
  $('gloryTotal').textContent=dailyMode?'Слава не копится в ежедневном забеге.':(weeklyMode?(weeklySaga().name+' · В ЧЕРТОГЕ: '+save.glory+' ✦'):'В ЧЕРТОГЕ: '+save.glory+' ✦');
@@ -4111,6 +4136,8 @@ $('btnJoinCode').onclick=function(){joinRoom();};
 $('btnRefreshRooms').onclick=function(){refreshRooms();};
 $('btnLeaveRoom').onclick=function(){leaveOnlineRoom();};
 $('btnStartOnline').onclick=function(){requestOnlineStart();};
+$('btnDeleteOnlineWorld').onclick=function(){deleteOnlineWorld();};
+$('onlineWorldMode').addEventListener('change',function(){if(this.value==='resume'&&onlineWorld&&onlineWorld.worldName)$('onlineWorldName').value=onlineWorld.worldName;});
 $('onlineCode').addEventListener('input',function(e){e.target.value=e.target.value.toUpperCase().replace(/[^A-Z2-9]/g,'').slice(0,6);});
 $('onlineName').addEventListener('change',function(e){save.net.name=cleanOnlineName(e.target.value,18,'СКАЛЬД');e.target.value=save.net.name;persist();});
 $('btnStartSolo').onclick=function(){startGame('solo');};
