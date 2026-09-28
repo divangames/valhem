@@ -1,0 +1,13 @@
+/* Оформление загрузки, предложения PWA и входа в игру. */
+#startup{position:fixed;inset:0;z-index:100;background:radial-gradient(ellipse at center,#171a20,#05070b 70%);display:flex;align-items:center;justify-content:center;padding:max(20px,env(safe-area-inset-top)) max(20px,env(safe-area-inset-right)) max(20px,env(safe-area-inset-bottom)) max(20px,env(safe-area-inset-left));overflow-y:auto;touch-action:pan-y;cursor:default}
+.startupCard{width:min(580px,100%);text-align:center;margin:auto}
+.startupCard h1{font-size:clamp(44px,12vw,88px);letter-spacing:.16em;margin:10px 0 20px}
+.startupRunes{color:var(--gold-dim);letter-spacing:.5em;font-family:Forum,serif}
+.startupCard p{font-size:16px;line-height:1.45;color:#c8b98f;margin:12px 0}
+#bootProgress{display:block;width:min(340px,100%);height:6px;margin:18px auto;accent-color:var(--gold)}
+#bootChecks{list-style:none;font-size:13px;color:#9ca6b2;line-height:1.8}
+#installCard{border:1px solid var(--gold-dim);background:rgba(5,7,11,.8);padding:16px}
+#installCard h2{font-size:clamp(19px,5vw,25px);letter-spacing:.12em}
+#installCard .btn{display:block;margin:10px auto;max-width:100%;min-height:48px;font-size:14px;letter-spacing:.1em}
+#bootEnter{min-height:52px;font-size:clamp(13px,3.5vw,20px);letter-spacing:.1em;max-width:100%}
+@media(max-height:500px) and (orientation:landscape){.startupCard h1{font-size:50px;margin:4px 0 10px}.startupRunes{font-size:12px}.startupCard p{font-size:14px;margin:7px 0}#installCard{padding:10px}#installCard .btn{display:inline-block;margin:5px;font-size:12px}}
