@@ -255,6 +255,43 @@ h1{font-family:'Forum';font-weight:400;font-size:clamp(56px,10vw,126px);line-hei
 #dailyLine{margin-top:6px;font-size:12px;letter-spacing:.2em;color:#7d8695}
 .credit{margin-top:18px;font-size:11px;letter-spacing:.2em;color:#525b6a}
 
+/* ---- навигационные чертоги главного меню ---- */
+.titleMenu{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;width:min(720px,100%);margin:0 auto}
+.titleChoice,.hubChoice{position:relative;min-height:84px;padding:15px 22px;border:1px solid var(--gold-dim);overflow:hidden;
+ cursor:pointer;color:var(--gold-hi);background:linear-gradient(145deg,rgba(43,34,16,.96),rgba(12,12,11,.98));
+ clip-path:polygon(14px 0,calc(100% - 14px) 0,100% 50%,calc(100% - 14px) 100%,14px 100%,0 50%);
+ transition:transform .18s ease,border-color .18s ease,filter .18s ease;isolation:isolate}
+.titleChoice::before,.hubChoice::before{content:'';position:absolute;inset:0;z-index:-1;opacity:.42;
+ background:radial-gradient(circle at 50% 0,rgba(216,169,60,.24),transparent 62%),linear-gradient(90deg,transparent,rgba(255,217,122,.06),transparent)}
+.titleChoice::after,.hubChoice::after{content:'ᛟ';position:absolute;right:18px;top:50%;transform:translateY(-50%);font:28px 'Forum';color:rgba(216,169,60,.16)}
+.titleChoice:hover,.hubChoice:hover{transform:translateY(-2px);border-color:var(--gold);filter:brightness(1.12)}
+.titleChoice:active,.hubChoice:active{transform:translateY(1px) scale(.99)}
+.titleChoice:focus-visible,.hubChoice:focus-visible{outline:2px solid var(--gold-hi);outline-offset:3px}
+.titleChoice strong,.hubChoice strong{display:block;font:clamp(16px,2.2vw,22px) 'Forum';font-weight:400;letter-spacing:.16em}
+.titleChoice small,.hubChoice small{display:block;margin-top:5px;font:13px/1.25 'Alegreya';letter-spacing:.04em;color:#a99f87}
+.titleChoice.primary{min-height:98px;border-color:#a27d2e;background:linear-gradient(145deg,#302512,#12100b)}
+.titleChoice.primary strong{font-size:clamp(19px,2.6vw,26px)}
+.titleChoice.compact{min-height:68px;background:linear-gradient(145deg,rgba(24,25,25,.96),rgba(9,10,11,.98));border-color:#4a4639}
+.titleChoice.compact strong{font-size:clamp(14px,1.8vw,18px);color:#ddd2b8}
+.titleChoice.compact small{font-size:12px;color:#787b7b}
+.hubMenu{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;width:min(760px,100%);margin:22px auto 0}
+.hubChoice{min-height:92px;text-align:left;padding-left:28px}
+.hubChoice small{max-width:85%}
+.hubChoice.wide{grid-column:1/-1}
+.hubTidings{width:min(760px,100%);margin:14px auto 0;padding:10px 16px;border-top:1px solid rgba(124,97,40,.35);border-bottom:1px solid rgba(124,97,40,.2)}
+.hubTidings #dailyLine,.hubTidings #weeklyLine{line-height:1.5}
+.hearthBack{margin-top:18px;min-height:44px}
+
+@media(max-width:640px){
+ .titleMenu,.hubMenu{grid-template-columns:minmax(0,1fr);gap:8px}
+ .titleChoice,.titleChoice.primary,.titleChoice.compact,.hubChoice{min-height:66px;padding:11px 22px}
+ .titleChoice strong,.titleChoice.primary strong,.titleChoice.compact strong,.hubChoice strong{font-size:clamp(15px,5vw,20px)}
+ .titleChoice small,.hubChoice small{font-size:11.5px;margin-top:3px}
+ .hubChoice.wide{grid-column:auto}
+ .hubMenu{margin-top:15px}
+ .hubTidings{margin-top:10px;padding:8px 6px}
+}
+
 .secHead{font-family:'Forum';letter-spacing:.3em;color:var(--gold);font-size:14px;border-bottom:1px solid #2c3340;padding-bottom:4px;margin:14px 0 10px;text-align:left}
 .prepCols{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:10px 34px;max-width:900px;margin:0 auto}
 .prepCols>div{min-width:0}
@@ -671,55 +708,83 @@ body.touch .netInput{width:100%;max-width:none;font-size:16px;min-height:48px}
       <div><span class="packBadge">РЕЛИЗ v2.2.0 «ONLINE COOP»</span></div>
       <p class="tag">Шесть земель, фазовые ётуны, реликвии и оружейное мастерство, стойкость и добивания, кооп на одном экране, чертог славы и ежедневные саги. Играй на клавиатуре или на стекле планшета.</p>
       <div class="orn">ᛟ</div>
-      <button id="btnPrep" class="btn">В ПОХОД</button>
-      <button id="btnDaily" class="btn">ЕЖЕДНЕВНЫЙ</button>
-      <button id="btnWeekly" class="btn">САГА НЕДЕЛИ</button>
-       <button id="btnOnline" class="btn">СЕТЕВАЯ ИГРА</button>
-      <button id="btnContracts" class="btn">КОНТРАКТЫ</button>
-      <button id="btnHall" class="btn">ЧЕРТОГ СЛАВЫ</button>
-      <button id="btnChron" class="btn">ЛЕТОПИСЬ</button>
-      <button id="btnBestiary" class="btn">БЕСТИАРИЙ</button>
-      <button id="btnSettings" class="btn">НАСТРОЙКИ</button>
+      <div class="titleMenu" aria-label="Главные пути">
+        <button id="btnOfflineHub" class="titleChoice primary"><strong>В ПОХОД</strong><small>Один против шести земель</small></button>
+        <button id="btnOnline" class="titleChoice primary"><strong>В ПОХОД С ДРУГОМ</strong><small>Открой мир или войди по руне</small></button>
+        <button id="btnLoreHub" class="titleChoice compact"><strong>СВИТКИ СКАЛЬДА</strong><small>Слава, подвиги и твари</small></button>
+        <button id="btnSettings" class="titleChoice compact"><strong>РУНЫ ОЧАГА</strong><small>Звук, экран и управление</small></button>
+      </div>
       <div id="titleStats"></div>
-      <div id="dailyLine"></div>
-      <div id="weeklyLine"></div>
       <div class="credit">VALHEM v2.2.0 «ONLINE COOP» · MOBILE FIRST</div>
+    </div>
+  </section>
+
+  <section id="offlineHubScreen" class="screen hidden">
+    <div class="scInner">
+      <div class="runeRow">ᚠ ᚢ ᚱ ᚨ ᚱ</div>
+      <h2>ПУТЬ ОДИНОЧКИ</h2>
+      <p class="sub">Выбери нить, которую норны вплетут в твою сагу.</p>
+      <div class="hubMenu" aria-label="Одиночные походы">
+        <button id="btnPrep" class="hubChoice"><strong>ВОЛЬНЫЙ ПОХОД</strong><small>Собери героя, прими клятвы и иди против волн.</small></button>
+        <button id="btnDaily" class="hubChoice"><strong>ИСПЫТАНИЕ НОРН</strong><small>Одна судьба на день. Слава не копится — остаётся рекорд.</small></button>
+        <button id="btnWeekly" class="hubChoice"><strong>САГА БУРИ</strong><small>Особое сказание на эту неделю.</small></button>
+        <button id="btnContracts" class="hubChoice"><strong>ДОСКА ЯРЛА</strong><small>Три поручения и честная награда за каждое.</small></button>
+      </div>
+      <div class="hubTidings" aria-live="polite">
+        <div id="dailyLine"></div>
+        <div id="weeklyLine"></div>
+      </div>
+      <button id="btnBackOfflineHub" class="btn small ghost hearthBack">НАЗАД К ОЧАГУ</button>
+    </div>
+  </section>
+
+  <section id="loreHubScreen" class="screen hidden">
+    <div class="scInner">
+      <div class="runeRow">ᚷ ᚲ ᚨ ᛚ ᛞ</div>
+      <h2>СВИТКИ СКАЛЬДА</h2>
+      <p class="sub">Всё, что переживёт огонь и не канет в тумане.</p>
+      <div class="hubMenu" aria-label="Летописи и знания">
+        <button id="btnHall" class="hubChoice"><strong>ЧЕРТОГ СЛАВЫ</strong><small>Обменяй эхо подвигов на вечные дары.</small></button>
+        <button id="btnChron" class="hubChoice"><strong>ЛЕТОПИСЬ ПОДВИГОВ</strong><small>Лучшие походы, достижения и слово скальдов.</small></button>
+        <button id="btnBestiary" class="hubChoice wide"><strong>КНИГА ТВАРЕЙ</strong><small>Ведомые и ещё не встреченные обитатели шести земель.</small></button>
+      </div>
+      <button id="btnBackLoreHub" class="btn small ghost hearthBack">НАЗАД К ОЧАГУ</button>
     </div>
   </section>
 
   <section id="onlineScreen" class="screen hidden">
     <div class="scInner">
       <div class="runeRow">ᛟ ᚾ ᛚ ᛁ ᚾ ᛖ</div>
-      <h2>СЕТЕВАЯ ИГРА</h2>
-      <p class="sub">Открой свой мир или присоединись к товарищу по коду.</p>
+      <h2>ПОХОД С ДРУГОМ</h2>
+      <p class="sub">Разжигай свой очаг или войди в мир товарища по шестизначной руне.</p>
       <div class="onlineSetup">
         <div class="onlinePane" id="onlineLobbyPane">
-          <div class="secHead">ТВОЙ ВОИН</div>
+          <div class="secHead">ИМЯ ВОИНА</div>
           <input class="netInput" id="onlineName" maxlength="18" placeholder="Имя персонажа">
-          <div class="secHead">ОТКРЫТЬ СВОЙ МИР</div>
+          <div class="secHead">РАЗЖЕЧЬ СВОЙ ОЧАГ</div>
           <input class="netInput" id="onlineWorldName" maxlength="28" placeholder="Название мира">
-          <select class="netInput" id="onlineVisibility"><option value="code">ТОЛЬКО ПО КОДУ</option><option value="public">ПУБЛИЧНЫЙ МИР</option></select>
-          <button class="sbtn" id="btnCreateRoom">ОТКРЫТЬ МИР</button>
-          <div class="secHead">ВОЙТИ ПО КОДУ</div>
-          <input class="netInput" id="onlineCode" maxlength="6" placeholder="КОД МИРА" autocomplete="off">
-          <button class="sbtn" id="btnJoinCode">ВОЙТИ</button>
+          <select class="netInput" id="onlineVisibility"><option value="code">ПО ТАЙНОЙ РУНЕ</option><option value="public">ДЛЯ ВСЕХ ДРУЖИН</option></select>
+          <button class="sbtn" id="btnCreateRoom">ЗАЖЕЧЬ ОЧАГ</button>
+          <div class="secHead">ВОЙТИ ПО РУНЕ</div>
+          <input class="netInput" id="onlineCode" maxlength="6" placeholder="РУНА МИРА" autocomplete="off">
+          <button class="sbtn" id="btnJoinCode">К ДРУЖИНЕ</button>
         </div>
         <div class="onlinePane">
-          <div class="secHead">ОТКРЫТЫЕ МИРЫ</div>
-          <div class="roomActions"><button class="sbtn" id="btnRefreshRooms">ОБНОВИТЬ</button></div>
+          <div class="secHead">ЧУЖИЕ ОЧАГИ</div>
+          <div class="roomActions"><button class="sbtn" id="btnRefreshRooms">ОГЛЯДЕТЬ</button></div>
           <div id="onlineRoomList" class="roomList"><div class="sold">Проверяем сервер…</div></div>
           <div id="onlineRoomPane" class="hidden">
             <div id="onlineRoomName" class="secHead"></div>
             <div id="onlineRoomCode" class="roomCode"></div>
             <div id="onlineMembers" class="roomMembers"></div>
-            <button class="sbtn" id="btnStartOnline">НАЧАТЬ СЕТЕВОЙ ПОХОД</button>
-            <button class="sbtn danger" id="btnLeaveRoom">ЗАКРЫТЬ / ПОКИНУТЬ</button>
-            <p class="onlineNotice" id="onlineRoomHint">Владелец начинает поход, когда товарищ подключится.</p>
+            <button class="sbtn" id="btnStartOnline">ВЫСТУПИТЬ ДРУЖИНОЙ</button>
+            <button class="sbtn danger" id="btnLeaveRoom">ПОКИНУТЬ ОЧАГ</button>
+            <p class="onlineNotice" id="onlineRoomHint">Хозяин очага начнёт поход, когда товарищ встанет рядом.</p>
           </div>
         </div>
       </div>
       <div id="onlineStatus" class="netStatus">OFFLINE · проверяем соединение</div>
-      <button id="btnBackOnline" class="btn small ghost">НАЗАД</button>
+      <button id="btnBackOnline" class="btn small ghost">НАЗАД К ОЧАГУ</button>
     </div>
   </section>
 
@@ -759,7 +824,7 @@ body.touch .netInput{width:100%;max-width:none;font-size:16px;min-height:48px}
       <div style="margin-top:14px">
         <button id="btnStartSolo" class="btn">САГА ОДИНОЧКИ</button>
         <button id="btnStartCoop" class="btn">ПОХОД ВДВОЁМ</button>
-        <button id="btnBackTitle" class="btn small ghost">НАЗАД</button>
+        <button id="btnBackTitle" class="btn small ghost">К ВЫБОРУ ПОХОДА</button>
       </div>
       <p class="sub" style="font-size:12px">На телефоне и планшете: джойстик слева для шага, автоприцел на ближайшего врага, кнопки действий справа.</p>
     </div>
@@ -772,7 +837,7 @@ body.touch .netInput{width:100%;max-width:none;font-size:16px;min-height:48px}
       <p class="sub">Эхо славы звучит и после смерти. Трать его на дары, которые переживают забег.</p>
       <div id="hallGlory" class="hallGlory">✦ 0</div>
       <div id="hallGrid" class="hallGrid"></div>
-      <button id="btnBackTitle2" class="btn small ghost">НАЗАД</button>
+      <button id="btnBackTitle2" class="btn small ghost">К СВИТКАМ СКАЛЬДА</button>
     </div>
   </section>
 
@@ -795,7 +860,7 @@ body.touch .netInput{width:100%;max-width:none;font-size:16px;min-height:48px}
           <div id="achGrid" class="achGrid"></div>
         </div>
       </div>
-      <button id="btnBackTitle5" class="btn small ghost">НАЗАД</button>
+      <button id="btnBackTitle5" class="btn small ghost">К СВИТКАМ СКАЛЬДА</button>
     </div>
   </section>
 
@@ -806,7 +871,7 @@ body.touch .netInput{width:100%;max-width:none;font-size:16px;min-height:48px}
       <p class="sub">Записи скальда о тварях шести земель. Каждая встреченная тварь остаётся в книге.</p>
       <div id="bestProgress" class="bProgress"></div>
       <div id="bestGrid" class="bestGrid"></div>
-      <button id="btnBackTitle3" class="btn small ghost">НАЗАД</button>
+      <button id="btnBackTitle3" class="btn small ghost">К СВИТКАМ СКАЛЬДА</button>
     </div>
   </section>
 
@@ -817,7 +882,7 @@ body.touch .netInput{width:100%;max-width:none;font-size:16px;min-height:48px}
       <p class="sub">Три задания меняются каждый день. Награда начисляется автоматически сразу после выполнения.</p>
       <div id="contractDate" class="weeklyBox"></div>
       <div id="contractGrid" class="contractGrid"></div>
-      <button id="btnBackContracts" class="btn small ghost">НАЗАД</button>
+      <button id="btnBackContracts" class="btn small ghost">К ВЫБОРУ ПОХОДА</button>
     </div>
   </section>
 
@@ -893,7 +958,7 @@ body.touch .netInput{width:100%;max-width:none;font-size:16px;min-height:48px}
           <span class="sval">ᛟ</span>
         </div>
       </div>
-      <button id="btnBackTitle4" class="btn small ghost">НАЗАД</button>
+      <button id="btnBackTitle4" class="btn small ghost">НАЗАД К ОЧАГУ</button>
     </div>
   </section>
 
@@ -3689,7 +3754,7 @@ function syncHUD(){
 }
 
 /* ============ meta screens ============ */
-const ALL_SCREENS=['titleScreen','onlineScreen','prepScreen','hallScreen','chronScreen','bestScreen','contractScreen','settScreen','deathScreen','pauseScreen','levelScreen','pathScreen'];
+const ALL_SCREENS=['titleScreen','offlineHubScreen','loreHubScreen','onlineScreen','prepScreen','hallScreen','chronScreen','bestScreen','contractScreen','settScreen','deathScreen','pauseScreen','levelScreen','pathScreen'];
 function showOnly(id){for(let i=0;i<ALL_SCREENS.length;i++)$(ALL_SCREENS[i]).classList.toggle('hidden',ALL_SCREENS[i]!==id);}
 function updateTitleStats(){
  $('titleStats').innerHTML=save.best>0
@@ -3982,7 +4047,7 @@ addEventListener('keydown',function(e){
   else if(e.code==='KeyE')sendGuestAction('context');
   return;
  }
- if(state==='title'&&(e.code==='Enter'||e.code==='Space')){openPrep(false);return;}
+ if(state==='title'&&(e.code==='Enter'||e.code==='Space')){showOnly('offlineHubScreen');return;}
  if(state==='dead'&&e.code==='Enter'){startGame(mode);return;}
  if(state==='playing'){
   const p2=players[1];
@@ -4021,21 +4086,25 @@ stage.addEventListener('contextmenu',function(e){e.preventDefault();});
 addEventListener('blur',function(){if(state==='playing'&&!onlineActive)pauseGame(true);});
 document.addEventListener('visibilitychange',function(){if(document.hidden&&state==='playing'&&!onlineActive)pauseGame(true);});
 document.addEventListener('pointerdown',function(){AU.init();},{once:true});
+$('btnOfflineHub').onclick=function(){AU.init();AU.sClick();updateTitleStats();showOnly('offlineHubScreen');};
+$('btnLoreHub').onclick=function(){AU.init();AU.sClick();showOnly('loreHubScreen');};
+$('btnBackOfflineHub').onclick=function(){AU.sClick();updateTitleStats();showOnly('titleScreen');};
+$('btnBackLoreHub').onclick=function(){AU.sClick();updateTitleStats();showOnly('titleScreen');};
 $('btnPrep').onclick=function(){AU.init();AU.sClick();openPrep(false);};
 $('btnOnline').onclick=function(){openOnline();};
 $('btnDaily').onclick=function(){AU.init();AU.sClick();openPrep(true);};
 $('btnWeekly').onclick=function(){openWeeklyPrep();};
 $('btnContracts').onclick=function(){AU.init();AU.sClick();renderContracts();showOnly('contractScreen');};
-$('btnBackContracts').onclick=function(){AU.sClick();updateTitleStats();showOnly('titleScreen');};
+$('btnBackContracts').onclick=function(){AU.sClick();updateTitleStats();showOnly('offlineHubScreen');};
 $('btnHall').onclick=function(){AU.init();AU.sClick();renderHall();showOnly('hallScreen');};
 $('btnChron').onclick=function(){AU.init();AU.sClick();renderChronicle();showOnly('chronScreen');};
 $('btnBestiary').onclick=function(){AU.init();AU.sClick();renderBestiary();showOnly('bestScreen');};
 $('btnSettings').onclick=function(){AU.init();AU.sClick();renderSettings();showOnly('settScreen');};
-$('btnBackTitle').onclick=function(){AU.sClick();dailyMode=false;weeklyMode=false;updateTitleStats();showOnly('titleScreen');};
-$('btnBackTitle2').onclick=function(){AU.sClick();updateTitleStats();showOnly('titleScreen');};
-$('btnBackTitle3').onclick=function(){AU.sClick();updateTitleStats();showOnly('titleScreen');};
+$('btnBackTitle').onclick=function(){AU.sClick();dailyMode=false;weeklyMode=false;updateTitleStats();showOnly('offlineHubScreen');};
+$('btnBackTitle2').onclick=function(){AU.sClick();updateTitleStats();showOnly('loreHubScreen');};
+$('btnBackTitle3').onclick=function(){AU.sClick();updateTitleStats();showOnly('loreHubScreen');};
 $('btnBackTitle4').onclick=function(){AU.sClick();updateTitleStats();showOnly('titleScreen');};
-$('btnBackTitle5').onclick=function(){AU.sClick();updateTitleStats();showOnly('titleScreen');};
+$('btnBackTitle5').onclick=function(){AU.sClick();updateTitleStats();showOnly('loreHubScreen');};
 $('btnBackOnline').onclick=function(){AU.sClick();if(!onlineRoom)stopOnlinePoll();updateTitleStats();showOnly('titleScreen');};
 $('btnCreateRoom').onclick=function(){createRoom();};
 $('btnJoinCode').onclick=function(){joinRoom();};
