@@ -6,8 +6,8 @@ After=network.target
 Type=simple
 User=valhem
 Group=valhem
-WorkingDirectory=/opt/valhem-online
-EnvironmentFile=/etc/valhem-online.env
+WorkingDirectory=/opt/valhem/app
+EnvironmentFile=/opt/valhem/config/valhem.env
 ExecStart=/usr/bin/node src/server.js
 Restart=on-failure
 RestartSec=3
@@ -15,7 +15,7 @@ NoNewPrivileges=true
 PrivateTmp=true
 ProtectSystem=strict
 ProtectHome=true
-ReadWritePaths=/var/lib/valhem-online
+ReadWritePaths=/opt/valhem/data
 
 [Install]
 WantedBy=multi-user.target

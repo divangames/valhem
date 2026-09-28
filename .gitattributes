@@ -1,2 +1,3 @@
 # Windows cmd требует CRLF для корректного чтения UTF-8 батников.
 *.bat text eol=crlf
+*.sh text eol=lf

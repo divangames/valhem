@@ -56,12 +56,20 @@ jobs:
             cp -a public _site
           else
             mkdir _site
-            rsync -a ./ _site/ \
-              --exclude .git/ \
-              --exclude .github/ \
-              --exclude node_modules/ \
-              --exclude back/ \
-              --exclude _site/
+            web_files=(
+              index.html
+              icon.svg
+              icon-192.png
+              icon-512.png
+              manifest.webmanifest
+              startup.css
+              startup.js
+              sw.js
+            )
+            for file in "${web_files[@]}"; do
+              [[ -f "$file" ]] || { echo "Missing web asset: $file" >&2; exit 1; }
+              cp -a "$file" _site/
+            done
           fi
           touch _site/.nojekyll
           test -f _site/index.html
