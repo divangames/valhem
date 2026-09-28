@@ -6,7 +6,7 @@ import {RoomRegistry} from './rooms.js';
 
 const PORT = Number(process.env.PORT || 8080);
 const HOST = process.env.HOST || '127.0.0.1';
-const VERSION = '0.1.0';
+const VERSION = '0.2.0';
 const DATA_DIR = resolve(process.env.DATA_DIR || './data');
 const ROOM_TTL_MS = Number(process.env.ROOM_TTL_MS || 45_000);
 const allowedOrigins = new Set(String(process.env.ALLOWED_ORIGINS || 'https://divangames.github.io,http://localhost:8080,http://127.0.0.1:8080').split(',').map((item) => item.trim()).filter(Boolean));
@@ -134,7 +134,7 @@ async function route(req, res) {
 }
 
 const server = http.createServer((req, res) => route(req, res).catch((error) => {
-  console.error(error);
+  if (!error.status) console.error(error);
   json(res, error.status || 500, {error: error.status ? error.message : 'Ошибка сервера'});
 }));
 
@@ -142,14 +142,33 @@ const wss = new WebSocketServer({noServer: true});
 server.on('upgrade', (req, socket, head) => {
   const url = new URL(req.url, `http://${req.headers.host || 'localhost'}`);
   if (url.pathname !== '/ws' || (req.headers.origin && !allowedOrigins.has(req.headers.origin))) return socket.destroy();
-  wss.handleUpgrade(req, socket, head, (ws) => wss.emit('connection', ws));
+  wss.handleUpgrade(req, socket, head, (ws) => wss.emit('connection', ws, req));
 });
-wss.on('connection', (ws) => {
-  ws.send(JSON.stringify({type: 'ready', version: VERSION}));
+wss.on('connection', (ws, req) => {
+  const url = new URL(req.url, `http://${req.headers.host || 'localhost'}`);
+  const roomCode = cleanText(url.searchParams.get('room'), 6).toUpperCase();
+  const clientId = cleanId(url.searchParams.get('clientId'));
+  const room = rooms.get(roomCode);
+  const member = room?.players.find((player) => player.id === clientId);
+  if (!room || !member) return ws.close(1008, 'room membership required');
+  ws.valhem = {roomCode, clientId, host: member.host};
+  ws.send(JSON.stringify({type: 'ready', version: VERSION, room}));
+  const relay = (message, predicate) => {
+    const payload = JSON.stringify(message);
+    for (const peer of wss.clients) {
+      if (peer.readyState === 1 && peer !== ws && peer.valhem?.roomCode === roomCode && predicate(peer.valhem)) peer.send(payload);
+    }
+  };
   ws.on('message', (raw) => {
     try {
       const msg = JSON.parse(String(raw));
       if (msg.type === 'ping') ws.send(JSON.stringify({type: 'pong', time: Date.now()}));
+      else if (msg.type === 'start' && ws.valhem.host) {
+        const active = rooms.start(roomCode, clientId);
+        const payload = JSON.stringify({type: 'start', room: active, at: Date.now()});
+        for (const peer of wss.clients) if (peer.readyState === 1 && peer.valhem?.roomCode === roomCode) peer.send(payload);
+      } else if ((msg.type === 'input' || msg.type === 'action') && !ws.valhem.host) relay(msg, (peer) => peer.host);
+      else if ((msg.type === 'snapshot' || msg.type === 'event') && ws.valhem.host) relay(msg, (peer) => !peer.host);
     } catch {
       ws.close(1003, 'bad message');
     }

@@ -12,6 +12,7 @@ test('creates, lists and joins a public room', () => {
   const joined = rooms.join(room.code, {clientId: 'player_guest_456', name: 'Товарищ'});
   assert.equal(joined.playerCount, 2);
   assert.deepEqual(joined.players.map((player) => player.name), ['Хозяин', 'Товарищ']);
+  assert.equal(rooms.start(room.code, host.clientId).started, true);
 });
 
 test('rejects a third player and closes when host leaves', () => {

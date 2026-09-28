@@ -32,6 +32,7 @@ export class RoomRegistry {
       hostId: input.clientId,
       createdAt: now,
       updatedAt: now,
+      started: false,
       players: [{id: input.clientId, name: cleanText(input.name, 18, 'СКАЛЬД'), host: true, seenAt: now}]
     };
     this.rooms.set(room.code, room);
@@ -42,6 +43,7 @@ export class RoomRegistry {
     this.cleanup();
     const room = this.rooms.get(String(code).toUpperCase());
     if (!room) throw Object.assign(new Error('Мир не найден или уже закрыт'), {status: 404});
+    if (room.started && !room.players.some((player) => player.id === input.clientId)) throw Object.assign(new Error('Поход уже начался'), {status: 409});
     const existing = room.players.find((player) => player.id === input.clientId);
     if (!existing && room.players.length >= room.maxPlayers) throw Object.assign(new Error('В мире нет свободных мест'), {status: 409});
     this.removePlayer(input.clientId, room.code);
@@ -63,6 +65,15 @@ export class RoomRegistry {
     if (!room || !player) throw Object.assign(new Error('Участник или мир не найден'), {status: 404});
     player.seenAt = Date.now();
     room.updatedAt = player.seenAt;
+    return this.view(room);
+  }
+
+  start(code, clientId) {
+    const room = this.rooms.get(String(code).toUpperCase());
+    if (!room || room.hostId !== clientId) throw Object.assign(new Error('Только владелец может начать поход'), {status: 403});
+    if (room.players.length < 2) throw Object.assign(new Error('Нужен второй игрок'), {status: 409});
+    room.started = true;
+    room.updatedAt = Date.now();
     return this.view(room);
   }
 
@@ -117,6 +128,7 @@ export class RoomRegistry {
       visibility: room.visibility,
       maxPlayers: room.maxPlayers,
       playerCount: room.players.length,
+      started: room.started,
       createdAt: room.createdAt,
       players: room.players.map(({id, name, host}) => ({id, name, host}))
     };
