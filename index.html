@@ -120,8 +120,9 @@ body.touch.shop-open #actionPad{opacity:.12;pointer-events:none}
  body.touch #hudTC{width:30vw}
  body.touch #chips{font-size:8px}
  body.touch #xpBar{width:23vw}
- #actionPad{transform:scale(.9);transform-origin:bottom right}
+ body.touch #actionPad{transform:scale(.9);transform-origin:bottom right}
 }
+
 
 #hud{position:absolute;inset:0;z-index:5;pointer-events:none;font-family:'Forum',serif}
 .panel{background:var(--panel);border:1px solid var(--line);
@@ -334,6 +335,9 @@ h2{font-family:'Forum';font-weight:400;font-size:clamp(30px,5vw,52px);letter-spa
 .card.epic .cTier,.card.epic .cRune{color:#d49bff;text-shadow:0 0 18px rgba(181,110,255,.45)}
 .card.legendary .cTier,.card.legendary .cRune{color:#ffd97a;text-shadow:0 0 22px rgba(255,210,96,.6)}
 .card.cursed .cTier,.card.cursed .cRune{color:#ff7e7e;text-shadow:0 0 18px rgba(255,90,90,.45)}
+.card.mastery{border-color:#9b7a32;box-shadow:0 0 0 1px rgba(255,217,122,.20) inset,0 0 30px rgba(216,169,60,.11)}
+.card.mastery .cTier,.card.mastery .cRune{color:#fff0b8;text-shadow:0 0 24px rgba(255,217,122,.7)}
+.card.mastery .cName{color:#fff4d0}
 
 
 /* ---- карта пути ---- */
@@ -431,6 +435,78 @@ h2{font-family:'Forum';font-weight:400;font-size:clamp(30px,5vw,52px);letter-spa
 .achCard.got .aD{color:#9aa3b2}
 .achCard .aR{float:right;color:#3a4150;font-size:14px}
 .achCard.got .aR{color:var(--gold)}
+
+/* ============ MOBILE FIRST v1.6.1 ============ */
+body.touch .screen{padding:var(--safe-top) var(--safe-right) var(--safe-bottom) var(--safe-left)}
+body.touch .btn{min-height:48px;touch-action:manipulation}
+body.touch .shopItem{min-height:58px;touch-action:manipulation}
+body.touch .hcard{min-height:88px;touch-action:manipulation}
+body.touch .oath{min-height:54px;touch-action:manipulation}
+body.touch .mBuy,body.touch .sbtn{min-height:44px;touch-action:manipulation}
+body.touch #coachDismiss{width:48px;height:48px;right:0}
+body.touch .wpn{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;letter-spacing:.08em}
+body.touch #shop{overscroll-behavior:contain;-webkit-overflow-scrolling:touch}
+body.touch .shopItem:hover:not(.dis),body.touch .card:hover,body.touch .hcard:hover{transform:none}
+body.touch .stoggle{width:54px;height:30px}
+body.touch .stoggle::after{width:22px;height:22px;top:3px;left:3px}
+body.touch .stoggle.on::after{left:27px}
+body.touch .srow input[type="range"]{min-height:36px;touch-action:pan-x}
+body.touch .srow select{min-height:44px}
+
+/* Короткий landscape телефона: вся важная информация помещается без мелкого текста и скролла между выбором. */
+@media (max-height:560px) and (orientation:landscape){
+ body.touch #levelScreen,body.touch #pathScreen,body.touch #pauseScreen,body.touch #deathScreen{align-items:flex-start}
+ body.touch #levelScreen .scInner,body.touch #pathScreen .scInner{padding:8px 10px max(12px,var(--safe-bottom));max-width:100%;width:100%}
+ body.touch #levelScreen .runeRow,body.touch #pathScreen .runeRow{display:none}
+ body.touch #levelScreen h2,body.touch #pathScreen h2{font-size:clamp(21px,4.2vw,28px);letter-spacing:.1em;line-height:1;margin:0}
+ body.touch #levelScreen .sub,body.touch #pathScreen .sub{font-size:11.5px;line-height:1.25;margin-top:5px}
+ body.touch #cards,body.touch #pathCards.routeCards{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;width:100%;margin:9px auto 0;align-items:stretch}
+ body.touch #cards .card,body.touch #pathCards .routeCard{width:auto;min-width:0;min-height:0;margin:0;padding:12px 9px 10px}
+ body.touch #cards .cRune,body.touch #pathCards .cRune{font-size:29px;line-height:1;margin-bottom:5px}
+ body.touch #cards .cName,body.touch #pathCards .cName{font-size:13.5px;line-height:1.08;letter-spacing:.035em;overflow-wrap:anywhere}
+ body.touch #cards .cDesc,body.touch #pathCards .cDesc{font-size:11px;line-height:1.2;min-height:0;margin-top:5px}
+ body.touch #cards .cTier{font-size:8px;letter-spacing:.14em;margin-top:6px;padding:2px 5px}
+ body.touch #cards .cKey,body.touch #pathCards .cKey{display:none}
+ body.touch .routeMap{margin-top:7px;padding:7px 9px 8px;max-width:100%}
+ body.touch .routeTop{font-size:9px;letter-spacing:.08em;gap:6px;white-space:nowrap}
+ body.touch .routeWave{font-size:11px}
+ body.touch .routeTrail{justify-content:flex-start;flex-wrap:nowrap;overflow-x:auto;min-height:23px;margin-top:5px;padding-bottom:2px;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+ body.touch .routeTrail::-webkit-scrollbar{display:none}
+ body.touch .routeStep{flex:none;font-size:9px;padding:3px 6px}
+ body.touch .routeFork{height:16px;margin:1px auto -3px}
+ body.touch .routeFork:before{height:8px}.routeFork:after{top:8px}
+ body.touch .routeCard .routeKind{top:6px;left:8px;font-size:7.5px;letter-spacing:.08em}
+ body.touch .routeCard .routeEffect{margin-top:6px;padding-top:5px;font-size:10px;line-height:1.18}
+ body.touch #actionPad{right:max(8px,var(--safe-right));bottom:max(8px,var(--safe-bottom))}
+ body.touch #hint{left:42%;max-width:28vw;bottom:max(7px,var(--safe-bottom));font-size:10.5px;line-height:1.15}
+ body.touch #shop{right:max(6px,var(--safe-right));width:min(310px,48vw);padding:9px;max-height:calc(100% - var(--safe-top) - var(--safe-bottom) - 12px)}
+ body.touch #shopName{font-size:14px}body.touch #shopGold{font-size:11px;margin:4px 0 6px}
+ body.touch .shopItem{padding:8px 54px 8px 9px;margin-bottom:6px;font-size:12px;min-height:52px}
+ body.touch .siName{font-size:13px}.touch .siDesc{font-size:10.5px}.touch .siCost{font-size:12px;top:8px;right:8px}
+}
+
+/* Очень низкие экраны — уменьшаем геометрию HUD, но не touch-target самих кнопок ниже безопасного уровня. */
+@media (max-height:420px) and (orientation:landscape){
+ body.touch #actionPad{transform:scale(.84);transform-origin:bottom right}
+ body.touch #hudTL{transform:scale(.82);transform-origin:top left}
+ body.touch #hudTC{width:27vw;padding:3px 7px}
+ body.touch #waveNum{font-size:18px}body.touch #chips{font-size:7.5px;letter-spacing:.035em}
+ body.touch #bossWrap{top:66px;width:min(420px,55vw)}
+ body.touch #bossName{font-size:11px;letter-spacing:.2em}
+ body.touch #breakInfo{top:98px;font-size:10px;letter-spacing:.08em}
+ body.touch #coach{top:96px;max-width:390px}
+}
+
+/* Portrait используется для меню/мета-экранов: один выбор = одна большая удобная карточка. */
+@media (max-width:640px) and (orientation:portrait){
+ body.touch #levelScreen,body.touch #pathScreen{align-items:flex-start}
+ body.touch #cards,body.touch #pathCards.routeCards{display:grid;grid-template-columns:minmax(0,1fr);gap:10px;width:min(100%,390px);margin:14px auto 0}
+ body.touch #cards .card,body.touch #pathCards .routeCard{width:100%;min-height:0;padding:16px 14px}
+ body.touch #cards .cRune,body.touch #pathCards .cRune{font-size:34px;margin-bottom:6px}
+ body.touch #cards .cDesc,body.touch #pathCards .cDesc{min-height:0}
+ body.touch .routeTrail{justify-content:flex-start;flex-wrap:nowrap;overflow-x:auto;-webkit-overflow-scrolling:touch}
+ body.touch .routeStep{flex:none}
+}
 </style>
 </head>
 <body>
@@ -517,7 +593,7 @@ h2{font-family:'Forum';font-weight:400;font-size:clamp(30px,5vw,52px);letter-spa
     <div class="scInner">
       <div class="runeRow">ᚠ ᚢ ᚦ ᚨ ᚱ ᚲ ᚷ ᚹ</div>
       <h1>VALHEM</h1>
-      <div><span class="packBadge">РЕЛИЗ v1.5 «ЯРЛЫ И ЭЛИТА» · ПОЛНЫЙ СБОРНИК</span></div>
+      <div><span class="packBadge">РЕЛИЗ v1.6.1 «MOBILE FIRST» · ПОЛНЫЙ СБОРНИК</span></div>
       <p class="tag">Шесть земель, фазовые ётуны, стойкость и добивания, парирование и серии ударов, кооп на одном экране, чертог славы и ежедневные саги. Играй на клавиатуре или на стекле планшета.</p>
       <div class="orn">ᛟ</div>
       <button id="btnPrep" class="btn">В ПОХОД</button>
@@ -528,7 +604,7 @@ h2{font-family:'Forum';font-weight:400;font-size:clamp(30px,5vw,52px);letter-spa
       <button id="btnSettings" class="btn">НАСТРОЙКИ</button>
       <div id="titleStats"></div>
       <div id="dailyLine"></div>
-      <div class="credit">VALHEM v1.5 «ЯРЛЫ И ЭЛИТА» · ОФЛАЙН-САГА В ТВОЁМ БРАУЗЕРЕ</div>
+      <div class="credit">VALHEM v1.6.1 «MOBILE FIRST» · ОФЛАЙН-САГА В ТВОЁМ БРАУЗЕРЕ</div>
     </div>
   </section>
 
@@ -658,7 +734,7 @@ h2{font-family:'Forum';font-weight:400;font-size:clamp(30px,5vw,52px);letter-spa
           <button class="sbtn danger" id="btnWipe">СТЕРЕТЬ</button>
         </div>
         <div class="srow">
-          <label>Версия<span class="sdesc">VALHEM v1.5 «ЯРЛЫ И ЭЛИТА» · МИНИ-БОССЫ + АКТИВНЫЕ ЭЛИТНЫЕ СПОСОБНОСТИ</span></label>
+          <label>Версия<span class="sdesc">VALHEM v1.6.1 «MOBILE FIRST» · 12 ВЕТОК ЭВОЛЮЦИИ ОРУЖИЯ</span></label>
           <span class="sval">ᛟ</span>
         </div>
       </div>
@@ -682,7 +758,7 @@ h2{font-family:'Forum';font-weight:400;font-size:clamp(30px,5vw,52px);letter-spa
   <section id="levelScreen" class="screen hidden">
     <div class="scInner">
       <div class="runeRow">ᛞ  ᚱ ᛬ ᛟ ᛞ ᛁ ᚾ ᚨ</div>
-      <h2>ДАР ОДИНА</h2>
+      <h2 id="levelTitle">ДАР ОДИНА</h2>
       <p class="sub" id="levelSub">Всеотец смотрит на тебя. Выбери одну руну.</p>
       <div id="cards"></div>
     </div>
@@ -730,15 +806,18 @@ h2{font-family:'Forum';font-weight:400;font-size:clamp(30px,5vw,52px);letter-spa
 
 <script>
 'use strict';
-/* CHANGELOG v1.5 «ЯРЛЫ И ЭЛИТА»
-- В волнах III, VIII, XIII и далее появляется Ярл — мини-босс между обычными волнами и Ётуном.
-- У каждого биома свой Ярл: Драугр-Ярл, Волчий Ярл, Ярл Скади, Пламенный Ярл, Могильный Ярл и Ярл Биврёста.
-- Ярлы имеют собственную полоску HP/STAGGER, увеличенный размер, награду и уникальную активную способность земли.
-- Элитные модификаторы получили активные умения: стремительный рывок, кровавое поглощение, взрывной импульс, бастион щита и усиленный призыв некроманта.
-- Убийства Ярлов учитываются в статистике и открывают новые достижения.
-- Все системы v1.1–v1.4 сохранены: добивания, STAGGER, синергии даров, карта маршрута и уникальные Ётуны.
+/* CHANGELOG v1.6.1 «MOBILE FIRST»
+- Полная мобильная ревизия интерфейса без изменения боевого баланса.
+- Экраны Даров, Мастерства и Карты Саги получили отдельную компоновку для короткого landscape.
+- На телефонах карточки выбора помещаются в один экран и сохраняют крупную область нажатия.
+- В portrait-меню карточки перестраиваются в одну колонку на всю доступную ширину.
+- Все основные кнопки и интерактивы получили touch-target не меньше ~44–48 px.
+- Улучшены safe-area отступы для экранов с вырезом/островом и нижним системным индикатором.
+- Уплотнены HUD, boss HUD, подсказки и карта маршрута на низких экранах.
+- Длинные названия оружейного мастерства сокращаются только в мобильном боевом HUD.
+- Магазин Синдри адаптирован под короткие экраны и крупные нажатия пальцем.
 */
-var VERSION='1.5 «ЯРЛЫ И ЭЛИТА»';
+var VERSION='1.6.1 «MOBILE FIRST»';
 const TAU=Math.PI*2;
 const clamp=function(v,a,b){return v<a?a:(v>b?b:v);};
 const lerp=function(a,b,t){return a+(b-a)*t;};
@@ -1254,7 +1333,7 @@ let team={level:1,xp:0,xpNext:8,gold:0};
 let enemies=[],projs=[],parts=[],pickups=[],texts=[],trails=[],telegraphs=[],portals=[],zones=[];
 let barrels=[],altars=[];
 let wave={num:0,queue:[],t:0,breakT:0},kills=0,runTime=0;
-let shake=0,freeze=0,slowmo=0,dieT=0,ambT=0,pending=0,choices=[],ragePing=[false,false];
+let shake=0,freeze=0,slowmo=0,dieT=0,ambT=0,pending=0,choices=[],ragePing=[false,false],masteryQueue=[],masteryMode=false;
 let curEvent=null,zoneT=2;
 let dailyMode=false;
 let routeChoices=[],routeHistory=[];
@@ -1359,7 +1438,8 @@ const RARITY={
  rare:{label:'РЕДКИЙ',weight:25},
  epic:{label:'ЭПИЧЕСКИЙ',weight:10},
  legendary:{label:'ЛЕГЕНДАРНЫЙ',weight:3},
- cursed:{label:'ПРОКЛЯТЫЙ',weight:2}
+ cursed:{label:'ПРОКЛЯТЫЙ',weight:2},
+ mastery:{label:'МАСТЕРСТВО',weight:0}
 };
 const UPG=[
  {id:'dmg',rune:'ᚲ',name:'Клинок Одина',desc:'Урон всего оружия +25%',rarity:'common'},
@@ -1383,7 +1463,35 @@ const UPG=[
  {id:'exec',rune:'ᛉ',name:'Охотник на великанов',desc:'Окно добивания шире. Добивания лечат и дают больше ярости.',rarity:'rare'},
  {id:'storm',rune:'ᚹ',name:'Пробуждение Мьёльнира',desc:'Молот и парирование призывают молнии Всеотца.',rarity:'legendary'},
  {id:'glass',rune:'ᚾ',name:'Голод Фенрира',desc:'+80% урона, но максимум здоровья снижен вдвое.',rarity:'cursed'}];
-function upDef(id){for(let i=0;i<UPG.length;i++)if(UPG[i].id===id)return UPG[i];return null;}
+const WEAPON_MASTERY={
+ sword:[
+  {id:'sword_duelist',weapon:'sword',rune:'ᛏ',name:'Путь Дуэлянта',desc:'Каждый третий взмах — сокрушительный точный удар. Меч атакует быстрее.',rarity:'mastery',short:'ДУЭЛЯНТ'},
+  {id:'sword_whirl',weapon:'sword',rune:'ᚹ',name:'Путь Вихря',desc:'Каждый четвёртый взмах превращается в круговую атаку вокруг воина.',rarity:'mastery',short:'ВИХРЬ'},
+  {id:'sword_guard',weapon:'sword',rune:'ᛉ',name:'Путь Стража',desc:'Успешный парир мечом вызывает ответную круговую рубку и краткий щит.',rarity:'mastery',short:'СТРАЖ'}
+ ],
+ hammer:[
+  {id:'hammer_crusher',weapon:'hammer',rune:'ᚦ',name:'Сокрушитель',desc:'Молот намного сильнее ломает стойкость. Землетряс получает больший радиус.',rarity:'mastery',short:'СОКРУШИТЕЛЬ'},
+  {id:'hammer_thunder',weapon:'hammer',rune:'ᚹ',name:'Громовержец',desc:'Каждое попадание брошенным молотом призывает цепную молнию.',rarity:'mastery',short:'ГРОМОВЕРЖЕЦ'},
+  {id:'hammer_quake',weapon:'hammer',rune:'ᛞ',name:'Землетряс',desc:'Возвращённый в руку молот выпускает ударную волну вокруг героя.',rarity:'mastery',short:'ЗЕМЛЕТРЯС'}
+ ],
+ spear:[
+  {id:'spear_gungnir',weapon:'spear',rune:'ᚷ',name:'Гунгнир',desc:'Копьё становится длиннее, мощнее и прошивает строй противников.',rarity:'mastery',short:'ГУНГНИР'},
+  {id:'spear_bleed',weapon:'spear',rune:'ᛒ',name:'Кровопускатель',desc:'Повторные уколы усиливают кровотечение и продлевают его.',rarity:'mastery',short:'КРОВОПУСКАТЕЛЬ'},
+  {id:'spear_hunter',weapon:'spear',rune:'ᛊ',name:'Охотник',desc:'Убийство копьём мгновенно возвращает рывок и сокращает откат стойки.',rarity:'mastery',short:'ОХОТНИК'}
+ ],
+ bow:[
+  {id:'bow_triple',weapon:'bow',rune:'ᛉ',name:'Тройной залп',desc:'Обычный выстрел выпускает три стрелы веером.',rarity:'mastery',short:'ТРОЙНОЙ ЗАЛП'},
+  {id:'bow_pierce',weapon:'bow',rune:'ᛁ',name:'Пронзающая стрела',desc:'Стрелы проходят ещё через двух противников, сохраняя комбо.',rarity:'mastery',short:'ПРОНЗАНИЕ'},
+  {id:'bow_eagle',weapon:'bow',rune:'ᚨ',name:'Орлиный глаз',desc:'Выстрелы с большой дистанции наносят двойной урон и ломают стойкость.',rarity:'mastery',short:'ОРЛИНЫЙ ГЛАЗ'}
+ ]
+};
+const MASTERY_ALL=[].concat(WEAPON_MASTERY.sword,WEAPON_MASTERY.hammer,WEAPON_MASTERY.spear,WEAPON_MASTERY.bow);
+function upDef(id){for(let i=0;i<UPG.length;i++)if(UPG[i].id===id)return UPG[i];for(let i=0;i<MASTERY_ALL.length;i++)if(MASTERY_ALL[i].id===id)return MASTERY_ALL[i];return null;}
+function masteryFor(pl,w){return pl&&pl.mastery?pl.mastery[w||pl.weapon]:null;}
+function masteryIs(pl,w,id){return masteryFor(pl,w)===id;}
+function masteryDef(pl,w){const id=masteryFor(pl,w);return id?upDef(id):null;}
+function setMastery(pl,w,id){if(!pl.mastery)pl.mastery={};if(!pl.mastery[w])pl.mastery[w]=id;}
+
 function upRarity(u){return (u&&u.rarity)||'common';}
 function drawUpgrade(pool){
  const arr=(pool&&pool.length?pool:UPG).slice();
@@ -1426,6 +1534,10 @@ function applyTo(pl,id){
  else if(id==='exec'){pl.execBonus=(pl.execBonus||0)+0.09;pl.execHeal=(pl.execHeal||0)+0.12;}
  else if(id==='storm')pl.stormPow=true;
  else if(id==='glass'){pl.dmgMul*=1.8;pl.maxHp=Math.max(35,Math.round(pl.maxHp*0.5));pl.hp=Math.min(pl.hp,pl.maxHp);pl.glassPow=true;}
+ else if(id.indexOf('sword_')===0)setMastery(pl,'sword',id);
+ else if(id.indexOf('hammer_')===0)setMastery(pl,'hammer',id);
+ else if(id.indexOf('spear_')===0)setMastery(pl,'spear',id);
+ else if(id.indexOf('bow_')===0)setMastery(pl,'bow',id);
 }
 function applyUp(id){for(let i=0;i<players.length;i++)applyTo(players[i],id);
  const u=upDef(id),label=u&&RARITY[upRarity(u)]?RARITY[upRarity(u)].label:'ДАР';
@@ -1442,7 +1554,7 @@ function makePlayer(idx){
   rage:0,berserk:0,rageMul:1,axeCd:0,axeCdMax:2.1,axeCount:1,
   dmgMul:1,armorMul:1,crit:0.05,lifesteal:0,pickupR:95,arc:1.9,range:66,
   weapon:'sword',hammerOut:false,revives:0,burnPow:false,frostPow:false,
-  execBonus:0,execHeal:0,stormPow:false,glassPow:false,upgOwned:{},synergySeen:{},snareT:0,chillT:0,
+  execBonus:0,execHeal:0,stormPow:false,glassPow:false,upgOwned:{},mastery:{},synergySeen:{},snareT:0,chillT:0,swordSeq:0,
   buffs:{speed:0,damage:0,shield:0}};
 }
 function initRun(m){
@@ -1452,7 +1564,7 @@ function initRun(m){
  team={level:1,xp:0,xpNext:8,gold:25*save.up.gold};
  enemies=[];projs=[];pickups=[];texts=[];trails=[];telegraphs=[];portals=[];zones=[];
  barrels=[];altars=[];
- kills=0;runTime=0;shake=0;freeze=0;slowmo=0;pending=0;ragePing=[false,false];
+ kills=0;runTime=0;shake=0;freeze=0;slowmo=0;pending=0;ragePing=[false,false];masteryQueue=[];masteryMode=false;
  curEvent=null;zoneT=2;
  routeChoices=[];routeHistory=[];routePending=Object.assign({},ROUTE_NEUTRAL);routeActive=Object.assign({},ROUTE_NEUTRAL);
  wave={num:0,queue:[],t:0,breakT:1.5};
@@ -1591,7 +1703,7 @@ function addStatus(e,k,t,dps){
  else{const old=e.st[k];e.st[k]={t:t,dps:Math.max(old?old.dps:0,dps)};}
 }
 function applyOnHit(pl,e){
- if(pl.weapon==='spear')addStatus(e,'bleed',3,pl.dmg*pl.dmgMul*0.14);
+ if(pl.weapon==='spear'){const bm=masteryIs(pl,'spear','spear_bleed');addStatus(e,'bleed',bm?4.2:3,pl.dmg*pl.dmgMul*(bm?0.22:0.14));if(bm&&e.st&&e.st.bleed)e.st.bleed.dps=Math.min(pl.dmg*pl.dmgMul*0.65,e.st.bleed.dps*1.18);}
  if(pl.burnPow)addStatus(e,'burn',3,pl.dmg*pl.dmgMul*0.12);
  if(pl.frostPow)addStatus(e,'frost',2,0);
 }
@@ -1780,10 +1892,10 @@ function strikeEnemy(sx,sy,e,dmg,ang,kb,pl,opts){
   triggerShatter(pl,e);
   if(pl.stormPow&&pl.weapon==='hammer'&&Math.random()<0.45)stormStrike(pl,e,Math.max(16,dmg*0.42));
   if(!(opts&&opts.noStagger)&&enemies.indexOf(e)>=0){
-   let sm=pl.weapon==='hammer'?0.92:(pl.weapon==='sword'?0.38:(pl.weapon==='spear'?0.28:0.16));
+   let sm=pl.weapon==='hammer'?(masteryIs(pl,'hammer','hammer_crusher')?1.48:0.92):(pl.weapon==='sword'?0.38:(pl.weapon==='spear'?0.28:0.16));
    if(opts&&opts.melee)sm*=1.12;if(crit)sm*=1.28;if(back)sm*=1.2;
    addStagger(e,dmg*sm);}}
- if(e.hp<=0&&enemies.indexOf(e)>=0)killEnemy(e);
+ if(e.hp<=0&&enemies.indexOf(e)>=0){if(pl&&pl.weapon==='spear'&&masteryIs(pl,'spear','spear_hunter')){pl.dodgeCd=0;pl.stanceCd=Math.max(0,pl.stanceCd-2.2);addText(pl.x,pl.y-40,'ОХОТНИК!','#8fd8e8',12);}killEnemy(e);}
 }
 function enemyBites(e,tgt,dmg,ang){
  damagePlayer(tgt,dmg,ang,e);
@@ -1850,6 +1962,7 @@ function damagePlayer(pl,dmg,ang,src){
   if(runStats){runStats.parries++;save.stats.parries++;if(runStats.parries>=10)ach('parry10');}
   if(pl.parryPow)strikeEnemy(pl.x,pl.y,src,pDmg(pl)*0.75,a2,260,pl,{melee:true});
   if(pl.parryPow&&pl.weapon==='sword'){pl.stanceCd=0;addText(pl.x,pl.y-48,'СТОЙКА ГОТОВА!','#ffd97a',13);synergyOnce(pl,'riposte','СИНЕРГИЯ: ПАРИРОВАНИЕ -> СТОЙКА МЕЧА');}
+  if(pl.weapon==='sword'&&masteryIs(pl,'sword','sword_guard')){pl.buffs.shield=Math.max(pl.buffs.shield,2.4);playerBurst(pl,96,pDmg(pl)*0.85,pDmg(pl)*0.42,'ОТВЕТ СТРАЖА','255,217,122');}
   if(pl.stormPow)stormStrike(pl,src,Math.max(18,pDmg(pl)*0.34));
   return;}
  if(runStats)runStats.hurtWave=true;
@@ -1877,6 +1990,11 @@ function damagePlayer(pl,dmg,ang,src){
 function startDeath(){state='dying';dieT=1.45;if(save.sett.slowmo!==false)slowmo=Math.max(slowmo,1.45);AU.sDeath();shake=13;}
 
 /* ============ actions ============ */
+function playerBurst(pl,r,dmg,stagger,label,col){
+ let hits=0;const es=enemies.slice();
+ for(let i=0;i<es.length;i++){const e=es[i];if(enemies.indexOf(e)<0||Math.hypot(e.x-pl.x,e.y-pl.y)>r+e.r)continue;hits++;const a=angTo(pl.x,pl.y,e.x,e.y);strikeEnemy(pl.x,pl.y,e,dmg,a,300,pl,{melee:true,noStagger:true});if(enemies.indexOf(e)>=0)addStagger(e,stagger);}
+ if(hits){parts.push({type:'ring',x:pl.x,y:pl.y,t:0,life:0.32,size:r,col:col||'255,217,122'});if(label)addText(pl.x,pl.y-40,label,'#ffd97a',14);}return hits;
+}
 function tryAttack(pl){
  if(touchMode&&pl.idx===0&&tryExecute(pl))return;
  if(pl.weapon==='sword')trySwing(pl);
@@ -1895,49 +2013,26 @@ function hitBarrelsInArc(pl,range,arcHalf,dmg){
 }
 function trySwing(pl){
  if(!pl.alive||state!=='playing'||pl.atkCd>0||pl.dodgeT>0)return;
- pl.atkCd=WEAP.sword.cd*pl.atkRate;pl.swingDir*=-1;
- pl.swing={t:0,dur:0.16,arc:pl.arc,dir:pl.swingDir};
- pl.vx+=Math.cos(pl.aim)*70;pl.vy+=Math.sin(pl.aim)*70;
- AU.sSwing();
- let hits=0;
- const es=enemies.slice();
- for(let i=0;i<es.length;i++){const e=es[i];
-  const d=Math.hypot(e.x-pl.x,e.y-pl.y);if(d>pl.range+e.r)continue;
-  const a=angTo(pl.x,pl.y,e.x,e.y);
-  if(Math.abs(angDiff(a,pl.aim))<pl.arc/2+0.3){hits++;strikeEnemy(pl.x,pl.y,e,pDmg(pl),a,240,pl,{melee:true});}}
- hitBarrelsInArc(pl,pl.range,pl.arc/2+0.3,pDmg(pl));
- if(hits>0)bumpCombo(pl);else resetCombo(pl);
+ const duel=masteryIs(pl,'sword','sword_duelist'),whirl=masteryIs(pl,'sword','sword_whirl');pl.atkCd=WEAP.sword.cd*pl.atkRate*(duel?0.84:1);pl.swingDir*=-1;pl.swordSeq=(pl.swordSeq||0)+1;
+ const finisher=duel&&pl.swordSeq%3===0,spin=whirl&&pl.swordSeq%4===0;pl.swing={t:0,dur:0.16,arc:pl.arc,dir:pl.swingDir};pl.vx+=Math.cos(pl.aim)*70;pl.vy+=Math.sin(pl.aim)*70;AU.sSwing();
+ let hits=0;const es=enemies.slice(),base=pDmg(pl)*(finisher?1.85:1);for(let i=0;i<es.length;i++){const e=es[i],d=Math.hypot(e.x-pl.x,e.y-pl.y);if(d>pl.range+e.r)continue;const a=angTo(pl.x,pl.y,e.x,e.y);if(Math.abs(angDiff(a,pl.aim))<pl.arc/2+0.3){hits++;strikeEnemy(pl.x,pl.y,e,base,a,finisher?340:240,pl,{melee:true});}}
+ hitBarrelsInArc(pl,pl.range,pl.arc/2+0.3,base);if(finisher)addText(pl.x,pl.y-36,'ТОЧНЫЙ УДАР!','#ffd97a',13);if(spin)hits+=playerBurst(pl,pl.range+28,pDmg(pl)*0.72,pDmg(pl)*0.3,'ВИХРЬ!','255,217,122');if(hits>0)bumpCombo(pl);else resetCombo(pl);
 }
 function tryThrust(pl){
- if(!pl.alive||state!=='playing'||pl.atkCd>0||pl.dodgeT>0)return;
- pl.atkCd=WEAP.spear.cd*pl.atkRate;
- pl.thrust={t:0,dur:0.15};
- pl.vx+=Math.cos(pl.aim)*110;pl.vy+=Math.sin(pl.aim)*110;
- AU.sThrust();
- let hits=0;
- const es=enemies.slice();
- for(let i=0;i<es.length;i++){const e=es[i];
-  const d=Math.hypot(e.x-pl.x,e.y-pl.y);if(d>118+e.r)continue;
-  const a=angTo(pl.x,pl.y,e.x,e.y);
-  if(Math.abs(angDiff(a,pl.aim))<0.45){hits++;strikeEnemy(pl.x,pl.y,e,pDmg(pl)*0.8,a,190,pl,{melee:true});}}
- hitBarrelsInArc(pl,118,0.45,pDmg(pl)*0.8);
- if(hits>0)bumpCombo(pl);else resetCombo(pl);
+ if(!pl.alive||state!=='playing'||pl.atkCd>0||pl.dodgeT>0)return;const gung=masteryIs(pl,'spear','spear_gungnir');pl.atkCd=WEAP.spear.cd*pl.atkRate*(gung?0.92:1);pl.thrust={t:0,dur:0.15};pl.vx+=Math.cos(pl.aim)*(gung?145:110);pl.vy+=Math.sin(pl.aim)*(gung?145:110);AU.sThrust();
+ let hits=0;const reach=gung?172:118,half=gung?0.38:0.45,dm=pDmg(pl)*(gung?1.02:0.8),es=enemies.slice();for(let i=0;i<es.length;i++){const e=es[i],d=Math.hypot(e.x-pl.x,e.y-pl.y);if(d>reach+e.r)continue;const a=angTo(pl.x,pl.y,e.x,e.y);if(Math.abs(angDiff(a,pl.aim))<half){hits++;strikeEnemy(pl.x,pl.y,e,dm,a,gung?250:190,pl,{melee:true});}}
+ hitBarrelsInArc(pl,reach,half,dm);if(gung&&hits>1)addText(pl.x,pl.y-34,'ГУНГНИР · ПРОШИВАНИЕ','#ffd97a',12);if(hits>0)bumpCombo(pl);else resetCombo(pl);
 }
 function tryShoot(pl){
- if(!pl.alive||state!=='playing'||pl.atkCd>0||pl.dodgeT>0)return;
- pl.atkCd=WEAP.bow.cd*pl.atkRate;
- const a=pl.aim;
- projs.push({type:'arrow',x:pl.x+Math.cos(a)*16,y:pl.y+Math.sin(a)*16,vx:Math.cos(a)*660,vy:Math.sin(a)*660,
-  dmg:pDmg(pl)*0.7,r:4,life:0.9,own:pl});
- pl.vx-=Math.cos(a)*26;pl.vy-=Math.sin(a)*26;
- AU.sArrow();
+ if(!pl.alive||state!=='playing'||pl.atkCd>0||pl.dodgeT>0)return;pl.atkCd=WEAP.bow.cd*pl.atkRate;const a=pl.aim,triple=masteryIs(pl,'bow','bow_triple'),pierce=masteryIs(pl,'bow','bow_pierce'),eagle=masteryIs(pl,'bow','bow_eagle'),count=triple?3:1;
+ for(let i=0;i<count;i++){const aa=a+(i-(count-1)/2)*0.14;projs.push({type:'arrow',x:pl.x+Math.cos(aa)*16,y:pl.y+Math.sin(aa)*16,vx:Math.cos(aa)*660,vy:Math.sin(aa)*660,dmg:pDmg(pl)*(triple?0.48:0.7),r:4,life:1.05,own:pl,pierce:pierce?2:0,hit:new Set(),srcX:pl.x,srcY:pl.y,eagle:eagle});}pl.vx-=Math.cos(a)*26;pl.vy-=Math.sin(a)*26;AU.sArrow();
 }
 function tryHammer(pl){
  if(!pl.alive||state!=='playing'||pl.atkCd>0||pl.dodgeT>0||pl.hammerOut)return;
  pl.atkCd=WEAP.hammer.cd*pl.atkRate;pl.hammerOut=true;
  const a=pl.aim;
  projs.push({type:'hammer',x:pl.x+Math.cos(a)*18,y:pl.y+Math.sin(a)*18,vx:Math.cos(a)*640,vy:Math.sin(a)*640,
-  phase:0,dist:0,maxD:370,own:pl,dmg:pDmg(pl)*1.5,spin:0,hit:new Set()});
+  phase:0,dist:0,maxD:370,own:pl,dmg:pDmg(pl)*1.5,spin:0,hit:new Set(),thunder:masteryIs(pl,'hammer','hammer_thunder'),quake:masteryIs(pl,'hammer','hammer_quake')});
  AU.sHammer();
 }
 function tryAxe(pl){
@@ -1970,18 +2065,18 @@ function tryStance(pl){
   trails.push({x:pl.x,y:pl.y,a:pl.aim,arc:TAU,r:80,t:0,life:0.25});
   if(hits>0)bumpCombo(pl);else resetCombo(pl);}
  else if(pl.weapon==='hammer'){
-  AU.sBoom(0.55);shake=Math.max(shake,9);
-  parts.push({type:'ring',x:pl.x,y:pl.y,t:0,life:0.45,size:130,col:'255,180,90'});
+  AU.sBoom(0.55);shake=Math.max(shake,9);const crush=masteryIs(pl,'hammer','hammer_crusher'),hr=crush?175:135;
+  parts.push({type:'ring',x:pl.x,y:pl.y,t:0,life:0.45,size:hr,col:'255,180,90'});
   let hits=0;
   const es=enemies.slice();
   for(let i=0;i<es.length;i++){const e=es[i];
    const d=Math.hypot(e.x-pl.x,e.y-pl.y);
-   if(d<135+e.r){hits++;e.stun=(e.stun||0)+1.5;const a=angTo(pl.x,pl.y,e.x,e.y);
-    strikeEnemy(pl.x,pl.y,e,pDmg(pl)*0.8,a,300,pl,{});}}
+   if(d<hr+e.r){hits++;e.stun=(e.stun||0)+1.5;const a=angTo(pl.x,pl.y,e.x,e.y);
+    strikeEnemy(pl.x,pl.y,e,pDmg(pl)*0.8,a,300,pl,{});if(crush&&enemies.indexOf(e)>=0)addStagger(e,pDmg(pl)*0.75);}}
   const ps=PILLARS.slice();
-  for(let i=0;i<ps.length;i++)if(Math.hypot(ps[i].x-pl.x,ps[i].y-pl.y)<135+ps[i].r)pillarDamage(ps[i],50);
+  for(let i=0;i<ps.length;i++)if(Math.hypot(ps[i].x-pl.x,ps[i].y-pl.y)<hr+ps[i].r)pillarDamage(ps[i],50);
   const bs=barrels.slice();
-  for(let i=0;i<bs.length;i++)if(Math.hypot(bs[i].x-pl.x,bs[i].y-pl.y)<135+bs[i].r)damageBarrel(bs[i],999);
+  for(let i=0;i<bs.length;i++)if(Math.hypot(bs[i].x-pl.x,bs[i].y-pl.y)<hr+bs[i].r)damageBarrel(bs[i],999);
   if(hits>0)bumpCombo(pl);else resetCombo(pl);}
  else if(pl.weapon==='spear'){
   AU.sThrust();
@@ -2000,7 +2095,7 @@ function tryStance(pl){
   const a=pl.aim;
   for(let i=0;i<7;i++){const off=(i-3)*0.16,aa=a+off;
    projs.push({type:'arrow',x:pl.x+Math.cos(aa)*16,y:pl.y+Math.sin(aa)*16,vx:Math.cos(aa)*640,vy:Math.sin(aa)*640,
-    dmg:pDmg(pl)*0.6,r:4,life:0.9,own:pl,noCombo:true});}}
+    dmg:pDmg(pl)*0.6,r:4,life:0.9,own:pl,noCombo:true,hit:new Set(),pierce:masteryIs(pl,'bow','bow_pierce')?2:0,srcX:pl.x,srcY:pl.y,eagle:masteryIs(pl,'bow','bow_eagle')});}}
 }
 function trySwap(pl){
  if(!pl.alive||state!=='playing')return;
@@ -2039,29 +2134,30 @@ function tryBerserk(pl){
 }
 
 /* ============ pickups / level ============ */
+function queueMasteryForLevel(lvl){
+ if(lvl<4||lvl%4!==0||!players.length)return;
+ const w=players[0].weapon;
+ if(!masteryFor(players[0],w)&&masteryQueue.indexOf(w)<0)masteryQueue.push(w);
+}
 function collectRune(){
  team.xp+=1;AU.sPickup();
- while(team.xp>=team.xpNext){team.xp-=team.xpNext;team.level++;team.xpNext=6+team.level*3;pending++;}
+ while(team.xp>=team.xpNext){team.xp-=team.xpNext;team.level++;team.xpNext=6+team.level*3;pending++;queueMasteryForLevel(team.level);}
  if(team.level>=10)ach('lvl10');
- if(pending>0&&state==='playing')openLevel();
+ if((pending>0||masteryQueue.length)&&state==='playing')openLevel();
 }
 function openLevel(){
- state='levelup';AU.sLevel();closeShop();
- $('levelSub').textContent=mode==='coop'?'Всеотец смотрит на вас обоих. Дар получат оба воина. Редкость решает судьбу.':'Всеотец смотрит на тебя. Выбери одну руну. Редкость решает судьбу.';
- choices=rollUpgrades(3);
+ state='levelup';AU.sLevel();closeShop();masteryMode=masteryQueue.length>0;
+ if(masteryMode){const w=masteryQueue[0];$('levelTitle').textContent='МАСТЕРСТВО: '+WEAPNAME[w];$('levelSub').textContent='Выбери одну ветвь. Остальные пути этого оружия закроются до конца забега.';choices=(WEAPON_MASTERY[w]||[]).slice();}
+ else{$('levelTitle').textContent='ДАР ОДИНА';$('levelSub').textContent=mode==='coop'?'Всеотец смотрит на вас обоих. Дар получат оба воина. Редкость решает судьбу.':'Всеотец смотрит на тебя. Выбери одну руну. Редкость решает судьбу.';choices=rollUpgrades(3);}
  const wrap=$('cards');wrap.innerHTML='';
- choices.forEach(function(u,i){
-  const d=document.createElement('div');d.className='card '+upRarity(u);
-  d.innerHTML='<div class="cRune">'+u.rune+'</div><div class="cName">'+u.name+'</div><div class="cDesc">'+u.desc+'</div><div class="cTier">'+RARITY[upRarity(u)].label+'</div><div class="cKey">'+(i+1)+'</div>';
-  d.onclick=function(){choose(u);};wrap.appendChild(d);});
+ choices.forEach(function(u,i){const d=document.createElement('div');d.className='card '+upRarity(u);d.innerHTML='<div class="cRune">'+u.rune+'</div><div class="cName">'+u.name+'</div><div class="cDesc">'+u.desc+'</div><div class="cTier">'+RARITY[upRarity(u)].label+'</div><div class="cKey">'+(i+1)+'</div>';d.onclick=function(){choose(u);};wrap.appendChild(d);});
  $('levelScreen').classList.remove('hidden');
 }
 function choose(u){
- if(state!=='levelup')return;
- applyUp(u.id);AU.sRune();pending--;
+ if(state!=='levelup')return;applyUp(u.id);AU.sRune();
+ if(masteryMode){const w=masteryQueue.shift();showBanner('МАСТЕРСТВО ОСВОЕНО',WEAPNAME[w]+' · '+u.name);masteryMode=false;}else pending--;
  $('levelScreen').classList.add('hidden');
- if(pending>0)setTimeout(openLevel,140);
- else{state='playing';for(let i=0;i<players.length;i++)players[i].iframes=Math.max(players[i].iframes,0.6);}
+ if(masteryQueue.length||pending>0)setTimeout(openLevel,140);else{state='playing';for(let i=0;i<players.length;i++)players[i].iframes=Math.max(players[i].iframes,0.6);}
 }
 
 /* ============ карта пути ============ */
@@ -2511,12 +2607,13 @@ function update(rdt){
     p.x+=p.vx*dt;p.y+=p.vy*dt;
     if(Math.random()<0.35)parts.push({type:'spark',x:p.x,y:p.y,vx:rand(-30,30),vy:rand(-30,30),t:0,life:0.25,size:1.5});
     if(Math.hypot(o.x-p.x,o.y-p.y)<26){o.hammerOut=false;AU.sCatch();
+     if(p.quake)playerBurst(o,125,pDmg(o)*0.62,pDmg(o)*0.7,'УДАРНАЯ ВОЛНА','255,180,90');
      if(!p.bumped)resetCombo(o);
      projs.splice(i,1);continue;}}
    let hdone=false;
    for(let k=0;k<enemies.length;k++){const e=enemies[k];
     if(!p.hit.has(e)&&Math.hypot(e.x-p.x,e.y-p.y)<e.r+14){
-     p.hit.add(e);strikeEnemy(p.x,p.y,e,p.dmg,angTo(p.x,p.y,e.x,e.y),320,p.own,{});hdone=true;
+     p.hit.add(e);strikeEnemy(p.x,p.y,e,p.dmg,angTo(p.x,p.y,e.x,e.y),320,p.own,{});if(p.thunder&&enemies.indexOf(e)>=0)stormStrike(p.own,e,Math.max(18,p.dmg*0.38));hdone=true;
      if(!p.bumped){p.bumped=true;bumpCombo(p.own);}}}
    if(!hdone)for(let k=0;k<barrels.length;k++){const b=barrels[k];
     if(!p.hit.has(b)&&Math.hypot(b.x-p.x,b.y-p.y)<b.r+14){
@@ -2533,16 +2630,16 @@ function update(rdt){
     if(Math.hypot(b.x-p.x,b.y-p.y)<b.r+p.r){damageBarrel(b,p.dmg);
      if(!p.noCombo&&!p.bumped){p.bumped=true;bumpCombo(p.own);}dead=true;break;}}
    if(!dead)for(let k=0;k<enemies.length;k++){const e=enemies[k];
-    if(Math.hypot(e.x-p.x,e.y-p.y)<e.r+p.r){
-     let dm=p.dmg;
+    if(p.hit&&p.hit.has(e))continue;
+    if(Math.hypot(e.x-p.x,e.y-p.y)<e.r+p.r){if(p.hit)p.hit.add(e);let dm=p.dmg;
      if(p.srcE&&e===p.srcE){dm*=2;addText(e.x,e.y-e.r-16,'В ГОЛОВУ!','#8fd8e8',14);}
-     strikeEnemy(p.x,p.y,e,dm,Math.atan2(p.vy,p.vx),p.type==='axe'?320:140,p.own,{});
-     if(!p.noCombo&&!p.bumped){p.bumped=true;bumpCombo(p.own);}
-     dead=true;break;}}}
+     if(p.eagle&&p.srcX!==undefined&&Math.hypot(p.x-p.srcX,p.y-p.srcY)>300){dm*=2;addText(e.x,e.y-e.r-28,'ОРЛИНЫЙ ГЛАЗ!','#ffd97a',13);addStagger(e,dm*0.55);}
+     strikeEnemy(p.x,p.y,e,dm,Math.atan2(p.vy,p.vx),p.type==='axe'?320:140,p.own,{});if(!p.noCombo&&!p.bumped){p.bumped=true;bumpCombo(p.own);}
+     if(p.type==='arrow'&&p.pierce>0){p.pierce--;dead=false;continue;}dead=true;break;}}}
   if(!dead&&p.type==='bolt'){for(let k=0;k<players.length;k++){const pl=players[k];
     if(pl.alive&&Math.hypot(pl.x-p.x,pl.y-p.y)<pl.r+p.r){
      if(parryActive(pl)){
-      projs.push({type:'arrow',x:p.x,y:p.y,vx:-p.vx*1.7,vy:-p.vy*1.7,dmg:p.dmg*2.2,r:4,life:1.2,own:pl,srcE:p.ownE,noCombo:true});
+      projs.push({type:'arrow',x:p.x,y:p.y,vx:-p.vx*1.7,vy:-p.vy*1.7,dmg:p.dmg*2.2,r:4,life:1.2,own:pl,srcE:p.ownE,noCombo:true,hit:new Set(),pierce:0});
       addText(pl.x,pl.y-30,'ОТБИТО!','#8fd8e8',14);AU.sParry();pl.parryT=0;
       if(runStats){runStats.refl++;save.stats.refl++;if(runStats.refl>=5)ach('refl5');}
       for(let m=0;m<6;m++)parts.push({type:'spark',x:p.x,y:p.y,vx:rand(-160,160),vy:rand(-160,160),t:0,life:0.3,size:2});
@@ -3224,6 +3321,11 @@ function drawPlayer(pl,ts){
 }
 
 /* ============ HUD ============ */
+/* Короткие названия мастерства только для мобильного HUD — полные названия остаются на экранах выбора. */
+function mobileMasteryName(s){
+ const map={'ДУЭЛЯНТ':'ДУЭЛЬ','СОКРУШИТЕЛЬ':'СОКРУШ.','ГРОМОВЕРЖЕЦ':'ГРОМ','ЗЕМЛЕТРЯС':'ЗЕМЛЯ','КРОВОПУСКАТЕЛЬ':'КРОВЬ','ТРОЙНОЙ ЗАЛП':'×3 ЗАЛП','ПРОНЗАНИЕ':'ПРОНЗ.','ОРЛИНЫЙ ГЛАЗ':'ОРЁЛ'};
+ return map[s]||s;
+}
 function setBars(s,pl){
  $('hpFill'+s).style.width=clamp(pl.hp/pl.maxHp*100,0,100)+'%';
  $('hpText'+s).textContent=pl.alive?Math.ceil(Math.max(0,pl.hp))+' / '+pl.maxHp:'ПАЛ — ПОДНИМИ ЕГО';
@@ -3241,7 +3343,8 @@ function setBars(s,pl){
  $('mDodge'+s).style.width=save.oaths.iron?'0%':(1-clamp(pl.dodgeCd/pl.dodgeCdMax,0,1))*100+'%';
  $('mParry'+s).style.width=(1-clamp(pl.parryCd/pl.parryCdMax,0,1))*100+'%';
  $('mStance'+s).style.width=(1-clamp(pl.stanceCd/STANCE_CD[pl.weapon],0,1))*100+'%';
- $('wpn'+s).textContent=touchMode?WEAPNAME[pl.weapon]:(WEAPNAME[pl.weapon]+' · '+(pl.idx===0?'[F]':'[ENTER]'));
+ const md=masteryDef(pl,pl.weapon),masterName=md?(touchMode?mobileMasteryName(md.short):md.short):'',wn=WEAPNAME[pl.weapon]+(masterName?' · '+masterName:'');
+ $('wpn'+s).textContent=touchMode?wn:(wn+' · '+(pl.idx===0?'[F]':'[ENTER]'));
  const c=$('combo'+s);
  if(pl.combo>=2){c.classList.remove('hidden');
   c.textContent='СЕРИЯ ×'+pl.combo+(pl.combo>=7?' · +35%':(pl.combo>=5?' · +20%':(pl.combo>=3?' · +10%':'')));
