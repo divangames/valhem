@@ -1,15 +1,19 @@
 @echo off
+rem Запуск игры, отправка изменений и обновление GitHub Pages из папки батника.
 setlocal EnableExtensions
 chcp 65001 >nul
-title LIFE TO LIVE - управление проектом
+cd /d "%~dp0"
+if errorlevel 1 exit /b 1
+title VALHEM - управление проектом
 
 set "REPO_URL=https://github.com/divangames/valhem.git"
 set "PAGES_URL=https://divangames.github.io/valhem/"
+if /i "%~1"=="--check" goto check_only
 
 :menu
 cls
 echo ==============================================
-echo        LIFE TO LIVE - управление проектом
+echo        VALHEM - управление проектом
 echo ==============================================
 echo.
 echo  [1] Запустить игру
@@ -24,6 +28,7 @@ if errorlevel 4 goto open_pages
 if errorlevel 3 goto update_pages
 if errorlevel 2 goto publish
 if errorlevel 1 goto launch
+goto menu
 
 :launch
 cls
@@ -79,15 +84,20 @@ goto pause_menu
 cls
 call :check_git || goto pause_menu
 call :configure_remote || goto pause_menu
+call :check_branch || goto pause_menu
 
 set "COMMIT_MESSAGE="
 set /p "COMMIT_MESSAGE=Сообщение коммита (Enter = Update game): "
 if not defined COMMIT_MESSAGE set "COMMIT_MESSAGE=Update game"
+rem Убираем кавычки из ввода, чтобы сообщение не нарушало синтаксис cmd.
+set "COMMIT_MESSAGE=%COMMIT_MESSAGE:"=%"
+if not defined COMMIT_MESSAGE set "COMMIT_MESSAGE=Update game"
 
-git add -A
+git add -A -- . ":(exclude)back"
 if errorlevel 1 goto command_failed
 
 git diff --cached --quiet
+if errorlevel 2 goto command_failed
 if errorlevel 1 (
   git commit -m "%COMMIT_MESSAGE%"
   if errorlevel 1 goto command_failed
@@ -95,7 +105,6 @@ if errorlevel 1 (
   echo Изменений для нового коммита нет.
 )
 
-git branch -M main
 git push -u origin main
 if errorlevel 1 goto command_failed
 
@@ -108,21 +117,40 @@ cls
 echo Обновление GitHub Pages выполняется через GitHub Actions.
 call :check_git || goto pause_menu
 call :configure_remote || goto pause_menu
+call :check_branch || goto pause_menu
 
-git add -A
+git add -A -- . ":(exclude)back"
 if errorlevel 1 goto command_failed
 git diff --cached --quiet
+if errorlevel 2 goto command_failed
 if errorlevel 1 (
   git commit -m "Update GitHub Pages"
   if errorlevel 1 goto command_failed
+ ) else (
+  rem Новый коммит запускает push-workflow даже при отсутствии изменений файлов.
+  git commit --allow-empty -m "Refresh GitHub Pages"
+  if errorlevel 1 goto command_failed
 )
 
-git branch -M main
 git push -u origin main
 if errorlevel 1 goto command_failed
 
 echo.
-echo Деплой запущен. Обычно страница обновляется за 1-3 минуты:
+echo Изменения отправлены. Проверяю GitHub Pages...
+where gh >nul 2>nul
+if errorlevel 1 (
+  echo Для проверки результата откройте GitHub Actions:
+  echo https://github.com/divangames/valhem/actions
+  goto pages_link
+)
+gh auth status >nul 2>nul
+if errorlevel 1 (
+  echo Для проверки результата через терминал выполните gh auth login.
+  goto pages_link
+)
+gh run list --repo divangames/valhem --workflow deploy-pages.yml --branch main --limit 3
+echo Страница обновится после успешного завершения Deploy game to GitHub Pages.
+:pages_link
 echo %PAGES_URL%
 start "" "%PAGES_URL%"
 goto pause_menu
@@ -139,19 +167,39 @@ if errorlevel 1 (
 )
 git rev-parse --is-inside-work-tree >nul 2>nul
 if errorlevel 1 (
-  git init
-  if errorlevel 1 exit /b 1
+  echo [ОШИБКА] Папка батника не является Git-репозиторием.
+  exit /b 1
 )
 exit /b 0
 
 :configure_remote
-git remote get-url origin >nul 2>nul
-if errorlevel 1 (
-  git remote add origin "%REPO_URL%"
-) else (
-  git remote set-url origin "%REPO_URL%"
+set "ACTUAL_REMOTE="
+for /f "delims=" %%U in ('git remote get-url origin 2^>nul') do set "ACTUAL_REMOTE=%%U"
+if not defined ACTUAL_REMOTE (
+ git remote add origin "%REPO_URL%"
+ if errorlevel 1 exit /b 1
+ exit /b 0
 )
-if errorlevel 1 exit /b 1
+if not "%ACTUAL_REMOTE%"=="%REPO_URL%" (
+ echo [ОШИБКА] origin указывает на другой репозиторий. Проверьте git remote -v.
+ exit /b 1
+)
+exit /b 0
+
+:check_branch
+set "ACTUAL_BRANCH="
+for /f "delims=" %%B in ('git symbolic-ref --quiet --short HEAD') do set "ACTUAL_BRANCH=%%B"
+if not "%ACTUAL_BRANCH%"=="main" (
+  echo [ОШИБКА] Отправка разрешена из ветки main. Текущая ветка не переименована.
+  exit /b 1
+)
+exit /b 0
+
+:check_only
+call :check_git || exit /b 1
+call :configure_remote || exit /b 1
+call :check_branch || exit /b 1
+echo [OK] Git, origin, main и папка проекта проверены.
 exit /b 0
 
 :command_failed
