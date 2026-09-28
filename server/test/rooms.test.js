@@ -63,3 +63,26 @@ test('removes an absent guest after the window but reserves the slot for the sam
   assert.throws(() => rooms.join(room.code, {clientId: 'player_third_789', name: 'Третий'}), /начался/);
   assert.equal(rooms.join(room.code, {clientId: 'player_guest_456', name: 'Вернувшийся'}).playerCount, 2);
 });
+
+test('enforces guest permissions for room commands', () => {
+  const rooms = new RoomRegistry();
+  const room = rooms.create({...host, permissions: {horn: true, spend: false}});
+  rooms.join(room.code, {clientId: 'player_guest_456', name: 'Товарищ'});
+  assert.equal(rooms.get(room.code).permissions.horn, true);
+  assert.equal(rooms.commandAllowed(room.code, 'player_guest_456', 'horn'), true);
+  assert.equal(rooms.commandAllowed(room.code, 'player_guest_456', 'buy'), false);
+  assert.equal(rooms.commandAllowed(room.code, host.clientId, 'horn'), false);
+  assert.equal(rooms.commandAllowed(room.code, 'player_third_789', 'horn'), false);
+});
+
+test('accepts leaderboard progress only from the active host', () => {
+  const rooms = new RoomRegistry();
+  const room = rooms.create(host);
+  rooms.join(room.code, {clientId: 'player_guest_456', name: 'Товарищ'});
+  rooms.start(room.code, host.clientId);
+  assert.equal(rooms.updateProgress(room.code, 'player_guest_456', {wave: {num: 99}}), false);
+  assert.equal(rooms.verifiedScore(room.code, host.clientId), null);
+  assert.equal(rooms.updateProgress(room.code, host.clientId, {wave: {num: 7}, kills: 42, team: {level: 6}, runTime: 123.7}), true);
+  assert.deepEqual(rooms.verifiedScore(room.code, host.clientId), {wave: 7, kills: 42, level: 6, time: 124, updatedAt: rooms.verifiedScore(room.code, host.clientId).updatedAt});
+  assert.equal(rooms.verifiedScore(room.code, 'player_guest_456'), null);
+});

@@ -34,6 +34,11 @@ export class RoomRegistry {
       createdAt: now,
       updatedAt: now,
       started: false,
+      permissions: {
+        horn: input.permissions?.horn === true,
+        spend: input.permissions?.spend === true
+      },
+      progress: null,
       reservedIds: new Set([input.clientId]),
       players: [{id: input.clientId, name: cleanText(input.name, 18, 'СКАЛЬД'), host: true, seenAt: now}]
     };
@@ -78,6 +83,35 @@ export class RoomRegistry {
     room.started = true;
     room.updatedAt = Date.now();
     return this.view(room);
+  }
+
+  commandAllowed(code, clientId, command) {
+    const room = this.rooms.get(String(code).toUpperCase());
+    const player = room?.players.find((item) => item.id === clientId);
+    if (!room || !player || player.host) return false;
+    if (command === 'horn') return room.permissions.horn;
+    if (command === 'buy') return room.permissions.spend;
+    return false;
+  }
+
+  updateProgress(code, clientId, world) {
+    const room = this.rooms.get(String(code).toUpperCase());
+    if (!room || room.hostId !== clientId || !room.started || !world || typeof world !== 'object') return false;
+    const safeNumber = (value, min, max) => Math.max(min, Math.min(max, Math.round(Number(value) || 0)));
+    room.progress = {
+      wave: safeNumber(world.wave?.num, 0, 10_000),
+      kills: safeNumber(world.kills, 0, 10_000_000),
+      level: safeNumber(world.team?.level, 1, 10_000),
+      time: safeNumber(world.runTime, 0, 100_000_000),
+      updatedAt: Date.now()
+    };
+    return true;
+  }
+
+  verifiedScore(code, clientId) {
+    const room = this.rooms.get(String(code).toUpperCase());
+    if (!room || room.hostId !== clientId || !room.started || !room.progress) return null;
+    return {...room.progress};
   }
 
   leave(code, clientId) {
@@ -140,6 +174,7 @@ export class RoomRegistry {
       maxPlayers: room.maxPlayers,
       playerCount: room.players.length,
       started: room.started,
+      permissions: {...room.permissions},
       createdAt: room.createdAt,
       players: room.players.map(({name, host, seenAt}) => ({name, host, connected: Date.now() - seenAt <= 12_000}))
     };

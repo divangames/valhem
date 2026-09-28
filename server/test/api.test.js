@@ -30,6 +30,9 @@ test('protects an online world and keeps player ids out of room responses', asyn
   assert.equal(created.response.status, 201);
   assert.equal('id' in created.data.room.players[0], false);
 
+  const fakeOnlineScore = await call('/score', {clientId, roomCode: created.data.room.code, mode: 'online', wave: 9999, kills: 999999});
+  assert.equal(fakeOnlineScore.response.status, 409);
+
   const saved = await call('/world/save', {clientId, token, name: 'Хозяин', worldName: 'Мидгард', version: 'test', checkpoint: {schema: 1, wave: 3}});
   assert.equal(saved.response.status, 200);
 

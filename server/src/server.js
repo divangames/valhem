@@ -7,7 +7,7 @@ import {RoomRegistry} from './rooms.js';
 
 const PORT = Number(process.env.PORT || 8080);
 const HOST = process.env.HOST || '127.0.0.1';
-const VERSION = '0.3.0';
+const VERSION = '0.4.0';
 const DATA_DIR = resolve(process.env.DATA_DIR || './data');
 const ROOM_TTL_MS = Number(process.env.ROOM_TTL_MS || 45_000);
 const ROOM_RECONNECT_TTL_MS = Number(process.env.ROOM_RECONNECT_TTL_MS || 120_000);
@@ -146,17 +146,19 @@ async function route(req, res) {
   if (req.method === 'POST' && path === '/api/score') {
     const input = await body(req);
     const clientId = cleanId(input.clientId);
-    const mode = ['normal', 'daily', 'weekly'].includes(input.mode) ? input.mode : 'normal';
+    const mode = ['normal', 'daily', 'weekly', 'online'].includes(input.mode) ? input.mode : 'normal';
     if (!clientId) return json(res, 400, {error: 'Некорректный игрок'});
+    const verified = mode === 'online' ? rooms.verifiedScore(cleanText(input.roomCode, 6).toUpperCase(), clientId) : null;
+    if (mode === 'online' && !verified) return json(res, 409, {error: 'Сетевой результат не подтверждён активной комнатой'});
     const score = {
       clientId,
       name: cleanText(input.name, 18, 'СКАЛЬД'),
       mode,
-      period: cleanText(input.period, 24, 'all'),
-      wave: number(input.wave, 0, 10_000),
-      kills: number(input.kills, 0, 10_000_000),
-      level: number(input.level, 1, 10_000),
-      time: number(input.time, 0, 100_000_000),
+      period: mode === 'online' ? 'all' : cleanText(input.period, 24, 'all'),
+      wave: verified?.wave ?? number(input.wave, 0, 10_000),
+      kills: verified?.kills ?? number(input.kills, 0, 10_000_000),
+      level: verified?.level ?? number(input.level, 1, 10_000),
+      time: verified?.time ?? number(input.time, 0, 100_000_000),
       hero: cleanText(input.hero, 24, 'viking'),
       version: cleanText(input.version, 24),
       createdAt: Date.now()
@@ -166,7 +168,7 @@ async function route(req, res) {
   }
 
   if (req.method === 'GET' && path === '/api/leaderboard') {
-    const mode = ['normal', 'daily', 'weekly'].includes(url.searchParams.get('mode')) ? url.searchParams.get('mode') : 'normal';
+    const mode = ['normal', 'daily', 'weekly', 'online'].includes(url.searchParams.get('mode')) ? url.searchParams.get('mode') : 'normal';
     const period = cleanText(url.searchParams.get('period'), 24, 'all');
     const items = store.leaderboard(mode, period, number(url.searchParams.get('limit') || 10, 1, 100)).map(({clientId: _clientId, ...item}) => item);
     return json(res, 200, {items});
@@ -243,7 +245,11 @@ wss.on('connection', (ws, req) => {
         const payload = JSON.stringify({type: 'start', room: active, at: Date.now()});
         for (const peer of wss.clients) if (peer.readyState === 1 && peer.valhem?.roomCode === roomCode) peer.send(payload);
       } else if ((msg.type === 'input' || msg.type === 'action') && !ws.valhem.host) relay(msg, (peer) => peer.host);
-      else if ((msg.type === 'snapshot' || msg.type === 'event') && ws.valhem.host) relay(msg, (peer) => !peer.host);
+      else if (msg.type === 'command' && !ws.valhem.host && rooms.commandAllowed(roomCode, clientId, msg.command)) relay({type: 'command', command: msg.command, offerId: cleanText(msg.offerId, 32)}, (peer) => peer.host);
+      else if (msg.type === 'snapshot' && ws.valhem.host) {
+        rooms.updateProgress(roomCode, clientId, msg.world);
+        relay(msg, (peer) => !peer.host);
+      } else if (msg.type === 'event' && ws.valhem.host) relay(msg, (peer) => !peer.host);
     } catch {
       ws.close(1003, 'bad message');
     }
