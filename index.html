@@ -697,17 +697,18 @@ button,a,[role="button"],.titleChoice,.hubChoice,.sbtn{touch-action:manipulation
 .deathLesson>div{padding:8px 12px;border:1px solid rgba(216,169,60,.25);background:rgba(0,0,0,.35)}
 .deathLesson b{display:block;font:10px/1.2 'Alegreya';letter-spacing:.17em;color:#d8a93c;margin-bottom:3px}
 @media(max-height:450px){.deathLesson{gap:3px;margin-top:5px;font-size:12px}.deathLesson>div{padding:4px 8px}.deathLesson b{display:inline;margin-right:7px}}
-#trainingPanel{position:absolute;z-index:9;top:max(74px,calc(var(--safe-top,0px) + 68px));left:50%;transform:translateX(-50%);width:min(310px,48vw);padding:9px 12px;border:1px solid rgba(216,169,60,.65);background:rgba(7,11,16,.88);color:#efe1bf;text-align:center;pointer-events:none;font:13px/1.2 'Alegreya'}
+#trainingPanel{position:absolute;z-index:9;top:max(84px,calc(var(--safe-top,0px) + 78px));right:max(12px,var(--safe-right,0px));width:min(245px,30vw);padding:8px 10px;border:1px solid rgba(216,169,60,.65);background:rgba(7,11,16,.88);color:#efe1bf;text-align:center;pointer-events:none;font:12px/1.2 'Alegreya'}
 #trainingPanel.hidden{display:none}
+body.training-mode #hudTC,body.training-mode #coach{display:none}
 #trainingProgress{font-size:10px;letter-spacing:.15em;color:#d8a93c}
 #trainingTitle{display:block;font:19px/1.1 'Forum';letter-spacing:.1em;margin:3px 0}
 #trainingInstruction{display:block}
 .trainingActions{display:flex;justify-content:center;gap:8px;margin-top:6px}
 .trainingActions button{min-height:44px;min-width:94px;padding:5px 10px;border:1px solid #bd9550;background:#1a2028;color:#f2dfb4;pointer-events:auto;font:12px 'Alegreya';cursor:pointer}
-body.touch #trainingPanel{top:max(58px,calc(var(--safe-top,0px) + 54px));width:min(265px,36vw);padding:5px 7px;font-size:11px}
+body.touch #trainingPanel{top:max(88px,calc(var(--safe-top,0px) + 82px));right:max(10px,var(--safe-right,0px));width:min(215px,29vw);padding:5px 7px;font-size:11px}
 body.touch #trainingTitle{font-size:15px;margin:1px 0}
 body.touch .trainingActions{margin-top:3px}
-@media(max-width:650px){body.touch #trainingPanel{left:40%;width:35vw;font-size:10px}}
+@media(max-width:650px){body.touch #trainingPanel{width:32vw;font-size:10px}}
 </style>
 </head>
 <body>
@@ -736,7 +737,6 @@ body.touch .trainingActions{margin-top:3px}
     <span id="trainingInstruction"></span>
     <div class="trainingActions">
       <button id="btnTrainingAgain" class="hidden" type="button">ПОВТОРИТЬ</button>
-      <button id="btnTrainingExit" type="button">К ОЧАГУ</button>
     </div>
   </div>
   <div id="rotHint" role="dialog" aria-live="polite" aria-label="Требуется горизонтальная ориентация">
@@ -1908,6 +1908,7 @@ function rubbleDecal(x,y,r){bgc.save();bgc.globalAlpha=0.5;
 /* ============ state ============ */
 let state='title',mode='solo',players=[];
 let orientationPaused=false;
+const FIELD_COACH_ENABLED=false;
 let coachActive=null,coachTimer=0,coachSlowT=0,coachGap=0,coachQueue=[];
 let team={level:1,xp:0,xpNext:8,gold:0,relics:[],relicSlots:4,nornWave:-1,heimdallWave:-1};
 let enemies=[],projs=[],parts=[],pickups=[],texts=[],trails=[],telegraphs=[],portals=[],zones=[];
@@ -2020,6 +2021,7 @@ function syncOrientationPause(){
 
 /* Показывает короткие одноразовые подсказки и ставит их в очередь, чтобы они не перекрывали друг друга. */
 function showCoach(id,title,text,rune,duration,slowFor){
+ if(!FIELD_COACH_ENABLED)return;
  if(save.tut[id]||(coachActive&&coachActive.id===id)||coachQueue.some(function(item){return item.id===id;}))return;
  coachQueue.push({id:id,title:title,text:text,rune:rune||'ᚨ',duration:duration||3.8,slowFor:slowFor||0});
 }
@@ -2260,6 +2262,8 @@ function makePlayer(idx){
 }
 function initRun(m){
  coachQueue=[];dismissCoach();coachGap=0;coachSlowT=0;lastDamageCause=null;
+ clearTimeout(hintTO);$('hint').textContent='';$('hint').style.opacity=0;
+ $('bannerWrap').classList.remove('show');$('banner').textContent='';$('bannerSub').textContent='';
  soloPendingContracts={};
  mode=m;players=[makePlayer(0)];if(m==='coop')players.push(makePlayer(1));
  document.body.classList.toggle('solo-mode',m!=='coop');
@@ -2545,6 +2549,7 @@ function executionTarget(pl){
 }
 function tryExecute(pl){
  const e=executionTarget(pl);if(!e)return false;contractAdd('execute',1);
+ const trainingExecution=trainingActive&&trainingStep===3&&e.practice;
  const a=angTo(pl.x,pl.y,e.x,e.y);
  pl.aim=a;pl.iframes=Math.max(pl.iframes,0.75);pl.vx*=0.2;pl.vy*=0.2;
  for(let i=0;i<20;i++)parts.push({type:i%3?'blood':'spark',x:e.x,y:e.y,vx:Math.cos(a)*rand(70,260)+rand(-130,130),vy:Math.sin(a)*rand(70,260)+rand(-130,130),t:0,life:rand(0.28,0.62),size:rand(1.8,4.2)});
@@ -2562,17 +2567,13 @@ function tryExecute(pl){
  }else{
   strikeEnemy(pl.x,pl.y,e,e.hp+e.maxHp,a,520,pl,{melee:true,execute:true,noStagger:true});
  }
+ if(trainingExecution)trainingAdvance();
  return true;
 }
 function contextAction(pl){if(tryExecute(pl))return;if(!trainingActive)horn();}
 
 function strikeEnemy(sx,sy,e,dmg,ang,kb,pl,opts){
- if(trainingActive&&e.practice){
-  e.hitT=.14;parts.push({type:'ring',x:e.x,y:e.y,t:0,life:.22,size:45,col:'255,217,122'});
-  AU.sHit(false);
-  if(trainingStep===0||(trainingStep===3&&opts&&opts.execute))trainingAdvance();
-  return;
- }
+ const trainingHit=trainingActive&&e.practice&&trainingStep===0;
  let crit=false;
  if(pl){crit=Math.random()<pl.crit;if(crit)dmg*=2;
   if(pl.counterT>0){dmg*=1.6;pl.counterT=0;
@@ -2610,6 +2611,7 @@ function strikeEnemy(sx,sy,e,dmg,ang,kb,pl,opts){
    if(opts&&opts.melee)sm*=1.12;if(crit)sm*=1.28;if(back)sm*=1.2;if(opts&&opts.mimir)sm*=1.8;
    addStagger(e,dmg*sm);}}
  if(e.hp<=0&&enemies.indexOf(e)>=0){if(pl&&pl.weapon==='spear'&&masteryIs(pl,'spear','spear_hunter')){pl.dodgeCd=0;pl.stanceCd=Math.max(0,pl.stanceCd-2.2);addText(pl.x,pl.y-40,'ОХОТНИК!','#8fd8e8',12);}killEnemy(e);}
+ if(trainingHit)trainingAdvance();
 }
 function enemyBites(e,tgt,dmg,ang){
  damagePlayer(tgt,dmg,ang,e);
@@ -2618,6 +2620,7 @@ function enemyBites(e,tgt,dmg,ang){
   for(let i=0;i<4;i++)parts.push({type:'spark',x:e.x,y:e.y,vx:rand(-60,60),vy:rand(-90,-20),t:0,life:0.4,size:1.8});}}
 function killEnemy(e){
  const i=enemies.indexOf(e);if(i>=0)enemies.splice(i,1);
+ if(trainingActive&&e.practice){AU.sDie();return;}
  kills++;recordKill(e.type,e.mod);contractAdd('kills',1);if(e.mod||e.isJarl)contractAdd('elite',1);if(e.type==='troll')contractAdd('boss',1);
  save.totKills++;save.stats.kills++;
  ach('first_blood');
@@ -2718,8 +2721,6 @@ function playerBurst(pl,r,dmg,stagger,label,col){
  if(hits){parts.push({type:'ring',x:pl.x,y:pl.y,t:0,life:0.32,size:r,col:col||'255,217,122'});if(label)addText(pl.x,pl.y-40,label,'#ffd97a',14);}return hits;
 }
 function tryAttack(pl){
- if(trainingActive&&trainingStep!==0&&trainingStep!==3)return;
- if(trainingActive&&trainingStep===3){tryExecute(pl);return;}
  if(touchMode&&pl.idx===0&&tryExecute(pl))return;
  if(pl.weapon==='sword')trySwing(pl);
  else if(pl.weapon==='hammer')tryHammer(pl);
@@ -2760,7 +2761,6 @@ function tryHammer(pl){
  AU.sHammer();
 }
 function tryAxe(pl){
- if(trainingActive)return;
  if(!pl.alive||state!=='playing'||pl.axeCd>0)return;
  pl.axeCd=pl.axeCdMax;AU.sAxe();
  const n=pl.axeCount+(hasRelic('draupnir')?1:0),spread=0.22;
@@ -2769,13 +2769,11 @@ function tryAxe(pl){
    dmg:pDmg(pl)*1.35,r:11,life:0.85,spin:rand(0,TAU),own:pl});}
 }
 function tryParry(pl){
- if(trainingActive&&trainingStep!==2)return;
  if(!pl.alive||state!=='playing'||pl.parryCd>0||pl.parryT>0)return;
  pl.parryT=pl.parryDur;pl.parryCd=pl.parryCdMax;
  AU.noise(0.09,0.14,1900,'bandpass');
 }
 function tryStance(pl){
- if(trainingActive)return;
  if(!pl.alive||state!=='playing'||pl.stanceCd>0||pl.dodgeT>0)return;
  pl.stanceCd=STANCE_CD[pl.weapon];
  AU.sStance();
@@ -2825,7 +2823,6 @@ function tryStance(pl){
     dmg:pDmg(pl)*0.6,r:4,life:0.9,own:pl,noCombo:true,hit:new Set(),pierce:masteryIs(pl,'bow','bow_pierce')?2:0,srcX:pl.x,srcY:pl.y,eagle:masteryIs(pl,'bow','bow_eagle')});}}
 }
 function trySwap(pl){
- if(trainingActive)return;
  if(!pl.alive||state!=='playing')return;
  if(save.chal.spear){addText(pl.x,pl.y-30,'КЛЯТВА КОПЬЯ','#ff9a6a',12);return;}
  if(pl.hammerOut){AU.osc('square',160,120,0.08,0.08);return;}
@@ -2845,8 +2842,7 @@ function getMove(pl){
  return {mx:mx,my:my};
 }
 function tryDodge(pl){
- if(trainingActive&&trainingStep!==1)return;
- if(save.oaths.iron&&!trainingActive)return;
+ if(save.oaths.iron)return;
  if(!pl.alive||state!=='playing'||pl.dodgeCd>0||pl.dodgeT>0)return;
  const mv=getMove(pl);let mx=mv.mx,my=mv.my;
  if(Math.hypot(mx,my)<0.1){mx=Math.cos(pl.aim);my=Math.sin(pl.aim);}
@@ -2855,7 +2851,6 @@ function tryDodge(pl){
  for(let i=0;i<6;i++)parts.push({type:'smoke',x:pl.x,y:pl.y,vx:-mx*rand(30,90)+rand(-20,20),vy:-my*rand(30,90)+rand(-20,20),t:0,life:rand(0.3,0.5),size:rand(4,8)});
 }
 function tryBerserk(pl){
- if(trainingActive)return;
  if(save.oaths.fury)return;
  if(!pl.alive||state!=='playing'||pl.rage<100||pl.berserk>0)return;
  pl.rage=0;ragePing[pl.idx]=false;pl.berserk=6;if(save.sett.slowmo!==false)slowmo=Math.max(slowmo,0.3);
@@ -3183,6 +3178,67 @@ function updatePlayer(pl,dt){
   if(pl.swing.t>=pl.swing.dur){trails.push({x:pl.x,y:pl.y,a:pl.aim,arc:pl.swing.arc,r:pl.range-6,t:0,life:0.16});pl.swing=null;}}
  if(pl.thrust){pl.thrust.t+=dt;if(pl.thrust.t>=pl.thrust.dur)pl.thrust=null;}
 }
+function updateProjectiles(dt){
+ for(let i=projs.length-1;i>=0;i--){const p=projs[i];
+  p.life-=dt;
+  if(p.type==='hammer'){
+   p.spin+=16*dt;
+   if(p.phase===0){
+    const sp=Math.hypot(p.vx,p.vy);p.dist+=sp*dt;
+    p.vx*=Math.max(0,1-1.6*dt);p.vy*=Math.max(0,1-1.6*dt);
+    p.x+=p.vx*dt;p.y+=p.vy*dt;
+    if(p.dist>=p.maxD||sp<70){p.phase=1;p.hit.clear();}}
+   else{
+    const o=p.own;
+    if(!o.alive){if(!p.bumped&&o)resetCombo(o);projs.splice(i,1);continue;}
+    const a=angTo(p.x,p.y,o.x,o.y);p.vx=Math.cos(a)*780;p.vy=Math.sin(a)*780;
+    p.x+=p.vx*dt;p.y+=p.vy*dt;
+    if(Math.random()<0.35)parts.push({type:'spark',x:p.x,y:p.y,vx:rand(-30,30),vy:rand(-30,30),t:0,life:0.25,size:1.5});
+    if(Math.hypot(o.x-p.x,o.y-p.y)<26){o.hammerOut=false;AU.sCatch();
+     if(p.quake)playerBurst(o,125,pDmg(o)*0.62,pDmg(o)*0.7,'УДАРНАЯ ВОЛНА','255,180,90');
+     if(!p.bumped)resetCombo(o);
+     projs.splice(i,1);continue;}}
+   let hdone=false;
+   for(let k=0;k<enemies.length;k++){const e=enemies[k];
+    if(!p.hit.has(e)&&Math.hypot(e.x-p.x,e.y-p.y)<e.r+14){
+     p.hit.add(e);strikeEnemy(p.x,p.y,e,p.dmg,angTo(p.x,p.y,e.x,e.y),320,p.own,{});if(p.thunder&&enemies.indexOf(e)>=0)stormStrike(p.own,e,Math.max(18,p.dmg*0.38));hdone=true;
+     if(!p.bumped){p.bumped=true;bumpCombo(p.own);}}}
+   if(!hdone)for(let k=0;k<barrels.length;k++){const b=barrels[k];
+    if(!p.hit.has(b)&&Math.hypot(b.x-p.x,b.y-p.y)<b.r+14){
+     p.hit.add(b);damageBarrel(b,p.dmg);break;}}
+   continue;}
+  p.x+=p.vx*dt;p.y+=p.vy*dt;if(p.type==='axe')p.spin+=18*dt;
+  let dead=p.life<=0;
+  if(!dead){for(let k=0;k<PILLARS.length;k++){const pl2=PILLARS[k];
+    if(Math.hypot(p.x-pl2.x,p.y-pl2.y)<pl2.r+p.r){dead=true;
+     for(let m=0;m<4;m++)parts.push({type:'spark',x:p.x,y:p.y,vx:rand(-140,140),vy:rand(-140,140),t:0,life:0.25,size:1.6});break;}}}
+  if(!dead&&(p.x<ARENA.wall||p.x>ARENA.w-ARENA.wall||p.y<ARENA.wall||p.y>ARENA.h-ARENA.wall))dead=true;
+  if(!dead&&(p.type==='axe'||p.type==='arrow')){
+   for(let k=0;k<barrels.length;k++){const b=barrels[k];
+    if(Math.hypot(b.x-p.x,b.y-p.y)<b.r+p.r){damageBarrel(b,p.dmg);
+     if(!p.noCombo&&!p.bumped){p.bumped=true;bumpCombo(p.own);}dead=true;break;}}
+   if(!dead)for(let k=0;k<enemies.length;k++){const e=enemies[k];
+    if(p.hit&&p.hit.has(e))continue;
+    if(Math.hypot(e.x-p.x,e.y-p.y)<e.r+p.r){if(p.hit)p.hit.add(e);let dm=p.dmg;
+     if(p.srcE&&e===p.srcE){dm*=2;addText(e.x,e.y-e.r-16,'В ГОЛОВУ!','#8fd8e8',14);}
+     if(p.eagle&&p.srcX!==undefined&&Math.hypot(p.x-p.srcX,p.y-p.srcY)>300){dm*=2;addText(e.x,e.y-e.r-28,'ОРЛИНЫЙ ГЛАЗ!','#ffd97a',13);addStagger(e,dm*0.55);}
+     strikeEnemy(p.x,p.y,e,dm,Math.atan2(p.vy,p.vx),p.type==='axe'?320:140,p.own,{});if(!p.noCombo&&!p.bumped){p.bumped=true;bumpCombo(p.own);}
+     if(p.type==='arrow'&&p.pierce>0){p.pierce--;dead=false;continue;}dead=true;break;}}}
+  if(!dead&&p.type==='bolt'){for(let k=0;k<players.length;k++){const pl=players[k];
+    if(pl.alive&&Math.hypot(pl.x-p.x,pl.y-p.y)<pl.r+p.r){
+     if(parryActive(pl)){
+      projs.push({type:'arrow',x:p.x,y:p.y,vx:-p.vx*1.7,vy:-p.vy*1.7,dmg:p.dmg*2.2,r:4,life:1.2,own:pl,srcE:p.ownE,noCombo:true,hit:new Set(),pierce:0});
+      addText(pl.x,pl.y-30,'ОТБИТО!','#8fd8e8',14);AU.sParry();pl.parryT=0;
+      if(runStats){runStats.refl++;save.stats.refl++;if(runStats.refl>=5)ach('refl5');}
+      for(let m=0;m<6;m++)parts.push({type:'spark',x:p.x,y:p.y,vx:rand(-160,160),vy:rand(-160,160),t:0,life:0.3,size:2});
+      dead=true;break;}
+     damagePlayer(pl,p.dmg,Math.atan2(p.vy,p.vx),p.ownE,p.type==='arrow'?'arrow':null);
+     if(p.ownE&&p.ownE.mod==='vamp'&&p.ownE.hp<p.ownE.maxHp){p.ownE.hp=Math.min(p.ownE.maxHp,p.ownE.hp+p.dmg*0.9);
+      for(let m=0;m<3;m++)parts.push({type:'spark',x:p.ownE.x,y:p.ownE.y,vx:rand(-60,60),vy:rand(-90,-20),t:0,life:0.4,size:1.8});}
+     dead=true;break;}}}
+  if(dead){if(!p.noCombo&&!p.bumped&&p.own)resetCombo(p.own);projs.splice(i,1);}}
+
+}
 function update(rdt){
  updateCoach(rdt);
  if(state==='paused'||state==='levelup'||state==='path'||state==='dead')return;
@@ -3196,7 +3252,7 @@ function update(rdt){
  runTime+=dt;
 
  for(let i=0;i<players.length;i++)if(players[i].alive)updatePlayer(players[i],dt);
- if(trainingActive){updateTraining(dt);updateParts(dt);updateTexts(dt);updCam(rdt);return;}
+ if(trainingActive){updateTraining(dt);updateProjectiles(dt);updateParts(dt);updateTexts(dt);for(let i=trails.length-1;i>=0;i--){trails[i].t+=dt;if(trails[i].t>=trails[i].life)trails.splice(i,1);}updCam(rdt);return;}
 
  if(players.length>1)for(let i=0;i<players.length;i++){
   const pl=players[i];
@@ -3353,64 +3409,7 @@ function update(rdt){
   if(d2>0&&d2<rr*rr){const d=Math.sqrt(d2),push=(rr-d)/2,ux=dx/d,uy=dy/d;
    a.x-=ux*push;a.y-=uy*push;b.x+=ux*push;b.y+=uy*push;}}
 
- for(let i=projs.length-1;i>=0;i--){const p=projs[i];
-  p.life-=dt;
-  if(p.type==='hammer'){
-   p.spin+=16*dt;
-   if(p.phase===0){
-    const sp=Math.hypot(p.vx,p.vy);p.dist+=sp*dt;
-    p.vx*=Math.max(0,1-1.6*dt);p.vy*=Math.max(0,1-1.6*dt);
-    p.x+=p.vx*dt;p.y+=p.vy*dt;
-    if(p.dist>=p.maxD||sp<70){p.phase=1;p.hit.clear();}}
-   else{
-    const o=p.own;
-    if(!o.alive){if(!p.bumped&&o)resetCombo(o);projs.splice(i,1);continue;}
-    const a=angTo(p.x,p.y,o.x,o.y);p.vx=Math.cos(a)*780;p.vy=Math.sin(a)*780;
-    p.x+=p.vx*dt;p.y+=p.vy*dt;
-    if(Math.random()<0.35)parts.push({type:'spark',x:p.x,y:p.y,vx:rand(-30,30),vy:rand(-30,30),t:0,life:0.25,size:1.5});
-    if(Math.hypot(o.x-p.x,o.y-p.y)<26){o.hammerOut=false;AU.sCatch();
-     if(p.quake)playerBurst(o,125,pDmg(o)*0.62,pDmg(o)*0.7,'УДАРНАЯ ВОЛНА','255,180,90');
-     if(!p.bumped)resetCombo(o);
-     projs.splice(i,1);continue;}}
-   let hdone=false;
-   for(let k=0;k<enemies.length;k++){const e=enemies[k];
-    if(!p.hit.has(e)&&Math.hypot(e.x-p.x,e.y-p.y)<e.r+14){
-     p.hit.add(e);strikeEnemy(p.x,p.y,e,p.dmg,angTo(p.x,p.y,e.x,e.y),320,p.own,{});if(p.thunder&&enemies.indexOf(e)>=0)stormStrike(p.own,e,Math.max(18,p.dmg*0.38));hdone=true;
-     if(!p.bumped){p.bumped=true;bumpCombo(p.own);}}}
-   if(!hdone)for(let k=0;k<barrels.length;k++){const b=barrels[k];
-    if(!p.hit.has(b)&&Math.hypot(b.x-p.x,b.y-p.y)<b.r+14){
-     p.hit.add(b);damageBarrel(b,p.dmg);break;}}
-   continue;}
-  p.x+=p.vx*dt;p.y+=p.vy*dt;if(p.type==='axe')p.spin+=18*dt;
-  let dead=p.life<=0;
-  if(!dead){for(let k=0;k<PILLARS.length;k++){const pl2=PILLARS[k];
-    if(Math.hypot(p.x-pl2.x,p.y-pl2.y)<pl2.r+p.r){dead=true;
-     for(let m=0;m<4;m++)parts.push({type:'spark',x:p.x,y:p.y,vx:rand(-140,140),vy:rand(-140,140),t:0,life:0.25,size:1.6});break;}}}
-  if(!dead&&(p.x<ARENA.wall||p.x>ARENA.w-ARENA.wall||p.y<ARENA.wall||p.y>ARENA.h-ARENA.wall))dead=true;
-  if(!dead&&(p.type==='axe'||p.type==='arrow')){
-   for(let k=0;k<barrels.length;k++){const b=barrels[k];
-    if(Math.hypot(b.x-p.x,b.y-p.y)<b.r+p.r){damageBarrel(b,p.dmg);
-     if(!p.noCombo&&!p.bumped){p.bumped=true;bumpCombo(p.own);}dead=true;break;}}
-   if(!dead)for(let k=0;k<enemies.length;k++){const e=enemies[k];
-    if(p.hit&&p.hit.has(e))continue;
-    if(Math.hypot(e.x-p.x,e.y-p.y)<e.r+p.r){if(p.hit)p.hit.add(e);let dm=p.dmg;
-     if(p.srcE&&e===p.srcE){dm*=2;addText(e.x,e.y-e.r-16,'В ГОЛОВУ!','#8fd8e8',14);}
-     if(p.eagle&&p.srcX!==undefined&&Math.hypot(p.x-p.srcX,p.y-p.srcY)>300){dm*=2;addText(e.x,e.y-e.r-28,'ОРЛИНЫЙ ГЛАЗ!','#ffd97a',13);addStagger(e,dm*0.55);}
-     strikeEnemy(p.x,p.y,e,dm,Math.atan2(p.vy,p.vx),p.type==='axe'?320:140,p.own,{});if(!p.noCombo&&!p.bumped){p.bumped=true;bumpCombo(p.own);}
-     if(p.type==='arrow'&&p.pierce>0){p.pierce--;dead=false;continue;}dead=true;break;}}}
-  if(!dead&&p.type==='bolt'){for(let k=0;k<players.length;k++){const pl=players[k];
-    if(pl.alive&&Math.hypot(pl.x-p.x,pl.y-p.y)<pl.r+p.r){
-     if(parryActive(pl)){
-      projs.push({type:'arrow',x:p.x,y:p.y,vx:-p.vx*1.7,vy:-p.vy*1.7,dmg:p.dmg*2.2,r:4,life:1.2,own:pl,srcE:p.ownE,noCombo:true,hit:new Set(),pierce:0});
-      addText(pl.x,pl.y-30,'ОТБИТО!','#8fd8e8',14);AU.sParry();pl.parryT=0;
-      if(runStats){runStats.refl++;save.stats.refl++;if(runStats.refl>=5)ach('refl5');}
-      for(let m=0;m<6;m++)parts.push({type:'spark',x:p.x,y:p.y,vx:rand(-160,160),vy:rand(-160,160),t:0,life:0.3,size:2});
-      dead=true;break;}
-     damagePlayer(pl,p.dmg,Math.atan2(p.vy,p.vx),p.ownE,p.type==='arrow'?'arrow':null);
-     if(p.ownE&&p.ownE.mod==='vamp'&&p.ownE.hp<p.ownE.maxHp){p.ownE.hp=Math.min(p.ownE.maxHp,p.ownE.hp+p.dmg*0.9);
-      for(let m=0;m<3;m++)parts.push({type:'spark',x:p.ownE.x,y:p.ownE.y,vx:rand(-60,60),vy:rand(-90,-20),t:0,life:0.4,size:1.8});}
-     dead=true;break;}}}
-  if(dead){if(!p.noCombo&&!p.bumped&&p.own)resetCombo(p.own);projs.splice(i,1);}}
+ updateProjectiles(dt);
 
  for(let i=telegraphs.length-1;i>=0;i--){const t=telegraphs[i];t.t+=dt;
   if(t.t>=t.dur){
@@ -4285,14 +4284,14 @@ const TRAINING_STEPS=[
 function trainingDummy(){
  enemies=[];if(trainingStep===1||trainingStep>=4)return;
  const pl=players[0],e=spawnEnemy('brute',pl.x,pl.y-76,true);
- e.practice=true;e.mod=null;e.isJarl=false;e.speed=0;e.atkCd=999;e.hp=trainingStep===3?12:1000;e.maxHp=1000;e.kx=0;e.ky=0;portals=[];
+ e.practice=true;e.mod=null;e.isJarl=false;e.speed=0;e.atkCd=999;e.hp=1000;e.maxHp=1000;e.kx=0;e.ky=0;portals=[];
  if(trainingStep===3){e.staggerT=999;e.stagger=e.maxStagger;}
 }
 function renderTraining(){
  const done=trainingStep>=4,step=TRAINING_STEPS[trainingStep];
  $('trainingProgress').textContent=done?'ТРЕНИРОВКА ЗАВЕРШЕНА':'ТРЕНИРОВКА · '+(trainingStep+1)+' / 4';
  $('trainingTitle').textContent=done?'ТЫ ГОТОВ К ПОХОДУ':step.title;
- $('trainingInstruction').textContent=done?'Все четыре приёма выполнены. Можно повторить или вернуться к очагу.':(touchMode?step.touch:step.pc);
+ $('trainingInstruction').textContent=done?'Все четыре приёма выполнены. Повтори тренировку или открой паузу для выхода.':(touchMode?step.touch:step.pc);
  $('btnTrainingAgain').classList.toggle('hidden',!done);
 }
 function trainingAdvance(){
@@ -4320,7 +4319,9 @@ function startTraining(){
  if(onlineActive)return;
  AU.init();stopMenuMusic();AU.sClick();
  if(!trainingActive)trainingSaved=JSON.stringify(save);trainingActive=true;dailyMode=false;weeklyMode=false;
+ save.oaths={iron:false,fury:false,horde:false,blood:false};save.chal={spear:false,noheal:false,noshop:false,endless:false};
  initRun('solo');state='playing';playBiomeMusic(curBiome);wave.breakT=0;trainingStep=0;trainingTimer=0;
+ document.body.classList.add('training-mode');
  projs=[];trails=[];parts=[];texts=[];portals=[];telegraphs=[];
  const pl=players[0];pl.x=ARENA.w/2;pl.y=ARENA.h/2+150;pl.aim=-Math.PI/2;pl.iframes=0;
  trainingDummy();renderTraining();for(let i=0;i<ALL_SCREENS.length;i++)$(ALL_SCREENS[i]).classList.add('hidden');
@@ -4329,7 +4330,7 @@ function startTraining(){
 }
 function exitTraining(){
  if(!trainingActive)return;
- trainingActive=false;$('trainingPanel').classList.add('hidden');
+ trainingActive=false;document.body.classList.remove('training-mode');$('trainingPanel').classList.add('hidden');$('pauseScreen').classList.add('hidden');
  projs=[];trails=[];parts=[];texts=[];portals=[];telegraphs=[];
  if(trainingSaved){save=JSON.parse(trainingSaved);trainingSaved=null;}
  touchAttack=false;touchMove.x=0;touchMove.y=0;mouseDown=false;
@@ -4363,11 +4364,6 @@ function startGame(m){
  for(let i=0;i<ALL_SCREENS.length;i++)$(ALL_SCREENS[i]).classList.add('hidden');
  let oathN=0;for(let i=0;i<OATHS.length;i++)if(save.oaths[OATHS[i].id])oathN++;
  if(runStats&&oathN===4)runStats.oathAll=true;
- setHint(m==='coop'?'Воин II: стрелки + точка. Держитесь вместе!'
-  :(touchMode?'Джойстик слева, кнопки справа. Удачи!'
-  :(dailyMode?'Ежедневный забег. Удачи.'
-  :(weeklyMode?(weeklySaga().name+'. '+weeklySaga().desc)
-  :(oathN?'Клятвы приняты. Один смотрит.':'Герой '+HEROES[save.hero].name+'. [X] — стойка, [C] — парирование')))),5);
 }
 let pauseQuitOpen=false;
 function setPauseQuit(open,focus){
@@ -4385,8 +4381,7 @@ function abandonRun(){
  backToTitle();
 }
 function pauseGame(on){
- if(on&&trainingActive){exitTraining();return;}
- if(on&&state==='playing'){state='paused';setPauseQuit(false,false);touchAttack=false;touchMove.x=0;touchMove.y=0;mouseDown=false;for(const key in keys)keys[key]=false;$('pauseScreen').classList.remove('hidden');AU.duck(0.1);syncGameMusicVolume();requestAnimationFrame(function(){$('btnResume').focus();});}
+ if(on&&state==='playing'){state='paused';setPauseQuit(false,false);$('btnRestart').textContent=trainingActive?'ПОВТОРИТЬ ТРЕНИРОВКУ':'НАЧАТЬ ЗАНОВО';$('btnQuitRun').textContent=trainingActive?'К ОЧАГУ':'ПОКИНУТЬ САГУ';$('pauseQuitTitle').textContent=trainingActive?'ВЕРНУТЬСЯ К ОЧАГУ?':'ОБОРВАТЬ НИТЬ ЭТОЙ САГИ?';$('pauseQuitText').textContent=trainingActive?'Тренировку можно начать снова в любой момент.':'Незавершённый поход канет в тумане, а воин вернётся к главному очагу.';touchAttack=false;touchMove.x=0;touchMove.y=0;mouseDown=false;for(const key in keys)keys[key]=false;$('pauseScreen').classList.remove('hidden');AU.duck(0.1);syncGameMusicVolume();requestAnimationFrame(function(){$('btnResume').focus();});}
  else if(!on&&state==='paused'){setPauseQuit(false,false);if(onlineGuest)onlinePhaseSignature='';state='playing';$('pauseScreen').classList.add('hidden');AU.duck(AU.vol);syncOrientationPause();syncGameMusicVolume();}
 }
 let lastDamageCause=null;
@@ -4576,7 +4571,6 @@ addEventListener('keydown',function(e){
  }
  if(state==='title'&&(e.code==='Enter'||e.code==='Space')){showOnly('offlineHubScreen');return;}
  if(state==='dead'&&e.code==='Enter'){startGame(mode);return;}
- if(trainingActive&&e.code==='Escape'){exitTraining();return;}
  if(state==='playing'){
   const p2=players[1];
   if(e.code==='Space'||e.code==='ShiftLeft')tryDodge(players[0]);
@@ -4624,7 +4618,6 @@ $('btnLoreHub').onclick=function(){AU.init();AU.sClick();showOnly('loreHubScreen
 $('btnBackOfflineHub').onclick=function(){AU.sClick();updateTitleStats();showOnly('titleScreen');};
 $('btnBackLoreHub').onclick=function(){AU.sClick();updateTitleStats();showOnly('titleScreen');};
 $('btnTraining').onclick=startTraining;
-$('btnTrainingExit').onclick=exitTraining;
 $('btnTrainingAgain').onclick=startTraining;
 $('btnPrep').onclick=function(){AU.init();AU.sClick();openPrep(false);};
 $('btnOnline').onclick=function(){openOnline();};
@@ -4656,11 +4649,11 @@ $('btnStartSolo').onclick=function(){startGame('solo');};
 $('btnStartCoop').onclick=function(){startGame('coop');};
 $('btnAgain').onclick=function(){if(!onlineActive)startGame(mode);};
 $('btnToHall').onclick=async function(){AU.sClick();if(onlineActive&&onlineRoom)await leaveOnlineRoom();else backToTitle();renderHall();showOnly('hallScreen');};
-$('btnRestart').onclick=function(){setPauseQuit(false,false);startGame(mode);};
+$('btnRestart').onclick=function(){setPauseQuit(false,false);if(trainingActive)startTraining();else startGame(mode);};
 $('btnResume').onclick=function(){if(touchMode)requestLandscape();pauseGame(false);};
 $('btnQuitRun').onclick=function(){AU.sClick();setPauseQuit(true);};
 $('btnQuitNo').onclick=function(){AU.sClick();setPauseQuit(false);};
-$('btnQuitYes').onclick=abandonRun;
+$('btnQuitYes').onclick=function(){if(trainingActive)exitTraining();else abandonRun();};
 $('btnMute').onclick=toggleMute;
 
 /* ============ loop ============ */

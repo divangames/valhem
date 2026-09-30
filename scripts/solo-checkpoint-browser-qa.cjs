@@ -133,12 +133,13 @@ async function main() {
       document.getElementById('btnTraining').click();
       const opened=trainingActive&&state==='playing'&&trainingStep===0&&
         !document.getElementById('trainingPanel').classList.contains('hidden');
+      const hudHidden=getComputedStyle(document.getElementById('hudTC')).display==='none';
+      tryAttack(players[0]);
+      const attack=trainingStep===1;
       dispatchEvent(new KeyboardEvent('keydown',{code:'KeyQ',bubbles:true}));
       dispatchEvent(new KeyboardEvent('keydown',{code:'KeyF',bubbles:true}));
-      const extrasBlocked=projs.length===0&&players[0].weapon==='sword';
-      projs.push({type:'axe'});trails.push({t:0,life:1});portals.push({t:0,life:1});
-      stage.dispatchEvent(new MouseEvent('mousedown',{button:0,bubbles:true}));
-      const attack=trainingStep===1&&projs.length===0&&trails.length===0&&portals.length===0;
+      const combatActions=projs.some(p=>p.type==='axe')&&players[0].weapon==='hammer';
+      updateProjectiles(.02);
       dispatchEvent(new KeyboardEvent('keydown',{code:'Space',bubbles:true}));
       const dodge=trainingStep===2;
       dispatchEvent(new KeyboardEvent('keyup',{code:'Space',bubbles:true}));
@@ -152,13 +153,20 @@ async function main() {
       dispatchEvent(new KeyboardEvent('keyup',{code:'KeyE',bubbles:true}));
       document.getElementById('btnTrainingAgain').click();
       const repeated=trainingStep===0;
-      document.getElementById('btnTrainingExit').click();
-      return {opened,extrasBlocked,attack,dodge,parry,execute,repeated,
+      dispatchEvent(new KeyboardEvent('keydown',{code:'Escape',bubbles:true}));
+      const paused=state==='paused'&&!document.getElementById('pauseScreen').classList.contains('hidden')&&
+        document.getElementById('btnQuitRun').textContent==='К ОЧАГУ';
+      document.getElementById('btnRestart').click();
+      const pauseRestart=trainingActive&&trainingStep===0&&state==='playing'&&
+        document.getElementById('pauseScreen').classList.contains('hidden');
+      pauseGame(true);
+      document.getElementById('btnQuitRun').click();document.getElementById('btnQuitYes').click();
+      return {opened,hudHidden,paused,pauseRestart,combatActions,attack,dodge,parry,execute,repeated,
         exited:!trainingActive&&state==='title'&&
           !document.getElementById('offlineHubScreen').classList.contains('hidden'),
         unchanged:stored===localStorage.getItem('valhem_save')&&checkpoint===localStorage.getItem(SOLO_CHECKPOINT_KEY)};
     })()`);
-    assert.deepEqual(trainingDesktop,{opened:true,extrasBlocked:true,attack:true,dodge:true,parry:true,execute:true,
+    assert.deepEqual(trainingDesktop,{opened:true,hudHidden:true,paused:true,pauseRestart:true,combatActions:true,attack:true,dodge:true,parry:true,execute:true,
       repeated:true,exited:true,unchanged:true});
     const deathLesson = await cdp.eval(`(() => {
       startGame('solo');wave.num=2;wave.breakT=0;
@@ -174,6 +182,16 @@ async function main() {
         deathAudio,stopped:deathMusic.paused};
     })()`);
     assert.deepEqual(deathLesson,{cause:'укус волка',build:true,advice:true,deathAudio:true,stopped:true});
+    const noFieldCoach = await cdp.eval(`(() => {
+      startGame('solo');firstEnemyCoach();defenseCoach();
+      const solo=coachQueue.length===0&&!document.getElementById('coach').classList.contains('show')&&
+        !document.getElementById('hint').textContent;
+      startGame('coop');firstEnemyCoach();defenseCoach();
+      const coop=coachQueue.length===0&&!document.getElementById('coach').classList.contains('show')&&
+        !document.getElementById('hint').textContent;
+      backToTitle();return {solo,coop};
+    })()`);
+    assert.deepEqual(noFieldCoach,{solo:true,coop:true});
     console.log('[QA] Desktop training and death lesson passed');
     const biomeCases=[
       [1,'hall','01 VALHEM - Crypt Battle Charge.m4a'],
@@ -321,11 +339,13 @@ async function main() {
       const checkpoint=localStorage.getItem(SOLO_CHECKPOINT_KEY);
       startTraining();
       const active=trainingActive&&trainingStep===0&&biomeMusicKey==='hall'&&!biomeMusic.paused;
+      pauseGame(true);const paused=state==='paused';document.getElementById('btnResume').click();
+      const resumed=state==='playing'&&trainingActive;
       exitTraining();
-      return {active,restored:checkpoint===localStorage.getItem(SOLO_CHECKPOINT_KEY),
+      return {active,paused,resumed,restored:checkpoint===localStorage.getItem(SOLO_CHECKPOINT_KEY),
         continueVisible:!document.getElementById('btnContinueSolo').classList.contains('hidden')};
     })()`);
-    assert.deepEqual(offlineTraining,{active:true,restored:true,continueVisible:true});
+    assert.deepEqual(offlineTraining,{active:true,paused:true,resumed:true,restored:true,continueVisible:true});
     console.log('[QA] Offline PWA training preserved checkpoint');
     console.log('[QA] Offline menu:', await cdp.eval(`({stored:!!readSoloCheckpoint(),loaded:!!soloCheckpoint,
       button:document.getElementById('btnContinueSolo').className,
@@ -353,30 +373,43 @@ async function main() {
       return {visible,resumed,cleared:readSoloCheckpoint()===null};
     })()`);
     assert.deepEqual(mobile, {visible:true,resumed:true,cleared:true});
+    if (process.env.VALHEM_QA_TRAINING_SHOT) {
+      await cdp.eval('startTraining()');
+      await delay(150);
+      const shot = await cdp.send('Page.captureScreenshot', {format:'png'});
+      fs.writeFileSync(process.env.VALHEM_QA_TRAINING_SHOT, Buffer.from(shot.data, 'base64'));
+    }
     const trainingMobile = await cdp.eval(`(() => {
       const stored=localStorage.getItem('valhem_save');
-      startTraining();
+      if(!trainingActive)startTraining();
       const visible=touchMode&&trainingActive&&
         !document.getElementById('trainingPanel').classList.contains('hidden')&&
         getComputedStyle(document.getElementById('tbAtk')).display!=='none';
+      const hudHidden=getComputedStyle(document.getElementById('hudTC')).display==='none';
+      const panelRect=document.getElementById('trainingPanel').getBoundingClientRect();
+      const pauseRect=document.getElementById('mobilePause').getBoundingClientRect();
+      const panelClear=panelRect.left>innerWidth*.6&&panelRect.top>=pauseRect.bottom;
       const fire=(id,num)=>{const el=document.getElementById(id);
         el.dispatchEvent(new PointerEvent('pointerdown',{pointerId:num,button:0,bubbles:true}));
         return el;};
       const stop=(el,num)=>el.dispatchEvent(new PointerEvent('pointerup',{pointerId:num,button:0,bubbles:true}));
-      let el=fire('tbAxe',90);stop(el,90);
-      const extrasBlocked=projs.length===0;
-      el=fire('tbAtk',91);updatePlayer(players[0],.02);stop(el,91);
-      const attack=trainingStep===1&&projs.length===0&&trails.length===0&&portals.length===0;
+      let el=fire('tbAtk',91);updatePlayer(players[0],.02);stop(el,91);
+      const attack=trainingStep===1;
+      el=fire('tbAxe',90);stop(el,90);
+      const combatActions=projs.some(p=>p.type==='axe');
+      updateProjectiles(.02);
       el=fire('tbDodge',92);stop(el,92);
       const dodge=trainingStep===2;
       trainingTimer=.01;el=fire('tbParry',93);updateTraining(.02);stop(el,93);
       const parry=trainingStep===3;
       el=fire('tbAtk',94);updatePlayer(players[0],.02);stop(el,94);
       const execute=trainingStep===4;
-      exitTraining();
-      return {visible,extrasBlocked,attack,dodge,parry,execute,unchanged:stored===localStorage.getItem('valhem_save')};
+      document.getElementById('mobilePause').click();
+      const paused=state==='paused'&&!document.getElementById('pauseScreen').classList.contains('hidden');
+      document.getElementById('btnQuitRun').click();document.getElementById('btnQuitYes').click();
+      return {visible,hudHidden,panelClear,paused,combatActions,attack,dodge,parry,execute,unchanged:stored===localStorage.getItem('valhem_save')};
     })()`);
-    assert.deepEqual(trainingMobile,{visible:true,extrasBlocked:true,attack:true,dodge:true,parry:true,execute:true,unchanged:true});
+    assert.deepEqual(trainingMobile,{visible:true,hudHidden:true,panelClear:true,paused:true,combatActions:true,attack:true,dodge:true,parry:true,execute:true,unchanged:true});
     console.log('[QA] Mobile touch training passed');
     const mobileDeathLayout = await cdp.eval(`(() => {
       startGame('solo');wave.num=1;wave.breakT=0;
