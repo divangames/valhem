@@ -2,7 +2,7 @@
 <html lang="ru">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,interactive-widget=resizes-content">
 <title>VALHEM — сага о бесконечной битве</title>
 <meta name="theme-color" content="#05070b">
 <meta name="description" content="Valhem — бесконечный викинг-роглайт: шесть земель, фазовые ётуны, стойкость, добивания, парирование, кооп и чертог славы.">
@@ -21,6 +21,7 @@
   --gold:#d8a93c; --gold-hi:#ffd97a; --gold-dim:#7c6128;
   --ember:#ff8a4a; --blood:#c23a2e; --ice:#8fd8e8; --bone:#e9e1cc;
   --ink:#05070b; --panel:rgba(13,17,24,.92); --line:#3a4150;
+  --ease-out:cubic-bezier(.23,1,.32,1); --ease-in-out:cubic-bezier(.77,0,.175,1);
   --safe-top:env(safe-area-inset-top,0px); --safe-right:env(safe-area-inset-right,0px);
   --safe-bottom:env(safe-area-inset-bottom,0px); --safe-left:env(safe-area-inset-left,0px);
 }
@@ -92,6 +93,13 @@ body.touch .bar.rage{height:12px}
 body.touch .mrow{display:none}
 body.touch .wpn{font-size:9px;letter-spacing:.16em;margin-top:1px}
 body.touch #hudTC{top:max(6px,var(--safe-top));width:min(35vw,360px);padding:5px 12px}
+body.touch.solo-mode #hudTC{top:max(66px,calc(var(--safe-top) + 60px));right:max(8px,var(--safe-right));width:clamp(124px,22vw,168px);padding:5px 8px;opacity:.9}
+body.touch.solo-mode #hudTC #biomeTag{display:none}
+body.touch.solo-mode #hudTC #waveLabel{display:inline;margin:0;font-size:8px;letter-spacing:.2em}
+body.touch.solo-mode #hudTC #waveNum{display:inline;margin-left:4px;font-size:18px}
+body.touch.solo-mode #hudTC #foesLeft{margin-top:1px}
+body.touch.solo-mode #hudTC #chips{font-size:8px;line-height:1.2;white-space:normal}
+body.touch.solo-mode #hudTC #xpBar{width:100%}
 body.touch #biomeTag{font-size:8px;letter-spacing:.28em}
 body.touch #waveLabel{font-size:9px;margin-top:1px}
 body.touch #waveNum{font-size:22px}
@@ -125,7 +133,9 @@ body.touch.shop-open #actionPad{opacity:.12;pointer-events:none}
 }
 
 
-#hud{position:absolute;inset:0;z-index:5;pointer-events:none;font-family:'Forum',serif}
+#hud{position:absolute;inset:0;z-index:5;pointer-events:none;font-family:'Forum',serif;opacity:1;visibility:visible;
+  transition:opacity .18s var(--ease-out),visibility 0s linear 0s}
+body:not(.ingame) #hud{opacity:0;visibility:hidden;transition:opacity .14s ease,visibility 0s linear .14s}
 .panel{background:var(--panel);border:1px solid var(--line);
   clip-path:polygon(0 0,calc(100% - 12px) 0,100% 12px,100% 100%,12px 100%,0 calc(100% - 12px));
   box-shadow:0 4px 18px rgba(0,0,0,.5), inset 0 0 0 1px rgba(216,169,60,.08)}
@@ -157,9 +167,11 @@ body.touch.shop-open #actionPad{opacity:.12;pointer-events:none}
 .combo{font-family:'Forum';font-size:12px;letter-spacing:.2em;text-align:center;margin-top:1px;
   text-shadow:0 0 10px rgba(255,150,60,.4)}
 
-#hudTC{position:absolute;top:12px;left:50%;transform:translateX(-50%);text-align:center;
+#hudTC{position:absolute;top:12px;right:16px;left:auto;transform:none;text-align:center;
   background:var(--panel);border:1px solid var(--line);padding:8px 34px;
-  clip-path:polygon(14px 0,calc(100% - 14px) 0,100% 100%,0 100%)}
+  clip-path:polygon(14px 0,calc(100% - 14px) 0,100% 100%,0 100%);
+  transition:opacity .18s var(--ease-out),transform .18s var(--ease-out)}
+body.coop-mode #hudTC{right:auto;left:50%;transform:translateX(-50%)}
 #biomeTag{font-size:10px;letter-spacing:.42em;color:#8d94a3}
 #waveLabel{font-size:11px;letter-spacing:.5em;color:var(--gold);opacity:.85;margin-top:2px}
 #waveNum{font-size:30px;line-height:1;color:var(--bone);text-shadow:0 0 16px rgba(216,169,60,.35)}
@@ -230,8 +242,9 @@ body.touch .coachRune{width:34px;height:34px;font-size:21px}body.touch .coachCop
 .sold{text-align:center;color:#7d8695;font-style:italic;padding:12px}
 
 .screen{position:absolute;inset:0;z-index:10;display:flex;align-items:center;justify-content:center;overflow-y:auto;overflow-x:hidden;
+  overscroll-behavior:contain;-webkit-overflow-scrolling:touch;
   background:radial-gradient(ellipse at 50% 42%,rgba(10,13,19,.35) 0%,rgba(5,7,11,.86) 78%)}
-.scInner{text-align:center;width:min(100%,980px);min-width:0;padding:26px;animation:scIn .5s ease;margin:auto}
+.scInner{text-align:center;width:min(100%,980px);min-width:0;padding:26px;animation:scIn .26s var(--ease-out);margin:auto}
 @keyframes scIn{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:none}}
 .runeRow{font-size:19px;letter-spacing:1.1em;color:var(--gold);opacity:.65;margin-bottom:8px;text-shadow:0 0 12px rgba(216,169,60,.5)}
 h1{font-family:'Forum';font-weight:400;font-size:clamp(56px,10vw,126px);line-height:.95;letter-spacing:.16em;color:var(--bone);
@@ -245,9 +258,8 @@ h1{font-family:'Forum';font-weight:400;font-size:clamp(56px,10vw,126px);line-hei
 .btn{pointer-events:auto;cursor:pointer;font-family:'Forum';font-size:17px;letter-spacing:.2em;color:var(--gold-hi);
   background:linear-gradient(180deg,#231d0f,#12100a);border:1px solid var(--gold-dim);padding:13px 36px;margin:5px 6px 0;
   clip-path:polygon(12px 0,calc(100% - 12px) 0,100% 50%,calc(100% - 12px) 100%,12px 100%,0 50%);
-  transition:transform .15s,box-shadow .15s,color .15s;text-shadow:0 0 10px rgba(216,169,60,.4)}
-.btn:hover{transform:translateY(-2px) scale(1.02);box-shadow:0 0 28px rgba(216,169,60,.35);color:#fff}
-.btn:active{transform:translateY(1px)}
+  transition:transform .14s var(--ease-out),box-shadow .18s ease,color .18s ease;text-shadow:0 0 10px rgba(216,169,60,.4)}
+.btn:active{transform:scale(.97)}
 .btn.small{font-size:13px;padding:9px 24px}
 .btn.ghost{border-color:#3a4150;color:#9aa3b2;text-shadow:none}
 #titleStats{margin-top:12px;font-size:13.5px;letter-spacing:.18em;color:#8d94a3}
@@ -260,11 +272,10 @@ h1{font-family:'Forum';font-weight:400;font-size:clamp(56px,10vw,126px);line-hei
 .titleChoice,.hubChoice{position:relative;min-height:84px;padding:15px 22px;border:1px solid var(--gold-dim);overflow:hidden;
  cursor:pointer;color:var(--gold-hi);background:linear-gradient(145deg,rgba(43,34,16,.96),rgba(12,12,11,.98));
  clip-path:polygon(14px 0,calc(100% - 14px) 0,100% 50%,calc(100% - 14px) 100%,14px 100%,0 50%);
- transition:transform .18s ease,border-color .18s ease,filter .18s ease;isolation:isolate}
+ transition:transform .18s var(--ease-out),border-color .18s ease,filter .18s ease;isolation:isolate}
 .titleChoice::before,.hubChoice::before{content:'';position:absolute;inset:0;z-index:-1;opacity:.42;
  background:radial-gradient(circle at 50% 0,rgba(216,169,60,.24),transparent 62%),linear-gradient(90deg,transparent,rgba(255,217,122,.06),transparent)}
 .titleChoice::after,.hubChoice::after{content:'ᛟ';position:absolute;right:18px;top:50%;transform:translateY(-50%);font:28px 'Forum';color:rgba(216,169,60,.16)}
-.titleChoice:hover,.hubChoice:hover{transform:translateY(-2px);border-color:var(--gold);filter:brightness(1.12)}
 .titleChoice:active,.hubChoice:active{transform:translateY(1px) scale(.99)}
 .titleChoice:focus-visible,.hubChoice:focus-visible{outline:2px solid var(--gold-hi);outline-offset:3px}
 .titleChoice strong,.hubChoice strong{display:block;font:clamp(16px,2.2vw,22px) 'Forum';font-weight:400;letter-spacing:.16em}
@@ -438,8 +449,16 @@ body.touch .touchOnly{display:flex}
 .stoggle::after{content:'';position:absolute;top:2px;left:2px;width:16px;height:16px;background:#7d8695;transition:.15s}
 .stoggle.on{background:#2a1f0a;border-color:var(--gold-dim)}
 .stoggle.on::after{left:26px;background:var(--gold)}
-.sbtn{font-family:'Forum';letter-spacing:.12em;font-size:12px;background:#1c1608;border:1px solid var(--gold-dim);color:var(--gold-hi);padding:7px 14px;cursor:pointer}
+.sbtn{font-family:'Forum';letter-spacing:.12em;font-size:12px;background:#1c1608;border:1px solid var(--gold-dim);color:var(--gold-hi);padding:7px 14px;cursor:pointer;
+ transition:transform .14s var(--ease-out),border-color .18s ease,background-color .18s ease}
+.sbtn:active{transform:scale(.97)}
 .sbtn.danger{border-color:#6b3226;color:#ff9a8a;background:#1c0f0c}
+
+@media (hover:hover) and (pointer:fine){
+ .btn:hover{transform:translateY(-2px) scale(1.02);box-shadow:0 0 28px rgba(216,169,60,.35);color:#fff}
+ .titleChoice:hover,.hubChoice:hover{transform:translateY(-2px);border-color:var(--gold);filter:brightness(1.12)}
+ .sbtn:hover{border-color:var(--gold);background:#2a210d}
+}
 
 @media (max-width:640px){
  body.touch .screen{background:#05070b;padding:var(--safe-top) var(--safe-right) var(--safe-bottom) var(--safe-left)}
@@ -598,6 +617,24 @@ body.touch .netInput{width:100%;max-width:none;font-size:16px;min-height:48px}
 .guestPermissions{display:grid;gap:7px;margin:7px 0 12px}.guestPermission{display:flex;align-items:center;gap:9px;min-height:38px;padding:7px 9px;border:1px solid rgba(143,216,232,.15);background:rgba(4,7,11,.42);font:13px Forum;color:#c9c2b0;cursor:pointer}.guestPermission input{width:18px;height:18px;accent-color:var(--gold)}
 .onlineRecords{max-width:850px;margin:0 auto 14px;text-align:left}.onlineRecordsHead{display:flex;justify-content:space-between;align-items:center;gap:10px}.onlineRecordsHead .sbtn{min-width:120px}.onlinePermissions{font:12px Forum;color:#a9b0bc;line-height:1.45;margin:-4px 0 10px}
 @media(max-width:760px){.onlineSetup{grid-template-columns:1fr}.onlinePane{min-height:0}.roomCode{font-size:24px}}
+
+/* На узких экранах длинный сетевой экран всегда начинается сверху и учитывает вырез iPhone. */
+@media(max-width:760px){
+ #onlineScreen{align-items:flex-start;scroll-padding-top:calc(var(--safe-top) + 12px);scroll-padding-bottom:calc(var(--safe-bottom) + 12px)}
+ #onlineScreen .scInner{margin:0 auto;padding:18px 12px calc(28px + var(--safe-bottom))}
+ #onlineScreen .onlineSetup{margin:12px auto;gap:10px}
+ #onlineScreen .onlinePane{padding:12px}
+ #onlineScreen .onlineRecords{margin-bottom:10px}
+ #onlineScreen .roomList{max-height:42dvh;overscroll-behavior:contain;-webkit-overflow-scrolling:touch}
+}
+
+button,a,[role="button"],.titleChoice,.hubChoice,.sbtn{touch-action:manipulation;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+
+@media(prefers-reduced-motion:reduce){
+ .scInner{animation:scFade .16s ease}
+ .btn,.sbtn,.titleChoice,.hubChoice,#hud,#hudTC{transition-duration:.01ms}
+ @keyframes scFade{from{opacity:0}to{opacity:1}}
+}
 
 
 /* ===== v2.4.1 SELF-CONTAINED STARTUP ===== */
@@ -1933,6 +1970,8 @@ function makePlayer(idx){
 function initRun(m){
  coachQueue=[];dismissCoach();coachGap=0;coachSlowT=0;
  mode=m;players=[makePlayer(0)];if(m==='coop')players.push(makePlayer(1));
+ document.body.classList.toggle('solo-mode',m!=='coop');
+ document.body.classList.toggle('coop-mode',m==='coop');
  for(let i=0;i<players.length;i++)metaApply(players[i]);
  team={level:1,xp:0,xpNext:8,gold:25*save.up.gold,relics:[],relicSlots:4,nornWave:-1,heimdallWave:-1};
  enemies=[];projs=[];pickups=[];texts=[];trails=[];telegraphs=[];portals=[];zones=[];
