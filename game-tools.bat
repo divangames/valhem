@@ -15,6 +15,7 @@ set "VPS_HEALTH_URL=https://213.139.209.107/api/health"
 if /i "%~1"=="--check" goto check_only
 if /i "%~1"=="--check-local" goto check_local_cli
 if /i "%~1"=="--qa" goto qa_cli
+if /i "%~1"=="--qa-live" goto qa_live_cli
 if /i "%~1"=="--deploy-pages" goto deploy_pages_cli
 if /i "%~1"=="--deploy-vps" goto deploy_vps_cli
 if /i "%~1"=="--deploy-all" goto deploy_all_cli
@@ -248,6 +249,18 @@ exit /b 1
 gh run watch %PAGES_RUN_ID% --repo divangames/valhem --exit-status
 if errorlevel 1 exit /b 1
 curl.exe --fail --silent --show-error --max-time 20 "%PAGES_URL%" >nul
+if errorlevel 1 exit /b 1
+call :qa_live --retry || exit /b 1
+exit /b 0
+
+:qa_live_cli
+call :qa_live || exit /b 1
+exit /b 0
+
+:qa_live
+where node >nul 2>nul
+if errorlevel 1 exit /b 1
+node "scripts\verify-pages-live.cjs" "%PAGES_URL%" %~1
 if errorlevel 1 exit /b 1
 exit /b 0
 

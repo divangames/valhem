@@ -1,6 +1,8 @@
-const {readFileSync, existsSync} = require('node:fs');
+const {readFileSync, existsSync, mkdtempSync, rmSync} = require('node:fs');
 const {Script} = require('node:vm');
 const {join} = require('node:path');
+const {tmpdir} = require('node:os');
+const {build, verify} = require('./build-pages.cjs');
 
 const root = join(__dirname, '..');
 const assets = [
@@ -30,4 +32,12 @@ for (const file of ['startup.js', 'sw.js']) {
   new Script(readFileSync(join(root, file), 'utf8'), {filename: file});
 }
 JSON.parse(readFileSync(join(root, 'manifest.webmanifest'), 'utf8'));
+const artifact = mkdtempSync(join(tmpdir(), 'valhem-pages-qa-'));
+try {
+  build(artifact);
+  const count = verify(artifact);
+  console.log(`[OK] Pages artifact contains ${count} referenced media files`);
+} finally {
+  rmSync(artifact, {recursive: true, force: true});
+}
 console.log(`[OK] VALHEM assets, ${scripts.length} inline scripts, startup, service worker and manifest`);
