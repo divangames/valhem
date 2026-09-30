@@ -109,6 +109,12 @@ if not exist "scripts\solo-checkpoint-browser-qa.cjs" (
 )
 node "scripts\solo-checkpoint-browser-qa.cjs"
 if errorlevel 1 exit /b 1
+if not exist "scripts\online-browser-qa.cjs" (
+  echo [ОШИБКА] Не найден scripts\online-browser-qa.cjs.
+  exit /b 1
+)
+node "scripts\online-browser-qa.cjs"
+if errorlevel 1 exit /b 1
 echo [OK] QA VALHEM пройдено.
 exit /b 0
 
