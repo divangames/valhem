@@ -13,6 +13,7 @@
 <meta property="og:description" content="Бесконечная сага павшего воина: шесть земель, стойкость, добивания, фазовые боссы, кооп и чертог славы.">
 <meta property="og:type" content="website">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='80' font-size='80' fill='%23d8a93c'>ᚡ</text></svg>">
+<link rel="preload" as="image" href="assets/divan/divan.webp">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Forum&family=Alegreya:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
@@ -282,6 +283,9 @@ h1{font-family:'Forum';font-weight:400;font-size:clamp(56px,10vw,126px);line-hei
 .titleChoice small,.hubChoice small{display:block;margin-top:5px;font:13px/1.25 'Alegreya';letter-spacing:.04em;color:#a99f87}
 .titleChoice.primary{min-height:98px;border-color:#a27d2e;background:linear-gradient(145deg,#302512,#12100b)}
 .titleChoice.primary strong{font-size:clamp(19px,2.6vw,26px)}
+.titleChoice.resume{grid-column:1/-1;min-height:78px;border-color:#c69b48;background:linear-gradient(145deg,#3a2a14,#18120b)}
+.titleChoice.resume small{color:#e0c999}
+.titleChoice.resumeDiscard{grid-column:1/-1;min-height:36px;padding:6px 16px;border-color:#514939;background:#15130e;color:#b7aa8b;font-size:12px;letter-spacing:.1em}
 .titleChoice.compact{min-height:68px;background:linear-gradient(145deg,rgba(24,25,25,.96),rgba(9,10,11,.98));border-color:#4a4639}
 .titleChoice.compact strong{font-size:clamp(14px,1.8vw,18px);color:#ddd2b8}
 .titleChoice.compact small{font-size:12px;color:#787b7b}
@@ -660,6 +664,17 @@ button,a,[role="button"],.titleChoice,.hubChoice,.sbtn{touch-action:manipulation
  background:radial-gradient(ellipse at 50% 42%,#17191d 0%,#101318 58%,#0b0e13 100%);color:var(--bone);
  transition:opacity .28s ease,transform .28s ease}
 #startup.startupExit{opacity:0;transform:scale(1.015);pointer-events:none}
+#brandSplash{position:fixed;inset:0;z-index:1100;background:#000;overflow:hidden;pointer-events:auto}
+#brandSplash img{display:block;width:100%;height:100%;object-fit:cover;opacity:0}
+#brandSplash.playing img{animation:brandReveal 5s linear both}
+@keyframes brandReveal{
+  0%{opacity:0;transform:scale(1)}
+  18%{opacity:1;transform:scale(1.012)}
+  78%{opacity:1;transform:scale(1.052)}
+  100%{opacity:0;transform:scale(1.07)}
+}
+@media(prefers-reduced-motion:reduce){#brandSplash.playing img{animation-name:brandRevealStill}
+ @keyframes brandRevealStill{0%{opacity:0}18%,78%{opacity:1}100%{opacity:0}}}
 .startupCard{width:min(620px,100%);text-align:center;padding:28px 24px}
 .startupRunes{font-family:'Forum',serif;color:var(--gold);letter-spacing:1.1em;font-size:15px;opacity:.72;margin:0 0 12px;padding-left:1.1em}
 #startup h1{font-size:clamp(58px,12vw,92px);letter-spacing:.16em;margin:0;color:#f0e7cf;text-shadow:0 0 26px rgba(216,169,60,.28),0 3px 0 #000}
@@ -769,6 +784,8 @@ button,a,[role="button"],.titleChoice,.hubChoice,.sbtn{touch-action:manipulation
       <p class="tag">Шесть земель, фазовые ётуны, реликвии и оружейное мастерство, стойкость и добивания, кооп на одном экране, чертог славы и ежедневные саги. Играй на клавиатуре или на стекле планшета.</p>
       <div class="orn">ᛟ</div>
       <div class="titleMenu" aria-label="Главные пути">
+        <button id="btnContinueSolo" class="titleChoice resume hidden"><strong>ПРОДОЛЖИТЬ ПОХОД</strong><small id="continueSoloDetails"></small></button>
+        <button id="btnDiscardSolo" class="titleChoice resumeDiscard hidden">ОТКАЗАТЬСЯ ОТ СОХРАНЁННОГО ПОХОДА</button>
         <button id="btnOfflineHub" class="titleChoice primary"><strong>В ПОХОД</strong><small>Один против шести земель</small></button>
         <button id="btnOnline" class="titleChoice primary"><strong>В ПОХОД С ДРУГОМ</strong><small>Открой мир или войди по руне</small></button>
         <button id="btnLoreHub" class="titleChoice compact"><strong>СВИТКИ СКАЛЬДА</strong><small>Слава, подвиги и твари</small></button>
@@ -1109,6 +1126,13 @@ button,a,[role="button"],.titleChoice,.hubChoice,.sbtn{touch-action:manipulation
     </div>
   </section>
 </div>
+<div id="brandSplash" class="hidden" role="img" aria-label="DIVAN GAMES">
+ <img src="assets/divan/divan.webp" alt="DIVAN GAMES" decoding="async">
+</div>
+<audio id="menuMusic" preload="none" loop>
+ <source src="assets/music/VALHEM%20-%20Viking%20Trail.opus" type="audio/ogg; codecs=opus">
+ <source src="assets/music/VALHEM%20-%20Viking%20Trail.wav" type="audio/wav">
+</audio>
 
 <script>
 'use strict';
@@ -1159,7 +1183,14 @@ const CONTRACTS=[
 ];
 function dailyContracts(){const r=localRand(hashStr(fmtDate()+'|contracts')),pool=CONTRACTS.slice(),out=[];while(out.length<3&&pool.length){const i=Math.floor(r()*pool.length);out.push(pool.splice(i,1)[0]);}return out;}
 function ensureContracts(){const d=fmtDate();if(save.contractDay!==d){save.contractDay=d;save.contractProg={};save.contractDone={};persist();}}
-function contractAdd(id,v){ensureContracts();const active=dailyContracts().find(function(c){return c.id===id;});if(!active||save.contractDone[id])return;save.contractProg[id]=(save.contractProg[id]||0)+(v||1);if(save.contractProg[id]>=active.target){save.contractProg[id]=active.target;save.contractDone[id]=true;save.glory+=active.reward;setHint('✦ КОНТРАКТ: '+active.name+' · +'+active.reward+' ✦',4);AU.sGlory();}persist();}
+function grantContract(id,v,write){ensureContracts();const active=dailyContracts().find(function(c){return c.id===id;});if(!active||save.contractDone[id])return;save.contractProg[id]=(save.contractProg[id]||0)+(v||1);if(save.contractProg[id]>=active.target){save.contractProg[id]=active.target;save.contractDone[id]=true;save.glory+=active.reward;setHint('✦ КОНТРАКТ: '+active.name+' · +'+active.reward+' ✦',4);AU.sGlory();}if(write!==false)persist();}
+function contractAdd(id,v){
+ if(freeSoloRun()&&players.length&&state!=='title'&&state!=='dead'){
+  ensureContracts();if(!dailyContracts().some(function(c){return c.id===id;})||save.contractDone[id])return;
+  soloPendingContracts[id]=(soloPendingContracts[id]||0)+(v||1);return;
+ }
+ grantContract(id,v);
+}
 function renderContracts(){ensureContracts();$('contractDate').innerHTML='<b>'+fmtDate()+'</b> · ежедневные поручения скальда';const g=$('contractGrid');g.innerHTML='';dailyContracts().forEach(function(c){const p=Math.min(c.target,save.contractProg[c.id]||0),done=!!save.contractDone[c.id],d=document.createElement('div');d.className='contractCard'+(done?' done':'');d.innerHTML='<span class="contractRune">'+c.r+'</span><div class="contractName">'+c.name+'</div><div class="contractDesc">'+c.desc+'</div><div class="contractReward">'+(done?'ВЫПОЛНЕНО · ':'НАГРАДА · ')+c.reward+' ✦</div><div class="contractBar"><div class="contractFill" style="width:'+(p/c.target*100)+'%"></div></div><div class="contractProg">'+p+' / '+c.target+'</div>';g.appendChild(d);});}
 const WEEKLY=[
  {id:'fenrir',name:'НЕДЕЛЯ ФЕНРИРА',desc:'Волков заметно больше, и они быстрее.',glory:1.25},
@@ -1392,12 +1423,12 @@ function recordKill(type,mod){
 
 /* ============ audio ============ */
 const AU={
-ctx:null,mGain:null,vol:0.5,muted:false,nextT:0,mstep:0,musicOn:false,
+ctx:null,mGain:null,droneGain:null,vol:0.5,muted:false,nextT:0,mstep:0,musicOn:false,
 init:function(){
  if(this.ctx){if(this.ctx.state==='suspended')this.ctx.resume();return;}
  const C=window.AudioContext||window.webkitAudioContext;if(!C)return;
  try{
-  this.ctx=new C();this.mGain=this.ctx.createGain();this.mGain.gain.value=(save.sett.vol/100)*(this.muted?0:1);
+  this.vol=save.sett.vol/100;this.ctx=new C();this.mGain=this.ctx.createGain();this.mGain.gain.value=this.vol*(this.muted?0:1);
   this.mGain.connect(this.ctx.destination);
   this.drone();this.musicOn=true;this.nextT=this.ctx.currentTime+0.2;
   const self=this;setInterval(function(){if(self.ctx&&self.musicOn)self.music();},70);
@@ -1406,6 +1437,8 @@ init:function(){
 t:function(){return this.ctx?this.ctx.currentTime:0;},
 setVol:function(v){this.vol=v;if(this.mGain)this.mGain.gain.linearRampToValueAtTime(this.muted?0:v,this.t()+0.15);},
 duck:function(v){if(this.mGain)this.mGain.gain.linearRampToValueAtTime(this.muted?0:v,this.t()+0.25);},
+setGameMusic:function(on){this.musicOn=!!on;if(on)this.nextT=this.t()+0.12;
+ if(this.droneGain)this.droneGain.gain.linearRampToValueAtTime(on?0.045:0,this.t()+0.25);},
 env:function(g,t0,a,d,v){g.gain.setValueAtTime(0,t0);g.gain.linearRampToValueAtTime(v,t0+a);g.gain.exponentialRampToValueAtTime(0.0001,t0+d);},
 osc:function(type,f0,f1,dur,vol,t0,att){if(!this.ctx)return;t0=(t0===undefined)?this.t():t0;att=att||0.005;
  const o=this.ctx.createOscillator(),g=this.ctx.createGain();o.type=type;o.frequency.setValueAtTime(f0,t0);
@@ -1416,7 +1449,7 @@ noise:function(dur,vol,fc2,type,t0){if(!this.ctx)return;t0=(t0===undefined)?this
  for(let i=0;i<d.length;i++)d[i]=Math.random()*2-1;n.buffer=b;
  const f=this.ctx.createBiquadFilter();f.type=type;f.frequency.value=fc2;
  const g=this.ctx.createGain();this.env(g,t0,0.004,dur,vol);n.connect(f);f.connect(g);g.connect(this.mGain);n.start(t0);},
-drone:function(){const c=this.ctx,g=c.createGain();g.gain.value=0.045;const f=c.createBiquadFilter();f.type='lowpass';f.frequency.value=260;
+drone:function(){const c=this.ctx,g=c.createGain();this.droneGain=g;g.gain.value=0.045;const f=c.createBiquadFilter();f.type='lowpass';f.frequency.value=260;
  const o1=c.createOscillator();o1.type='triangle';o1.frequency.value=55;
  const o2=c.createOscillator();o2.type='triangle';o2.frequency.value=82.41;
  const o3=c.createOscillator();o3.type='sine';o3.frequency.value=110;const g3=c.createGain();g3.gain.value=0.4;
@@ -1465,6 +1498,29 @@ sRevive:function(){const t=this.t();[440,554,659,880].forEach(function(f,i){AU.o
 sGlory:function(){const t=this.t();[392,523,659,784,1046].forEach(function(f,i){AU.osc('sine',f,f,0.5,0.1,t+i*0.1);});},
 sClick:function(){this.osc('triangle',700,500,0.06,0.08);}
 };
+const menuMusic=$('menuMusic');
+let menuMusicFade=0;
+function menuMusicVolume(fade){
+ if(!menuMusic)return;
+ cancelAnimationFrame(menuMusicFade);
+ const target=AU.muted?0:Math.min(1,(save.sett.vol/100)*0.65);
+ if(!fade){menuMusic.volume=target;return;}
+ const from=menuMusic.volume,start=performance.now();
+ function step(now){const t=Math.min(1,(now-start)/800);menuMusic.volume=from+(target-from)*t;
+  if(t<1)menuMusicFade=requestAnimationFrame(step);}
+ menuMusicFade=requestAnimationFrame(step);
+}
+function playMenuMusic(silent){
+ AU.setGameMusic(false);
+ if(!menuMusic)return;
+ if(menuMusic.paused){menuMusic.volume=0;const playing=menuMusic.play();if(playing&&playing.catch)playing.catch(function(){});}
+ if(!silent)menuMusicVolume(true);
+}
+function stopMenuMusic(){
+ cancelAnimationFrame(menuMusicFade);
+ if(menuMusic){menuMusic.pause();menuMusic.currentTime=0;}
+ AU.setGameMusic(true);
+}
 
 /* ============ biomes ============ */
 const BIOMES=[
@@ -1739,6 +1795,85 @@ const cam={x:0,y:0};
 const ms={x:innerWidth/2,y:innerHeight/2};let mouseDown=false;
 const merchant={x:ARENA.w/2,y:ARENA.h/2-150,active:false};
 const shop={open:false,offers:[],goldShown:-1};
+let soloPendingContracts={};
+function commitSoloContracts(cp){
+ if(!cp.commitId||save.soloContractCommit===cp.commitId)return;
+ const changes=cp.contracts||{};
+ for(const id of Object.keys(changes))if(Number.isFinite(changes[id])&&changes[id]>0)grantContract(id,changes[id],false);
+ save.soloContractCommit=cp.commitId;persist();
+}
+function flushSoloContracts(){
+ for(const id of Object.keys(soloPendingContracts))grantContract(id,soloPendingContracts[id],false);
+ soloPendingContracts={};persist();
+}
+/* A free solo run is saved only at a resolved rest, never during a fight. */
+const SOLO_CHECKPOINT_KEY='valhem_solo_checkpoint_v1';
+function freeSoloRun(){return mode==='solo'&&!dailyMode&&!weeklyMode&&!onlineActive;}
+function validSoloCheckpoint(cp){
+ const pl=cp&&Array.isArray(cp.players)&&cp.players[0];
+ return !!(cp&&cp.schema===1&&cp.kind==='free-solo'&&HEROES[cp.hero]&&
+  Number.isSafeInteger(cp.wave)&&cp.wave>=1&&cp.wave<100000&&
+  cp.team&&Number.isFinite(cp.team.gold)&&cp.team.gold>=0&&Number.isFinite(cp.team.level)&&cp.team.level>=1&&
+  Number.isFinite(cp.team.xp)&&Number.isFinite(cp.team.xpNext)&&Array.isArray(cp.team.relics)&&
+  cp.team.relics.every(function(id){return !!relicDef(id);})&&
+  Array.isArray(cp.players)&&cp.players.length===1&&pl&&pl.alive===true&&WEAPNAME[pl.weapon]&&
+  Number.isFinite(pl.x)&&Number.isFinite(pl.y)&&Number.isFinite(pl.hp)&&pl.hp>0&&
+  Number.isFinite(pl.maxHp)&&pl.maxHp>0&&pl.hp<=pl.maxHp&&
+  pl.buffs&&typeof pl.buffs==='object'&&pl.mastery&&typeof pl.mastery==='object'&&
+  pl.upgOwned&&typeof pl.upgOwned==='object'&&
+  Array.isArray(cp.pickups)&&cp.pickups.length<10000&&Array.isArray(cp.shopOffers)&&cp.shopOffers.length<=3&&
+  Array.isArray(cp.routeHistory)&&cp.routeHistory.length<100000&&cp.routePending&&typeof cp.routePending.id==='string'&&
+  cp.oaths&&typeof cp.oaths==='object'&&cp.chal&&typeof cp.chal==='object'&&cp.runStats&&typeof cp.runStats==='object');
+}
+function readSoloCheckpoint(){
+ try{const raw=localStorage.getItem(SOLO_CHECKPOINT_KEY);if(!raw||raw.length>200000)return null;
+  const cp=JSON.parse(raw);return validSoloCheckpoint(cp)?cp:null;}catch(e){return null;}
+}
+let soloCheckpoint=null,soloDiscardArmed=false;
+function updateSoloCheckpointMenu(){
+ const cp=soloCheckpoint,show=!!cp;
+ $('btnContinueSolo').classList.toggle('hidden',!show);
+ $('btnDiscardSolo').classList.toggle('hidden',!show);
+ if(show)$('continueSoloDetails').textContent=HEROES[cp.hero].name+' · завершена волна '+roman(cp.wave)+' · далее '+roman(cp.wave+1);
+ if(!show||!soloDiscardArmed)$('btnDiscardSolo').textContent='ОТКАЗАТЬСЯ ОТ СОХРАНЁННОГО ПОХОДА';
+}
+function discardSoloCheckpoint(){
+ try{localStorage.removeItem(SOLO_CHECKPOINT_KEY);}catch(e){}
+ soloCheckpoint=null;soloDiscardArmed=false;updateSoloCheckpointMenu();
+}
+function saveSoloCheckpoint(){
+ if(!freeSoloRun()||state!=='playing'||wave.num<1||wave.breakT<=0||wave.queue.length||enemies.length||pending||masteryQueue.length||relicQueue.length||!players[0]||!players[0].alive)return false;
+ const cp={schema:1,kind:'free-solo',hero:save.hero,wave:wave.num,
+  team:team,players:players,pickups:pickups,barrels:barrels,altars:altars,pillars:PILLARS,
+  shopOffers:shop.offers,routePending:routePending,routeHistory:routeHistory,
+  kills:kills,runTime:runTime,runStats:runStats,oaths:save.oaths,chal:save.chal,
+  biome:curBiome.id,savedAt:Date.now(),contracts:soloPendingContracts,
+  commitId:String(Date.now())+'-'+Math.random().toString(36).slice(2)};
+ try{const raw=JSON.stringify(cp);if(raw.length>200000)return false;
+  localStorage.setItem(SOLO_CHECKPOINT_KEY,raw);soloCheckpoint=JSON.parse(raw);
+  commitSoloContracts(soloCheckpoint);soloPendingContracts={};updateSoloCheckpointMenu();return true;
+ }catch(e){return false;}
+}
+function resumeSoloCheckpoint(){
+ const cp=readSoloCheckpoint();if(!cp){soloCheckpoint=null;updateSoloCheckpointMenu();return false;}
+ if(touchMode)requestLandscape();
+ AU.init();stopMenuMusic();AU.sClick();AU.duck(AU.vol);
+ dailyMode=false;weeklyMode=false;save.hero=cp.hero;
+ save.oaths=Object.assign({},DEF.oaths,cp.oaths);save.chal=Object.assign({},DEF.chal,cp.chal);persist();
+ initRun('solo');
+ team=cp.team;players=cp.players;pickups=cp.pickups;barrels=Array.isArray(cp.barrels)?cp.barrels:[];altars=Array.isArray(cp.altars)?cp.altars:[];
+ if(Array.isArray(cp.pillars)&&cp.pillars.length===PILLARS_BASE.length)PILLARS=cp.pillars;
+ shop.offers=cp.shopOffers;shop.goldShown=-1;
+ routePending=Object.assign(neutralRoute(),cp.routePending);routeHistory=cp.routeHistory;
+ kills=Math.max(0,Number(cp.kills)||0);runTime=Math.max(0,Number(cp.runTime)||0);
+ runStats=Object.assign(runStats,cp.runStats);wave={num:cp.wave,queue:[],t:0,breakT:9};
+ const biome=BIOMES.find(function(b){return b.id===cp.biome;});if(biome)curBiome=biome;
+ buildBG();merchant.active=!save.chal.noshop&&!save.chal.endless;
+ state='playing';for(let i=0;i<ALL_SCREENS.length;i++)$(ALL_SCREENS[i]).classList.add('hidden');
+ commitSoloContracts(cp);soloPendingContracts={};
+ syncOrientationPause();renderRelicStrip();showBanner('ПОХОД ПРОДОЛЖЕН','СЛЕДУЮЩАЯ ВОЛНА · '+roman(wave.num+1));
+ return true;
+}
 const PAL=[
  {cape:'#232b3a',armor:'#77808f',trim:'#d8a93c',helm:'#9aa5b1',shield:'#6d5122',shieldRim:'#d8a93c'},
  {cape:'#16283a',armor:'#5d7c92',trim:'#8fd8e8',helm:'#a9c1cc',shield:'#2e4a5a',shieldRim:'#8fd8e8'}];
@@ -1997,6 +2132,7 @@ function makePlayer(idx){
 }
 function initRun(m){
  coachQueue=[];dismissCoach();coachGap=0;coachSlowT=0;
+ soloPendingContracts={};
  mode=m;players=[makePlayer(0)];if(m==='coop')players.push(makePlayer(1));
  document.body.classList.toggle('solo-mode',m!=='coop');
  document.body.classList.toggle('coop-mode',m==='coop');
@@ -2438,7 +2574,7 @@ function damagePlayer(pl,dmg,ang,src){
    if(other){showBanner('ВОИН ПАЛ','Встань рядом с надгробием, чтобы поднять его');AU.sDeath();}
    else startDeath();}}
 }
-function startDeath(){state='dying';dieT=1.45;if(save.sett.slowmo!==false)slowmo=Math.max(slowmo,1.45);AU.sDeath();shake=13;}
+function startDeath(){if(freeSoloRun()){discardSoloCheckpoint();flushSoloContracts();}state='dying';dieT=1.45;if(save.sett.slowmo!==false)slowmo=Math.max(slowmo,1.45);AU.sDeath();shake=13;}
 
 /* ============ actions ============ */
 function playerBurst(pl,r,dmg,stagger,label,col){
@@ -2611,7 +2747,7 @@ function choose(u){
  if(relicMode){applyRelic(u.id);relicQueue.shift();relicMode=false;relicSource='';}
  else{applyUp(u.id);AU.sRune();if(masteryMode){const w=masteryQueue.shift();showBanner('МАСТЕРСТВО ОСВОЕНО',WEAPNAME[w]+' · '+u.name);masteryMode=false;}else pending--;}
  $('levelScreen').classList.add('hidden');
- if(relicQueue.length||masteryQueue.length||pending>0)setTimeout(openLevel,140);else{state='playing';for(let i=0;i<players.length;i++)players[i].iframes=Math.max(players[i].iframes,0.6);}
+ if(relicQueue.length||masteryQueue.length||pending>0)setTimeout(openLevel,140);else{state='playing';for(let i=0;i<players.length;i++)players[i].iframes=Math.max(players[i].iframes,0.6);saveSoloCheckpoint();}
 }
 
 /* ============ карта пути ============ */
@@ -2710,6 +2846,7 @@ function activateRouteForWave(n){
 function doRest(){
  wave.breakT=9;merchant.active=!save.chal.noshop&&!save.chal.endless;
  if(merchant.active){genOffers();showCoach('merchant','ТОРГОВЕЦ СИНДРИ','Следуй за золотым указателем. Подойди к Синдри, чтобы открыть товары между волнами.','ᛗ',4.4,0);}
+ saveSoloCheckpoint();
  if(onlineActive&&onlineHost&&!onlineApplyingCheckpoint)setTimeout(function(){saveOnlineWorldCheckpoint(false);},0);
 }
 
@@ -2745,6 +2882,7 @@ function buy(o){
  else applyUp(o.upg.id);
  shop.offers.splice(shop.offers.indexOf(o),1);
  renderShop();
+ saveSoloCheckpoint();
 }
 
 /* ============ waves ============ */
@@ -2798,9 +2936,9 @@ function waveClear(){
  if(save.chal.endless){showBanner('ВОЛНА ЗАЧИЩЕНА','Бесконечный марш продолжается');wave.breakT=0.6;return;}
  showBanner('ВОЛНА ЗАЧИЩЕНА',wave.num>=2?'Выбери путь':'');
  if(wave.num>=2)openPath();
- else{doRest();state='playing';}
+ else{state='playing';doRest();}
 }
-function horn(){if(wave.breakT>0){if(hasRelic('heimdall')&&team.heimdallWave!==wave.num){team.heimdallWave=wave.num;for(let i=0;i<players.length;i++){const p=players[i];p.buffs.speed=Math.max(p.buffs.speed,7);p.buffs.shield=Math.max(p.buffs.shield,7);rageGain(p,38);}showBanner('ГЬЯЛЛАРХОРН','ДРУЖИНА ГОТОВА К ВОЛНЕ');AU.sHorn();}wave.breakT=0.01;AU.sClick();}}
+function horn(){if(wave.breakT>0){saveSoloCheckpoint();if(hasRelic('heimdall')&&team.heimdallWave!==wave.num){team.heimdallWave=wave.num;for(let i=0;i<players.length;i++){const p=players[i];p.buffs.speed=Math.max(p.buffs.speed,7);p.buffs.shield=Math.max(p.buffs.shield,7);rageGain(p,38);}showBanner('ГЬЯЛЛАРХОРН','ДРУЖИНА ГОТОВА К ВОЛНЕ');AU.sHorn();}wave.breakT=0.01;AU.sClick();}}
 
 /* ============ collision ============ */
 function collideWorld(o,noPillars){
@@ -2907,7 +3045,7 @@ function update(rdt){
     for(let k=0;k<16;k++){const a=k/16*TAU;parts.push({type:'spark',x:pl.x,y:pl.y,vx:Math.cos(a)*rand(90,240),vy:Math.sin(a)*rand(90,240),t:0,life:rand(0.3,0.6),size:2});}}}
   else pl.revProgress=Math.max(0,pl.revProgress-dt*2);}
 
- if(wave.breakT>0){wave.breakT-=dt;if(wave.breakT<=0)beginWave(wave.num+1);}
+ if(wave.breakT>0){if(wave.breakT<=dt)saveSoloCheckpoint();wave.breakT-=dt;if(wave.breakT<=0)beginWave(wave.num+1);}
  else{
   wave.t-=dt;
   if(wave.t<=0&&wave.queue.length&&enemies.length<42){
@@ -2928,7 +3066,7 @@ function update(rdt){
     if(pl.alive&&Math.hypot(pl.x-a.x,pl.y-a.y)<30){
      pl.buffs[a.kind]=a.kind==='shield'?8:10;a.cd=22;
      if(runStats){runStats.altars++;if(runStats.altars>=5)ach('altar5');}
-     addText(pl.x,pl.y-32,ALTARNAME[a.kind],'rgb('+ALTARCOL[a.kind]+')',15);AU.sRune();
+     addText(pl.x,pl.y-32,ALTARNAME[a.kind],'rgb('+ALTARCOL[a.kind]+')',15);AU.sRune();saveSoloCheckpoint();
      parts.push({type:'ring',x:a.x,y:a.y,t:0,life:0.4,size:60,col:ALTARCOL[a.kind]});
      break;}}}
   if(curEvent){curEvent.t+=dt;
@@ -3139,7 +3277,7 @@ function update(rdt){
     if(r.type==='rune')collectRune();
     else if(r.type==='gold'){team.gold+=r.val;contractAdd('gold',r.val);AU.sCoin();}
     else{healP(np,25);addText(np.x,np.y-30,'+25','#7ddb82',15);AU.sHeart();}
-    pickups.splice(i,1);continue;}}}
+    pickups.splice(i,1);saveSoloCheckpoint();continue;}}}
 
  for(let i=portals.length-1;i>=0;i--){portals[i].t+=dt;if(portals[i].t>=portals[i].life)portals.splice(i,1);}
  updateParts(dt);updateTexts(dt);
@@ -3863,6 +4001,7 @@ function syncHUD(){
 const ALL_SCREENS=['titleScreen','offlineHubScreen','loreHubScreen','onlineScreen','prepScreen','hallScreen','chronScreen','bestScreen','contractScreen','settScreen','deathScreen','pauseScreen','levelScreen','pathScreen'];
 function showOnly(id){for(let i=0;i<ALL_SCREENS.length;i++)$(ALL_SCREENS[i]).classList.toggle('hidden',ALL_SCREENS[i]!==id);}
 function updateTitleStats(){
+ updateSoloCheckpointMenu();
  $('titleStats').innerHTML=save.best>0
   ?('ЛУЧШАЯ ВОЛНА: <b>'+roman(save.best)+'</b> · ЭХО СЛАВЫ: <b>'+save.glory+' ✦</b> · ДОСТИЖЕНИЯ: <b>'+achCount()+'/'+ACH.length+'</b>')
   :'ПЕРВЫЙ ПОХОД ЖДЁТ ТЕБЯ';
@@ -3978,7 +4117,7 @@ function backToTitle(){
  curEvent=null;routeChoices=[];routeHistory=[];routePending=neutralRoute();routeActive=neutralRoute();resetPillars();buildBG();state='title';dailyMode=false;weeklyMode=false;orientationPaused=false;
  coachQueue=[];dismissCoach();coachGap=0;coachSlowT=0;
  document.body.classList.remove('orientation-blocked');
- updateTitleStats();showOnly('titleScreen');
+ updateTitleStats();showOnly('titleScreen');playMenuMusic(false);
 }
 
 /* ============ flow ============ */
@@ -3992,7 +4131,9 @@ function openPrep(daily){
 function openWeeklyPrep(){weeklyMode=true;dailyMode=false;AU.init();AU.sClick();save.oaths={iron:false,fury:false,horde:false,blood:false};save.chal={spear:false,noheal:false,noshop:false,endless:false};renderPrep();showOnly('prepScreen');}
 function startGame(m){
  if(touchMode)requestLandscape();
- AU.init();AU.sClick();AU.duck(AU.vol);
+ AU.init();stopMenuMusic();AU.sClick();AU.duck(AU.vol);
+ if(freeSoloRun()&&players.length)flushSoloContracts();
+ if(m==='solo'&&!dailyMode&&!weeklyMode)discardSoloCheckpoint();
  save.stats.runs++;persist();
  initRun(m);state='playing';syncOrientationPause();
  for(let i=0;i<ALL_SCREENS.length;i++)$(ALL_SCREENS[i]).classList.add('hidden');
@@ -4013,6 +4154,7 @@ function setPauseQuit(open,focus){
  if(focus!==false)requestAnimationFrame(function(){(pauseQuitOpen?$('btnQuitNo'):$('btnQuitRun')).focus();});
 }
 function abandonRun(){
+ if(freeSoloRun()){discardSoloCheckpoint();flushSoloContracts();}
  setPauseQuit(false,false);closeShop();clearSeed();AU.sClick();AU.duck(AU.vol);
  if(onlineRoom)void leaveOnlineRoom();
  else{onlineActive=false;onlineHost=false;onlineGuest=false;onlineRoleHost=false;stopOnlinePoll();closeOnlineSocket();}
@@ -4024,7 +4166,7 @@ function pauseGame(on){
 }
 const DEATH_LINES=['Вальхалла ждёт — но не сегодня.','Хельхейм взял вашу кровь. Отомстите.','Даже герои падают. Встаньте снова.','Норны сплели неудачную нить. Попробуйте ещё.'];
 function showDeath(){
- state='dead';closeShop();clearSeed();
+ state='dead';closeShop();clearSeed();AU.setGameMusic(false);
  save.stats.time+=Math.round(runTime);
  $('stWave').textContent=roman(wave.num);$('stKills').textContent=kills;
  $('stLevel').textContent=team.level;$('stTime').textContent=fmtTime(runTime);
@@ -4060,6 +4202,7 @@ function showDeath(){
 function toggleMute(){
  AU.muted=!AU.muted;
  if(AU.mGain)AU.mGain.gain.linearRampToValueAtTime(AU.muted?0:(save.sett.vol/100),AU.t()+0.1);
+ menuMusicVolume(false);
  const b=$('btnMute');if(b)b.textContent='ЗВУК: '+(AU.muted?'ВЫКЛ':'ВКЛ');
 }
 async function toggleFS(){
@@ -4071,13 +4214,13 @@ async function toggleFS(){
   else if(document.documentElement.requestFullscreen)await document.documentElement.requestFullscreen();
  }catch(e){}
 }
-ensureContracts();ensureNetId();updateTitleStats();resize();
+ensureContracts();ensureNetId();soloCheckpoint=readSoloCheckpoint();updateTitleStats();resize();
 
 /* ============ settings handlers ============ */
 $('settApi').addEventListener('change',function(e){save.net.api=e.target.value.trim();persist();setNetStatus('API ИЗМЕНЁН · ПРОВЕРЬ СОЕДИНЕНИЕ');});
 $('settNetName').addEventListener('change',function(e){save.net.name=(e.target.value.trim()||'СКАЛЬД').slice(0,18);e.target.value=save.net.name;persist();});
 $('btnNetTest').onclick=function(){netTest();};$('btnCloudSave').onclick=function(){netBackup();};$('btnCloudLoad').onclick=function(){netRestore();};
-$('settVol').addEventListener('input',function(e){save.sett.vol=+e.target.value;$('settVolV').textContent=save.sett.vol+'%';AU.setVol(save.sett.vol/100);persist();});
+$('settVol').addEventListener('input',function(e){save.sett.vol=+e.target.value;$('settVolV').textContent=save.sett.vol+'%';AU.setVol(save.sett.vol/100);menuMusicVolume(false);persist();});
 $('settScale').addEventListener('input',function(e){save.sett.scale=+e.target.value;$('settScaleV').textContent=save.sett.scale+'%';resize();persist();});
 $('settTouch').addEventListener('change',function(e){save.sett.touch=e.target.value;persist();detectTouch();});
 $('settPerf').addEventListener('change',function(e){save.sett.perf=e.target.value;applyPerfLevel(basePerfLevel(),true);persist();});
@@ -4206,6 +4349,11 @@ addEventListener('blur',function(){if(state==='playing'&&!onlineActive)pauseGame
 document.addEventListener('visibilitychange',function(){if(document.hidden&&state==='playing'&&!onlineActive)pauseGame(true);});
 document.addEventListener('pointerdown',function(){AU.init();},{once:true});
 $('btnOfflineHub').onclick=function(){AU.init();AU.sClick();updateTitleStats();showOnly('offlineHubScreen');};
+$('btnContinueSolo').onclick=function(){resumeSoloCheckpoint();};
+$('btnDiscardSolo').onclick=function(){
+ if(!soloDiscardArmed){soloDiscardArmed=true;this.textContent='ПОДТВЕРДИТЬ ОТКАЗ ОТ ПОХОДА';setTimeout(function(){soloDiscardArmed=false;updateSoloCheckpointMenu();},5000);return;}
+ discardSoloCheckpoint();
+};
 $('btnLoreHub').onclick=function(){AU.init();AU.sClick();showOnly('loreHubScreen');};
 $('btnBackOfflineHub').onclick=function(){AU.sClick();updateTitleStats();showOnly('titleScreen');};
 $('btnBackLoreHub').onclick=function(){AU.sClick();updateTitleStats();showOnly('titleScreen');};
@@ -4257,7 +4405,8 @@ function loop(now){
 }
 // Первый кадр запускается после подтверждения входа на стартовом экране.
 let gameLoopStarted=false;
-window.startValhem=function(){if(gameLoopStarted)return;gameLoopStarted=true;try{AU.init();}catch(error){}last=performance.now();requestAnimationFrame(loop);};
+window.startValhem=function(){if(gameLoopStarted)return;gameLoopStarted=true;try{AU.init();playMenuMusic(true);}catch(error){}last=performance.now();requestAnimationFrame(loop);};
+window.finishBrandSplash=function(){menuMusicVolume(true);};
 </script>
 <section id="startup" aria-label="Запуск VALHEM">
  <div class="startupCard">
@@ -4327,11 +4476,17 @@ window.startValhem=function(){if(gameLoopStarted)return;gameLoopStarted=true;try
      if(started)return;
      started=true;
      enter.disabled=true;
+    const splash=document.getElementById('brandSplash');
+    if(splash){splash.classList.remove('hidden');splash.classList.add('playing');}
      startup.classList.add('startupExit');
      try{
       window.startValhem();
      }catch(err){console.error(err);}
      setTimeout(function(){if(startup&&startup.parentNode)startup.parentNode.removeChild(startup);},220);
+    setTimeout(function(){
+     if(splash){splash.classList.add('hidden');splash.classList.remove('playing');}
+     if(typeof window.finishBrandSplash==='function')window.finishBrandSplash();
+    },5000);
     };
     enter.addEventListener('pointerup',enterGame,{passive:false});
     enter.addEventListener('click',enterGame);
