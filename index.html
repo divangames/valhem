@@ -806,7 +806,7 @@ body.touch .trainingActions{margin-top:3px}
     <div class="scInner">
       <div class="runeRow">ᚠ ᚢ ᚦ ᚨ ᚱ ᚲ ᚷ ᚹ</div>
       <h1>VALHEM</h1>
-      <div><span class="packBadge">РЕЛИЗ v2.5.0 «У ОЧАГА»</span></div>
+      <div><span class="packBadge">РЕЛИЗ v2.5.1 «У ОЧАГА»</span></div>
       <p class="tag">Шесть земель, фазовые ётуны, реликвии и оружейное мастерство, стойкость и добивания, кооп на одном экране, чертог славы и ежедневные саги. Играй на клавиатуре или на стекле планшета.</p>
       <div class="orn">ᛟ</div>
       <div class="titleMenu" aria-label="Главные пути">
@@ -818,7 +818,7 @@ body.touch .trainingActions{margin-top:3px}
         <button id="btnSettings" class="titleChoice compact"><strong>РУНЫ ОЧАГА</strong><small>Звук, экран и управление</small></button>
       </div>
       <div id="titleStats"></div>
-      <div class="credit">VALHEM v2.5.0 «У ОЧАГА» · MOBILE FIRST</div>
+      <div class="credit">VALHEM v2.5.1 «У ОЧАГА» · MOBILE FIRST</div>
     </div>
   </section>
 
@@ -1074,7 +1074,7 @@ body.touch .trainingActions{margin-top:3px}
           <button class="sbtn danger" id="btnWipe">СТЕРЕТЬ</button>
         </div>
         <div class="srow">
-          <label>Версия<span class="sdesc">VALHEM v2.5.0 «У ОЧАГА» · VERIFIED ONLINE RECORDS</span></label>
+          <label>Версия<span class="sdesc">VALHEM v2.5.1 «У ОЧАГА» · VERIFIED ONLINE RECORDS</span></label>
           <span class="sval">ᛟ</span>
         </div>
       </div>
@@ -1175,7 +1175,7 @@ body.touch .trainingActions{margin-top:3px}
  - Положение игроков, враги, снаряды и эффекты синхронизируются через защищённый WebSocket.
  - Имена игроков отображаются над персонажами; одиночный и локальный режимы сохранены.
 */
- var VERSION='2.5.0 «У ОЧАГА»';
+ var VERSION='2.5.1 «У ОЧАГА»';
 const TAU=Math.PI*2;
 const clamp=function(v,a,b){return v<a?a:(v>b?b:v);};
 const lerp=function(a,b,t){return a+(b-a)*t;};
@@ -2513,7 +2513,7 @@ function tryExecute(pl){
  }
  return true;
 }
-function contextAction(pl){if(tryExecute(pl))return;horn();}
+function contextAction(pl){if(tryExecute(pl))return;if(!trainingActive)horn();}
 
 function strikeEnemy(sx,sy,e,dmg,ang,kb,pl,opts){
  if(trainingActive&&e.practice){
@@ -2667,6 +2667,8 @@ function playerBurst(pl,r,dmg,stagger,label,col){
  if(hits){parts.push({type:'ring',x:pl.x,y:pl.y,t:0,life:0.32,size:r,col:col||'255,217,122'});if(label)addText(pl.x,pl.y-40,label,'#ffd97a',14);}return hits;
 }
 function tryAttack(pl){
+ if(trainingActive&&trainingStep!==0&&trainingStep!==3)return;
+ if(trainingActive&&trainingStep===3){tryExecute(pl);return;}
  if(touchMode&&pl.idx===0&&tryExecute(pl))return;
  if(pl.weapon==='sword')trySwing(pl);
  else if(pl.weapon==='hammer')tryHammer(pl);
@@ -2707,6 +2709,7 @@ function tryHammer(pl){
  AU.sHammer();
 }
 function tryAxe(pl){
+ if(trainingActive)return;
  if(!pl.alive||state!=='playing'||pl.axeCd>0)return;
  pl.axeCd=pl.axeCdMax;AU.sAxe();
  const n=pl.axeCount+(hasRelic('draupnir')?1:0),spread=0.22;
@@ -2715,11 +2718,13 @@ function tryAxe(pl){
    dmg:pDmg(pl)*1.35,r:11,life:0.85,spin:rand(0,TAU),own:pl});}
 }
 function tryParry(pl){
+ if(trainingActive&&trainingStep!==2)return;
  if(!pl.alive||state!=='playing'||pl.parryCd>0||pl.parryT>0)return;
  pl.parryT=pl.parryDur;pl.parryCd=pl.parryCdMax;
  AU.noise(0.09,0.14,1900,'bandpass');
 }
 function tryStance(pl){
+ if(trainingActive)return;
  if(!pl.alive||state!=='playing'||pl.stanceCd>0||pl.dodgeT>0)return;
  pl.stanceCd=STANCE_CD[pl.weapon];
  AU.sStance();
@@ -2769,6 +2774,7 @@ function tryStance(pl){
     dmg:pDmg(pl)*0.6,r:4,life:0.9,own:pl,noCombo:true,hit:new Set(),pierce:masteryIs(pl,'bow','bow_pierce')?2:0,srcX:pl.x,srcY:pl.y,eagle:masteryIs(pl,'bow','bow_eagle')});}}
 }
 function trySwap(pl){
+ if(trainingActive)return;
  if(!pl.alive||state!=='playing')return;
  if(save.chal.spear){addText(pl.x,pl.y-30,'КЛЯТВА КОПЬЯ','#ff9a6a',12);return;}
  if(pl.hammerOut){AU.osc('square',160,120,0.08,0.08);return;}
@@ -2788,6 +2794,7 @@ function getMove(pl){
  return {mx:mx,my:my};
 }
 function tryDodge(pl){
+ if(trainingActive&&trainingStep!==1)return;
  if(save.oaths.iron&&!trainingActive)return;
  if(!pl.alive||state!=='playing'||pl.dodgeCd>0||pl.dodgeT>0)return;
  const mv=getMove(pl);let mx=mv.mx,my=mv.my;
@@ -2797,6 +2804,7 @@ function tryDodge(pl){
  for(let i=0;i<6;i++)parts.push({type:'smoke',x:pl.x,y:pl.y,vx:-mx*rand(30,90)+rand(-20,20),vy:-my*rand(30,90)+rand(-20,20),t:0,life:rand(0.3,0.5),size:rand(4,8)});
 }
 function tryBerserk(pl){
+ if(trainingActive)return;
  if(save.oaths.fury)return;
  if(!pl.alive||state!=='playing'||pl.rage<100||pl.berserk>0)return;
  pl.rage=0;ragePing[pl.idx]=false;pl.berserk=6;if(save.sett.slowmo!==false)slowmo=Math.max(slowmo,0.3);
@@ -4225,7 +4233,7 @@ const TRAINING_STEPS=[
 function trainingDummy(){
  enemies=[];if(trainingStep===1||trainingStep>=4)return;
  const pl=players[0],e=spawnEnemy('brute',pl.x,pl.y-76,true);
- e.practice=true;e.mod=null;e.isJarl=false;e.speed=0;e.atkCd=999;e.hp=trainingStep===3?12:1000;e.maxHp=1000;e.kx=0;e.ky=0;
+ e.practice=true;e.mod=null;e.isJarl=false;e.speed=0;e.atkCd=999;e.hp=trainingStep===3?12:1000;e.maxHp=1000;e.kx=0;e.ky=0;portals=[];
  if(trainingStep===3){e.staggerT=999;e.stagger=e.maxStagger;}
 }
 function renderTraining(){
@@ -4238,7 +4246,9 @@ function renderTraining(){
 function trainingAdvance(){
  if(!trainingActive)return;
  trainingStep++;trainingTimer=trainingStep===2?2.5:0;
- const pl=players[0];pl.atkCd=0;pl.dodgeCd=0;pl.parryCd=0;pl.parryT=0;pl.dodgeT=0;pl.iframes=0;
+ projs=[];trails=[];parts=[];texts=[];portals=[];telegraphs=[];
+ touchAttack=false;mouseDown=false;
+ const pl=players[0];pl.swing=null;pl.thrust=null;pl.hammerOut=false;pl.atkCd=0;pl.dodgeCd=0;pl.parryCd=0;pl.parryT=0;pl.dodgeT=0;pl.iframes=0;
  pl.x=ARENA.w/2;pl.y=ARENA.h/2+150;pl.vx=0;pl.vy=0;pl.aim=-Math.PI/2;
  trainingDummy();renderTraining();AU.sRune();
 }
@@ -4259,6 +4269,7 @@ function startTraining(){
  AU.init();stopMenuMusic();AU.sClick();
  if(!trainingActive)trainingSaved=JSON.stringify(save);trainingActive=true;dailyMode=false;weeklyMode=false;
  initRun('solo');state='playing';wave.breakT=0;trainingStep=0;trainingTimer=0;
+ projs=[];trails=[];parts=[];texts=[];portals=[];telegraphs=[];
  const pl=players[0];pl.x=ARENA.w/2;pl.y=ARENA.h/2+150;pl.aim=-Math.PI/2;pl.iframes=0;
  trainingDummy();renderTraining();for(let i=0;i<ALL_SCREENS.length;i++)$(ALL_SCREENS[i]).classList.add('hidden');
  $('trainingPanel').classList.remove('hidden');
@@ -4267,6 +4278,7 @@ function startTraining(){
 function exitTraining(){
  if(!trainingActive)return;
  trainingActive=false;$('trainingPanel').classList.add('hidden');
+ projs=[];trails=[];parts=[];texts=[];portals=[];telegraphs=[];
  if(trainingSaved){save=JSON.parse(trainingSaved);trainingSaved=null;}
  touchAttack=false;touchMove.x=0;touchMove.y=0;mouseDown=false;
  for(const key in keys)keys[key]=false;

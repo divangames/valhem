@@ -133,8 +133,12 @@ async function main() {
       document.getElementById('btnTraining').click();
       const opened=trainingActive&&state==='playing'&&trainingStep===0&&
         !document.getElementById('trainingPanel').classList.contains('hidden');
+      dispatchEvent(new KeyboardEvent('keydown',{code:'KeyQ',bubbles:true}));
+      dispatchEvent(new KeyboardEvent('keydown',{code:'KeyF',bubbles:true}));
+      const extrasBlocked=projs.length===0&&players[0].weapon==='sword';
+      projs.push({type:'axe'});trails.push({t:0,life:1});portals.push({t:0,life:1});
       stage.dispatchEvent(new MouseEvent('mousedown',{button:0,bubbles:true}));
-      const attack=trainingStep===1;
+      const attack=trainingStep===1&&projs.length===0&&trails.length===0&&portals.length===0;
       dispatchEvent(new KeyboardEvent('keydown',{code:'Space',bubbles:true}));
       const dodge=trainingStep===2;
       dispatchEvent(new KeyboardEvent('keyup',{code:'Space',bubbles:true}));
@@ -149,12 +153,12 @@ async function main() {
       document.getElementById('btnTrainingAgain').click();
       const repeated=trainingStep===0;
       document.getElementById('btnTrainingExit').click();
-      return {opened,attack,dodge,parry,execute,repeated,
+      return {opened,extrasBlocked,attack,dodge,parry,execute,repeated,
         exited:!trainingActive&&state==='title'&&
           !document.getElementById('offlineHubScreen').classList.contains('hidden'),
         unchanged:stored===localStorage.getItem('valhem_save')&&checkpoint===localStorage.getItem(SOLO_CHECKPOINT_KEY)};
     })()`);
-    assert.deepEqual(trainingDesktop,{opened:true,attack:true,dodge:true,parry:true,execute:true,
+    assert.deepEqual(trainingDesktop,{opened:true,extrasBlocked:true,attack:true,dodge:true,parry:true,execute:true,
       repeated:true,exited:true,unchanged:true});
     const deathLesson = await cdp.eval(`(() => {
       startGame('solo');wave.num=2;wave.breakT=0;
@@ -313,8 +317,10 @@ async function main() {
         el.dispatchEvent(new PointerEvent('pointerdown',{pointerId:num,button:0,bubbles:true}));
         return el;};
       const stop=(el,num)=>el.dispatchEvent(new PointerEvent('pointerup',{pointerId:num,button:0,bubbles:true}));
-      let el=fire('tbAtk',91);updatePlayer(players[0],.02);stop(el,91);
-      const attack=trainingStep===1;
+      let el=fire('tbAxe',90);stop(el,90);
+      const extrasBlocked=projs.length===0;
+      el=fire('tbAtk',91);updatePlayer(players[0],.02);stop(el,91);
+      const attack=trainingStep===1&&projs.length===0&&trails.length===0&&portals.length===0;
       el=fire('tbDodge',92);stop(el,92);
       const dodge=trainingStep===2;
       trainingTimer=.01;el=fire('tbParry',93);updateTraining(.02);stop(el,93);
@@ -322,9 +328,9 @@ async function main() {
       el=fire('tbAtk',94);updatePlayer(players[0],.02);stop(el,94);
       const execute=trainingStep===4;
       exitTraining();
-      return {visible,attack,dodge,parry,execute,unchanged:stored===localStorage.getItem('valhem_save')};
+      return {visible,extrasBlocked,attack,dodge,parry,execute,unchanged:stored===localStorage.getItem('valhem_save')};
     })()`);
-    assert.deepEqual(trainingMobile,{visible:true,attack:true,dodge:true,parry:true,execute:true,unchanged:true});
+    assert.deepEqual(trainingMobile,{visible:true,extrasBlocked:true,attack:true,dodge:true,parry:true,execute:true,unchanged:true});
     console.log('[QA] Mobile touch training passed');
     const mobileDeathLayout = await cdp.eval(`(() => {
       startGame('solo');wave.num=1;wave.breakT=0;
