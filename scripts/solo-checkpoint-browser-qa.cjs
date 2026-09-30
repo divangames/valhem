@@ -128,6 +128,47 @@ async function main() {
     })()`);
     assert.deepEqual(settingsMusic, {open:true,adjusted:true,muted:true,returned:true});
     console.log('[QA] Five-second splash and menu/settings music passed');
+    const trainingDesktop = await cdp.eval(`(() => {
+      const stored=localStorage.getItem('valhem_save'),checkpoint=localStorage.getItem(SOLO_CHECKPOINT_KEY);
+      document.getElementById('btnTraining').click();
+      const opened=trainingActive&&state==='playing'&&trainingStep===0&&
+        !document.getElementById('trainingPanel').classList.contains('hidden');
+      stage.dispatchEvent(new MouseEvent('mousedown',{button:0,bubbles:true}));
+      const attack=trainingStep===1;
+      dispatchEvent(new KeyboardEvent('keydown',{code:'Space',bubbles:true}));
+      const dodge=trainingStep===2;
+      dispatchEvent(new KeyboardEvent('keyup',{code:'Space',bubbles:true}));
+      trainingTimer=.01;
+      dispatchEvent(new KeyboardEvent('keydown',{code:'KeyC',bubbles:true}));
+      updateTraining(.02);
+      const parry=trainingStep===3;
+      dispatchEvent(new KeyboardEvent('keyup',{code:'KeyC',bubbles:true}));
+      dispatchEvent(new KeyboardEvent('keydown',{code:'KeyE',bubbles:true}));
+      const execute=trainingStep===4&&enemies.length===0;
+      dispatchEvent(new KeyboardEvent('keyup',{code:'KeyE',bubbles:true}));
+      document.getElementById('btnTrainingAgain').click();
+      const repeated=trainingStep===0;
+      document.getElementById('btnTrainingExit').click();
+      return {opened,attack,dodge,parry,execute,repeated,
+        exited:!trainingActive&&state==='title'&&
+          !document.getElementById('offlineHubScreen').classList.contains('hidden'),
+        unchanged:stored===localStorage.getItem('valhem_save')&&checkpoint===localStorage.getItem(SOLO_CHECKPOINT_KEY)};
+    })()`);
+    assert.deepEqual(trainingDesktop,{opened:true,attack:true,dodge:true,parry:true,execute:true,
+      repeated:true,exited:true,unchanged:true});
+    const deathLesson = await cdp.eval(`(() => {
+      startGame('solo');wave.num=2;wave.breakT=0;
+      const pl=players[0];pl.hp=5;pl.iframes=0;pl.revives=0;
+      damagePlayer(pl,8,0,{type:'wolf',x:pl.x-20,y:pl.y});
+      showDeath();
+      const cause=document.getElementById('deathCause').textContent;
+      const build=document.getElementById('deathBuild').textContent;
+      const advice=document.getElementById('deathAdvice').textContent;
+      backToTitle();
+      return {cause,build:build.includes('МЕЧ'),advice:advice.length>15};
+    })()`);
+    assert.deepEqual(deathLesson,{cause:'укус волка',build:true,advice:true});
+    console.log('[QA] Desktop training and death lesson passed');
     const initial = await cdp.eval(`(() => {
       startGame('solo'); wave.num=2; wave.queue=[]; enemies=[];
       team.gold=200; team.level=4; players[0].hp=47; players[0].maxHp=125;
@@ -226,6 +267,16 @@ async function main() {
     await until(() => cdp.eval("!document.getElementById('menuMusic').paused && document.getElementById('menuMusic').readyState>=2"), 10000);
     assert.equal(await cdp.eval(`document.querySelector('#brandSplash img').naturalWidth>0 &&
       document.getElementById('menuMusic').currentSrc.endsWith('.opus')`), true);
+    const offlineTraining = await cdp.eval(`(() => {
+      const checkpoint=localStorage.getItem(SOLO_CHECKPOINT_KEY);
+      startTraining();
+      const active=trainingActive&&trainingStep===0;
+      exitTraining();
+      return {active,restored:checkpoint===localStorage.getItem(SOLO_CHECKPOINT_KEY),
+        continueVisible:!document.getElementById('btnContinueSolo').classList.contains('hidden')};
+    })()`);
+    assert.deepEqual(offlineTraining,{active:true,restored:true,continueVisible:true});
+    console.log('[QA] Offline PWA training preserved checkpoint');
     console.log('[QA] Offline menu:', await cdp.eval(`({stored:!!readSoloCheckpoint(),loaded:!!soloCheckpoint,
       button:document.getElementById('btnContinueSolo').className,
       title:document.getElementById('titleScreen').className,
@@ -252,6 +303,45 @@ async function main() {
       return {visible,resumed,cleared:readSoloCheckpoint()===null};
     })()`);
     assert.deepEqual(mobile, {visible:true,resumed:true,cleared:true});
+    const trainingMobile = await cdp.eval(`(() => {
+      const stored=localStorage.getItem('valhem_save');
+      startTraining();
+      const visible=touchMode&&trainingActive&&
+        !document.getElementById('trainingPanel').classList.contains('hidden')&&
+        getComputedStyle(document.getElementById('tbAtk')).display!=='none';
+      const fire=(id,num)=>{const el=document.getElementById(id);
+        el.dispatchEvent(new PointerEvent('pointerdown',{pointerId:num,button:0,bubbles:true}));
+        return el;};
+      const stop=(el,num)=>el.dispatchEvent(new PointerEvent('pointerup',{pointerId:num,button:0,bubbles:true}));
+      let el=fire('tbAtk',91);updatePlayer(players[0],.02);stop(el,91);
+      const attack=trainingStep===1;
+      el=fire('tbDodge',92);stop(el,92);
+      const dodge=trainingStep===2;
+      trainingTimer=.01;el=fire('tbParry',93);updateTraining(.02);stop(el,93);
+      const parry=trainingStep===3;
+      el=fire('tbAtk',94);updatePlayer(players[0],.02);stop(el,94);
+      const execute=trainingStep===4;
+      exitTraining();
+      return {visible,attack,dodge,parry,execute,unchanged:stored===localStorage.getItem('valhem_save')};
+    })()`);
+    assert.deepEqual(trainingMobile,{visible:true,attack:true,dodge:true,parry:true,execute:true,unchanged:true});
+    console.log('[QA] Mobile touch training passed');
+    const mobileDeathLayout = await cdp.eval(`(() => {
+      startGame('solo');wave.num=1;wave.breakT=0;
+      const pl=players[0];pl.hp=5;pl.iframes=0;pl.revives=0;
+      damagePlayer(pl,8,0,{type:'wolf',x:pl.x-20,y:pl.y});
+      showDeath();
+      const screen=document.getElementById('deathScreen');
+      const advice=document.getElementById('deathAdvice').getBoundingClientRect();
+      const button=document.getElementById('btnAgain').getBoundingClientRect();
+      const out={cause:document.getElementById('deathCause').textContent,
+        separate:advice.bottom<button.top,
+        touchTarget:button.height>=48,
+        scrollable:getComputedStyle(screen).overflowY==='auto'};
+      backToTitle();return out;
+    })()`);
+    assert.deepEqual(mobileDeathLayout,{cause:'укус волка',separate:true,touchTarget:true,scrollable:true});
+    console.log('[QA] Mobile death advice and restart button layout passed');
     const discard = await cdp.eval(`(() => {
       startGame('solo');wave.num=1;wave.queue=[];enemies=[];doRest();backToTitle();
       const button=document.getElementById('btnDiscardSolo');
