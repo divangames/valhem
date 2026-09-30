@@ -709,6 +709,36 @@ body.touch #trainingPanel{top:max(88px,calc(var(--safe-top,0px) + 82px));right:m
 body.touch #trainingTitle{font-size:15px;margin:1px 0}
 body.touch .trainingActions{margin-top:3px}
 @media(max-width:650px){body.touch #trainingPanel{width:32vw;font-size:10px}}
+/* ПК: HUD масштабируется с шириной монитора, счётчик волн остаётся по центру. */
+@media (min-width:1200px) and (min-height:650px){
+ body:not(.touch) #hudTL{top:clamp(18px,1.2vw,28px);left:clamp(18px,1.2vw,28px);gap:14px}
+ body:not(.touch) #hudTR{top:clamp(18px,1.2vw,28px);right:clamp(18px,1.2vw,28px);gap:14px}
+ body:not(.touch) .portrait{width:clamp(68px,4vw,86px);height:clamp(68px,4vw,86px);font-size:clamp(36px,2.2vw,46px)}
+ body:not(.touch) .barsCol{width:clamp(280px,17vw,350px);gap:6px}
+ body:not(.touch) .bar{height:clamp(26px,1.5vw,32px)}
+ body:not(.touch) .bar.rage{height:clamp(17px,1vw,22px)}
+ body:not(.touch) .bar span{font-size:clamp(14px,.82vw,18px)}
+ body:not(.touch) .mrow{gap:7px}
+ body:not(.touch) .mlab{font-size:15px;width:18px}
+ body:not(.touch) .mcd{height:9px}
+ body:not(.touch) .wpn{font-size:13px}
+ body:not(.touch) #hudTC,body:not(.touch).coop-mode #hudTC{top:clamp(18px,1.2vw,28px);left:50%;right:auto;transform:translateX(-50%);min-width:clamp(310px,19vw,410px);padding:10px 24px 12px}
+ body:not(.touch) #biomeTag{font-size:12px}
+ body:not(.touch) #waveLabel{font-size:13px}
+ body:not(.touch) #waveNum{font-size:clamp(36px,2.2vw,48px)}
+ body:not(.touch) #foesLeft{font-size:13px}
+ body:not(.touch) #chips{font-size:clamp(14px,.84vw,18px)}
+ body:not(.touch) #xpBar{width:min(270px,100%);height:8px}
+ body:not(.touch) #hudBC{bottom:clamp(20px,1.4vw,34px);gap:clamp(10px,.7vw,16px)}
+ body:not(.touch) .ab{width:clamp(80px,5vw,98px);height:clamp(80px,5vw,98px)}
+ body:not(.touch) .ab .rune{font-size:clamp(29px,1.75vw,36px)}
+ body:not(.touch) .ab .abName{font-size:11px}
+ body:not(.touch) .ab .key{font-size:10px}
+ body:not(.touch) #bossWrap{top:clamp(190px,15dvh,230px)}
+ body:not(.touch) #breakInfo{top:clamp(228px,19dvh,280px)}
+ body:not(.touch) #hint{bottom:clamp(126px,7.5vw,150px)}
+ body:not(.touch) #muteHint{font-size:13px}
+}
 </style>
 </head>
 <body>
@@ -3467,7 +3497,7 @@ function updCam(rdt){
  else{let ax=0,ay=0;for(let i=0;i<list.length;i++){ax+=list[i].x;ay+=list[i].y;}
   tx=ax/list.length-W/2;ty=ay/list.length-H/2;
   if(mode==='solo'&&list[0].alive&&!touchMode){tx+=(ms.x-W/2)*0.1;ty+=(ms.y-H/2)*0.1;}}
- cam.x=lerp(cam.x,clamp(tx,0,Math.max(0,ARENA.w-W)),1-Math.exp(-6*rdt));
+ cam.x=lerp(cam.x,W>ARENA.w?(ARENA.w-W)/2:clamp(tx,0,ARENA.w-W),1-Math.exp(-6*rdt));
  cam.y=lerp(cam.y,clamp(ty,0,Math.max(0,ARENA.h-H)),1-Math.exp(-6*rdt));
 }
 
@@ -3477,6 +3507,7 @@ function draw(ts){
  const shx=save.sett.shake!==false?(Math.random()*2-1)*shake:0;
  const shy=save.sett.shake!==false?(Math.random()*2-1)*shake:0;
  ctx.save();ctx.translate(-cam.x+shx,-cam.y+shy);
+ if(W>ARENA.w){ctx.save();ctx.globalAlpha=.38;ctx.drawImage(bgC,-ARENA.w,0);ctx.drawImage(bgC,ARENA.w,0);ctx.restore();}
  ctx.drawImage(bgC,0,0);
  drawTorches(ts);
  drawPoolGlow(ts);

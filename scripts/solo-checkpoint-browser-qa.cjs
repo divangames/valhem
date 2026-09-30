@@ -127,6 +127,32 @@ async function main() {
       return {open,adjusted,muted,returned:!document.getElementById('titleScreen').classList.contains('hidden')};
     })()`);
     assert.deepEqual(settingsMusic, {open:true,adjusted:true,muted:true,returned:true});
+    for (const width of [1920,2560]) {
+      await cdp.send('Emulation.setDeviceMetricsOverride',
+        {width,height:1080,deviceScaleFactor:1,mobile:false});
+      await cdp.eval("startGame('solo')");
+      await delay(850);
+      const layout = await cdp.eval(`(() => {
+        const left=document.getElementById('hudTL').getBoundingClientRect();
+        const wave=document.getElementById('hudTC').getBoundingClientRect();
+        const ability=document.getElementById('abAxe').getBoundingClientRect();
+        const result={centered:Math.abs(wave.left+wave.width/2-innerWidth/2)<2,
+          separated:left.right+24<wave.left,
+          readable:left.width>370&&ability.width>=80,
+          inViewport:wave.left>=0&&wave.right<=innerWidth,
+          arenaCentered:innerWidth<=ARENA.w||Math.abs(cam.x-(ARENA.w-innerWidth)/2)<3};
+        return result;
+      })()`);
+      assert.deepEqual(layout,{centered:true,separated:true,readable:true,inViewport:true,arenaCentered:true});
+      if (width===2560&&process.env.VALHEM_QA_WIDE_SHOT) {
+        await delay(150);
+        const shot=await cdp.send('Page.captureScreenshot',{format:'png'});
+        fs.writeFileSync(process.env.VALHEM_QA_WIDE_SHOT,Buffer.from(shot.data,'base64'));
+      }
+      await cdp.eval('backToTitle()');
+    }
+    await cdp.send('Emulation.clearDeviceMetricsOverride');
+    console.log('[QA] Desktop HUD at 1920 and 2560 pixels passed');
     console.log('[QA] Five-second splash and menu/settings music passed');
     const trainingDesktop = await cdp.eval(`(() => {
       const stored=localStorage.getItem('valhem_save'),checkpoint=localStorage.getItem(SOLO_CHECKPOINT_KEY);
