@@ -65,12 +65,22 @@ jobs:
               startup.css
               startup.js
               sw.js
+              assets/divan/divan.webp
+              "assets/music/VALHEM - Viking Trail.opus"
+              "assets/music/VALHEM - Viking Trail.wav"
             )
             for file in "${web_files[@]}"; do
               [[ -f "$file" ]] || { echo "Missing web asset: $file" >&2; exit 1; }
-              cp -a "$file" _site/
+              mkdir -p "_site/$(dirname "$file")"
+              cp -a "$file" "_site/$file"
             done
           fi
+          for asset in \
+            assets/divan/divan.webp \
+            "assets/music/VALHEM - Viking Trail.opus" \
+            "assets/music/VALHEM - Viking Trail.wav"; do
+            [[ -s "_site/$asset" ]] || { echo "Missing Pages asset: $asset" >&2; exit 1; }
+          done
           touch _site/.nojekyll
           test -f _site/index.html
 
