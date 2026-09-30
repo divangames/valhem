@@ -210,6 +210,11 @@ async function main() {
     await until(() => host.eval("onlineActive&&onlineHost&&wave.num===3&&wave.breakT>0"));
     await until(() => guest.eval("onlineActive&&onlineGuest&&wave.num===3&&state==='playing'"));
     console.log('[QA] Both browsers resumed the saved network world at wave III');
+    await host.eval("startGame('coop');players.forEach(p=>{p.maxHp=100000;p.hp=100000;p.iframes=10000});window.qaFight=setInterval(function(){if(state==='path'){if(wave.num>=5){clearInterval(window.qaFight);return;}choosePath(routeChoices[0]);}else if(state==='levelup'){if(choices[0])choose(choices[0]);}else if(state==='playing'){if(wave.breakT>0)horn();wave.t=0;enemies.slice().forEach(killEnemy);}},30)");
+    await until(() => host.eval("wave.num===5&&state==='path'&&team.relics.length>0"),90000);
+    await until(() => guest.eval("wave.num===5&&state==='path'&&team.relics.length>0"),10000);
+    assert.equal(await guest.eval('kills'),await host.eval('kills'));
+    console.log('[QA] Automatic combat pipeline completed waves I–V and the Jotun in both browsers');
   } finally {
     for (const cdp of browsers) try {await cdp.send('Browser.close');} catch (_) {}
     for (const child of children) child.kill();
