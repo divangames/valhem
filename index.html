@@ -454,6 +454,24 @@ body.touch .touchOnly{display:flex}
 .sbtn:active{transform:scale(.97)}
 .sbtn.danger{border-color:#6b3226;color:#ff9a8a;background:#1c0f0c}
 
+.pauseActions{display:flex;justify-content:center;gap:8px;flex-wrap:wrap;margin-top:20px}
+.pauseQuit{border-color:#6b3226;color:#ffb0a0;background:linear-gradient(180deg,#25120e,#110b09)}
+.pauseConfirm{width:min(520px,100%);margin:20px auto 0;padding:18px;background:rgba(12,10,10,.96);border:1px solid #6b3226;
+ box-shadow:0 18px 50px rgba(0,0,0,.55),inset 0 0 24px rgba(194,58,46,.08)}
+.pauseConfirmRune{font:30px 'Forum';color:#c85d45;text-shadow:0 0 18px rgba(194,58,46,.45)}
+.pauseConfirm strong{display:block;margin-top:5px;font:22px 'Forum';font-weight:400;letter-spacing:.14em;color:var(--bone)}
+.pauseConfirm p{margin:8px auto 14px;max-width:400px;color:#a99f87;font-size:14px;line-height:1.45}
+.pauseConfirmActions{display:flex;justify-content:center;gap:8px;flex-wrap:wrap}
+.pauseConfirmActions .btn{min-width:190px;margin:0}
+@media(max-width:640px){
+ body.touch #pauseScreen .scInner{padding-top:14px}
+ body.touch .pauseActions{display:grid;grid-template-columns:minmax(0,1fr);width:min(100%,360px);margin:14px auto 0}
+ body.touch .pauseActions .btn,body.touch .pauseConfirmActions .btn{width:100%;margin:0;min-height:48px}
+ body.touch .pauseConfirm{margin-top:14px;padding:14px 12px}
+ body.touch .pauseConfirm strong{font-size:19px;letter-spacing:.09em}
+ body.touch .pauseConfirmActions{display:grid;grid-template-columns:minmax(0,1fr)}
+}
+
 @media (hover:hover) and (pointer:fine){
  .btn:hover{transform:translateY(-2px) scale(1.02);box-shadow:0 0 28px rgba(216,169,60,.35);color:#fff}
  .titleChoice:hover,.hubChoice:hover{transform:translateY(-2px);border-color:var(--gold);filter:brightness(1.12)}
@@ -1025,10 +1043,20 @@ button,a,[role="button"],.titleChoice,.hubChoice,.sbtn{touch-action:manipulation
       <div class="runeRow">ᛈ ᚨ</div>
       <h2>ПАУЗА</h2>
       <p class="sub">Битва ждёт. Мечи — тоже.</p>
-      <div style="margin-top:20px">
+      <div id="pauseActions" class="pauseActions">
         <button id="btnResume" class="btn small">ПРОДОЛЖИТЬ</button>
         <button id="btnRestart" class="btn small">НАЧАТЬ ЗАНОВО</button>
         <button id="btnMute" class="btn small">ЗВУК: ВКЛ</button>
+        <button id="btnQuitRun" class="btn small pauseQuit">ПОКИНУТЬ САГУ</button>
+      </div>
+      <div id="pauseQuitConfirm" class="pauseConfirm hidden" role="dialog" aria-modal="true" aria-labelledby="pauseQuitTitle" aria-describedby="pauseQuitText" aria-hidden="true">
+        <div class="pauseConfirmRune" aria-hidden="true">ᚾ</div>
+        <strong id="pauseQuitTitle">ОБОРВАТЬ НИТЬ ЭТОЙ САГИ?</strong>
+        <p id="pauseQuitText">Незавершённый поход канет в тумане, а воин вернётся к главному очагу.</p>
+        <div class="pauseConfirmActions">
+          <button id="btnQuitYes" class="btn small pauseQuit">ДА, К ОЧАГУ</button>
+          <button id="btnQuitNo" class="btn small ghost">НЕТ, ВЕРНУТЬСЯ В БОЙ</button>
+        </div>
       </div>
     </div>
   </section>
@@ -3976,9 +4004,23 @@ function startGame(m){
   :(weeklyMode?(weeklySaga().name+'. '+weeklySaga().desc)
   :(oathN?'Клятвы приняты. Один смотрит.':'Герой '+HEROES[save.hero].name+'. [X] — стойка, [C] — парирование')))),5);
 }
+let pauseQuitOpen=false;
+function setPauseQuit(open,focus){
+ pauseQuitOpen=!!open;
+ $('pauseActions').classList.toggle('hidden',pauseQuitOpen);
+ $('pauseQuitConfirm').classList.toggle('hidden',!pauseQuitOpen);
+ $('pauseQuitConfirm').setAttribute('aria-hidden',String(!pauseQuitOpen));
+ if(focus!==false)requestAnimationFrame(function(){(pauseQuitOpen?$('btnQuitNo'):$('btnQuitRun')).focus();});
+}
+function abandonRun(){
+ setPauseQuit(false,false);closeShop();clearSeed();AU.sClick();AU.duck(AU.vol);
+ if(onlineRoom)void leaveOnlineRoom();
+ else{onlineActive=false;onlineHost=false;onlineGuest=false;onlineRoleHost=false;stopOnlinePoll();closeOnlineSocket();}
+ backToTitle();
+}
 function pauseGame(on){
- if(on&&state==='playing'){state='paused';touchAttack=false;touchMove.x=0;touchMove.y=0;mouseDown=false;for(const key in keys)keys[key]=false;$('pauseScreen').classList.remove('hidden');AU.duck(0.1);}
- else if(!on&&state==='paused'){state='playing';$('pauseScreen').classList.add('hidden');AU.duck(AU.vol);syncOrientationPause();}
+ if(on&&state==='playing'){state='paused';setPauseQuit(false,false);touchAttack=false;touchMove.x=0;touchMove.y=0;mouseDown=false;for(const key in keys)keys[key]=false;$('pauseScreen').classList.remove('hidden');AU.duck(0.1);requestAnimationFrame(function(){$('btnResume').focus();});}
+ else if(!on&&state==='paused'){setPauseQuit(false,false);state='playing';$('pauseScreen').classList.add('hidden');AU.duck(AU.vol);syncOrientationPause();}
 }
 const DEATH_LINES=['Вальхалла ждёт — но не сегодня.','Хельхейм взял вашу кровь. Отомстите.','Даже герои падают. Встаньте снова.','Норны сплели неудачную нить. Попробуйте ещё.'];
 function showDeath(){
@@ -4144,7 +4186,7 @@ addEventListener('keydown',function(e){
    else if(P2PAR.indexOf(e.code)>=0)tryParry(p2);
    else if(P2STANCE.indexOf(e.code)>=0)tryStance(p2);
    else if(P2SWAP.indexOf(e.code)>=0)trySwap(p2);}}
- else if(state==='paused'&&(e.code==='Escape'||e.code==='KeyP'))pauseGame(false);
+ else if(state==='paused'&&(e.code==='Escape'||e.code==='KeyP')){if(pauseQuitOpen)setPauseQuit(false);else pauseGame(false);}
  else if(state==='levelup'){const i=['Digit1','Digit2','Digit3'].indexOf(e.code);if(i>=0&&choices[i])choose(choices[i]);}
  else if(state==='path'){const i=['Digit1','Digit2','Digit3'].indexOf(e.code);
   if(i>=0&&routeChoices[i])choosePath(routeChoices[i]);}
@@ -4197,8 +4239,11 @@ $('btnStartSolo').onclick=function(){startGame('solo');};
 $('btnStartCoop').onclick=function(){startGame('coop');};
 $('btnAgain').onclick=function(){startGame(mode);};
 $('btnToHall').onclick=function(){AU.sClick();backToTitle();renderHall();showOnly('hallScreen');};
-$('btnRestart').onclick=function(){startGame(mode);};
+$('btnRestart').onclick=function(){setPauseQuit(false,false);startGame(mode);};
 $('btnResume').onclick=function(){if(touchMode)requestLandscape();pauseGame(false);};
+$('btnQuitRun').onclick=function(){AU.sClick();setPauseQuit(true);};
+$('btnQuitNo').onclick=function(){AU.sClick();setPauseQuit(false);};
+$('btnQuitYes').onclick=abandonRun;
 $('btnMute').onclick=toggleMute;
 
 /* ============ loop ============ */
