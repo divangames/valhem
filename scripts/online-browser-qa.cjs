@@ -11,7 +11,7 @@ const edge = [
   'C:\\Program Files\\Microsoft\\Edge\\Application\\msedge.exe',
 ].find(fs.existsSync);
 if (!edge) throw new Error('Microsoft Edge is needed for online browser QA');
-const mime = {'.html':'text/html','.js':'text/javascript','.css':'text/css','.webmanifest':'application/manifest+json','.svg':'image/svg+xml','.png':'image/png','.webp':'image/webp','.opus':'audio/ogg','.wav':'audio/wav'};
+const mime = {'.html':'text/html','.js':'text/javascript','.css':'text/css','.webmanifest':'application/manifest+json','.svg':'image/svg+xml','.png':'image/png','.webp':'image/webp','.opus':'audio/ogg','.wav':'audio/wav','.m4a':'audio/mp4'};
 const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
 async function until(fn, timeout = 15000) {
   const end = Date.now() + timeout;

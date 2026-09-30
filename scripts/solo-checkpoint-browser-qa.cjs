@@ -13,7 +13,7 @@ const edge = [
 if (!edge) throw new Error('Microsoft Edge is needed for the VALHEM browser QA');
 const mime = {'.html':'text/html', '.js':'text/javascript', '.css':'text/css', '.json':'application/json',
   '.webmanifest':'application/manifest+json', '.svg':'image/svg+xml', '.png':'image/png',
-  '.opus':'audio/ogg', '.wav':'audio/wav'};
+  '.opus':'audio/ogg', '.wav':'audio/wav','.m4a':'audio/mp4'};
 const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
 async function until(task, timeout = 15000) {
   const end = Date.now() + timeout;
@@ -168,11 +168,41 @@ async function main() {
       const cause=document.getElementById('deathCause').textContent;
       const build=document.getElementById('deathBuild').textContent;
       const advice=document.getElementById('deathAdvice').textContent;
+      const deathAudio=deathMusicPlayed&&!deathMusic.paused&&deathMusic.src.endsWith('/Death.m4a')&&biomeMusic.paused;
       backToTitle();
-      return {cause,build:build.includes('МЕЧ'),advice:advice.length>15};
+      return {cause,build:build.includes('МЕЧ'),advice:advice.length>15,
+        deathAudio,stopped:deathMusic.paused};
     })()`);
-    assert.deepEqual(deathLesson,{cause:'укус волка',build:true,advice:true});
+    assert.deepEqual(deathLesson,{cause:'укус волка',build:true,advice:true,deathAudio:true,stopped:true});
     console.log('[QA] Desktop training and death lesson passed');
+    const biomeCases=[
+      [1,'hall','01 VALHEM - Crypt Battle Charge.m4a'],
+      [6,'forest','02 VALHEM - Clash in the Woods.m4a'],
+      [11,'ice','03 VALHEM - Frostpeak Battle (Battle Yells Edit).m4a'],
+      [16,'fire','04 VALHEM - Realm of Fire Combat.m4a'],
+      [21,'hel','05 VALHEM - Helheim Wasteland Combat.m4a'],
+      [26,'asgard','06 VALHEM - Gates of Asgard Instrumental.m4a']
+    ];
+    await cdp.eval("startGame('solo');state='paused'");
+    for (const [waveNumber,id,file] of biomeCases) {
+      const got=await cdp.eval(`(() => {
+        beginWave(${waveNumber});
+        return {biome:curBiome.id,key:biomeMusicKey,
+          src:decodeURIComponent(biomeMusic.currentSrc),procedural:AU.musicOn};
+      })()`);
+      assert.equal(got.biome,id);
+      assert.equal(got.key,id);
+      assert.equal(got.procedural,false);
+      await until(() => cdp.eval("biomeMusic.readyState>=2 && !biomeMusic.paused"),12000);
+      assert.equal((await cdp.eval("decodeURIComponent(biomeMusic.currentSrc)")).endsWith(file),true);
+    }
+    const musicControls=await cdp.eval(`(() => {
+      toggleMute();const muted=biomeMusic.volume===0;
+      toggleMute();const restored=biomeMusic.volume>0;
+      backToTitle();return {muted,restored,stopped:biomeMusic.paused};
+    })()`);
+    assert.deepEqual(musicControls,{muted:true,restored:true,stopped:true});
+    console.log('[QA] Six numbered biome tracks, mute and menu transition passed');
     const initial = await cdp.eval(`(() => {
       startGame('solo'); wave.num=2; wave.queue=[]; enemies=[];
       team.gold=200; team.level=4; players[0].hp=47; players[0].maxHp=125;
@@ -182,11 +212,11 @@ async function main() {
       return {wave:cp?.wave, gold:cp?.team.gold, hp:cp?.players[0].hp,
         route:cp?.routePending.id, mastery:cp?.players[0].mastery.sword,
         relic:cp?.team.relics[0], offers:cp?.shopOffers.length,
-        musicPaused:document.getElementById('menuMusic').paused,gameMusic:AU.musicOn,
+        musicPaused:document.getElementById('menuMusic').paused,biomeMusic:!document.getElementById('biomeMusic').paused&&biomeMusicKey==='hall'&&!AU.musicOn,
         button:!document.getElementById('btnContinueSolo').classList.contains('hidden')};
     })()`);
     assert.deepEqual(initial, {wave:2, gold:257, hp:47, route:'cache',
-      mastery:'guardian', relic:'heimdall', offers:3, musicPaused:true,gameMusic:true,button:true});
+      mastery:'guardian', relic:'heimdall', offers:3, musicPaused:true,biomeMusic:true,button:true});
     console.log('[QA] Route checkpoint saved');
     const contract = await cdp.eval(`(() => {
       const id=dailyContracts().find(c=>c.target>1).id;
@@ -271,10 +301,26 @@ async function main() {
     await until(() => cdp.eval("!document.getElementById('menuMusic').paused && document.getElementById('menuMusic').readyState>=2"), 10000);
     assert.equal(await cdp.eval(`document.querySelector('#brandSplash img').naturalWidth>0 &&
       document.getElementById('menuMusic').currentSrc.endsWith('.opus')`), true);
+    const offlineAudioRanges=await cdp.eval(`(async() => {
+      const files=['assets/music/Death.m4a',
+        'assets/music/bioms/01 VALHEM - Crypt Battle Charge.m4a'];
+      const result=[];
+      for(const file of files){
+        const url=file.split('/').map(encodeURIComponent).join('/');
+        const response=await fetch(url,{headers:{Range:'bytes=0-1023'}});
+        result.push({status:response.status,size:(await response.arrayBuffer()).byteLength,
+          type:response.headers.get('Content-Type')});
+      }
+      return result;
+    })()`);
+    assert.deepEqual(offlineAudioRanges,[
+      {status:206,size:1024,type:'audio/mp4'},
+      {status:206,size:1024,type:'audio/mp4'}]);
+    console.log('[QA] Offline PWA audio ranges passed');
     const offlineTraining = await cdp.eval(`(() => {
       const checkpoint=localStorage.getItem(SOLO_CHECKPOINT_KEY);
       startTraining();
-      const active=trainingActive&&trainingStep===0;
+      const active=trainingActive&&trainingStep===0&&biomeMusicKey==='hall'&&!biomeMusic.paused;
       exitTraining();
       return {active,restored:checkpoint===localStorage.getItem(SOLO_CHECKPOINT_KEY),
         continueVisible:!document.getElementById('btnContinueSolo').classList.contains('hidden')};
@@ -343,10 +389,11 @@ async function main() {
       const out={cause:document.getElementById('deathCause').textContent,
         separate:advice.bottom<button.top,
         touchTarget:button.height>=48,
-        scrollable:getComputedStyle(screen).overflowY==='auto'};
+        scrollable:getComputedStyle(screen).overflowY==='auto',
+        deathAudio:deathMusicPlayed&&!deathMusic.paused&&biomeMusic.paused};
       backToTitle();return out;
     })()`);
-    assert.deepEqual(mobileDeathLayout,{cause:'укус волка',separate:true,touchTarget:true,scrollable:true});
+    assert.deepEqual(mobileDeathLayout,{cause:'укус волка',separate:true,touchTarget:true,scrollable:true,deathAudio:true});
     console.log('[QA] Mobile death advice and restart button layout passed');
     const discard = await cdp.eval(`(() => {
       startGame('solo');wave.num=1;wave.queue=[];enemies=[];doRest();backToTitle();

@@ -7,7 +7,13 @@ const assets = [
   'index.html', 'startup.js', 'startup.css', 'sw.js',
   'manifest.webmanifest', 'icon.svg', 'icon-192.png', 'icon-512.png',
   'assets/divan/divan.webp', 'assets/music/VALHEM - Viking Trail.wav',
-  'assets/music/VALHEM - Viking Trail.opus',
+  'assets/music/VALHEM - Viking Trail.opus', 'assets/music/Death.m4a',
+  'assets/music/bioms/01 VALHEM - Crypt Battle Charge.m4a',
+  'assets/music/bioms/02 VALHEM - Clash in the Woods.m4a',
+  'assets/music/bioms/03 VALHEM - Frostpeak Battle (Battle Yells Edit).m4a',
+  'assets/music/bioms/04 VALHEM - Realm of Fire Combat.m4a',
+  'assets/music/bioms/05 VALHEM - Helheim Wasteland Combat.m4a',
+  'assets/music/bioms/06 VALHEM - Gates of Asgard Instrumental.m4a',
 ];
 
 for (const asset of assets) {
