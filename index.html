@@ -693,6 +693,214 @@ body.touch .netInput{width:100%;max-width:none;font-size:16px;min-height:48px}
 
 button,a,[role="button"],.titleChoice,.hubChoice,.sbtn{touch-action:manipulation;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
 
+/* ===== INTERNAL MENU UX v3 · Emil Kowalski principles ===== */
+/* Главный titleScreen намеренно исключён: он остаётся без изменений. */
+#stage>.screen:not(#titleScreen){
+  padding:max(12px,var(--safe-top)) max(12px,var(--safe-right)) max(12px,var(--safe-bottom)) max(12px,var(--safe-left));
+  background:radial-gradient(ellipse at 50% 28%,rgba(47,38,21,.16) 0%,rgba(7,10,15,.88) 54%,rgba(3,5,8,.97) 100%);
+}
+#stage>.screen:not(#titleScreen)>.scInner{
+  position:relative;width:min(1120px,100%);
+  max-height:calc(var(--app-height,100dvh) - var(--safe-top) - var(--safe-bottom) - 24px);
+  overflow-y:auto;overflow-x:hidden;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;
+  scrollbar-width:thin;scrollbar-color:var(--gold-dim) rgba(10,13,19,.7);
+  padding:clamp(18px,3vw,34px);
+  background:linear-gradient(180deg,rgba(17,21,28,.965),rgba(7,10,15,.97));
+  border:1px solid rgba(124,97,40,.72);
+  box-shadow:0 24px 70px rgba(0,0,0,.48),inset 0 0 0 1px rgba(255,226,154,.025);
+  clip-path:polygon(16px 0,calc(100% - 16px) 0,100% 16px,100% calc(100% - 16px),calc(100% - 16px) 100%,16px 100%,0 calc(100% - 16px),0 16px);
+  animation:internalMenuIn 140ms var(--ease-out);
+}
+@keyframes internalMenuIn{from{opacity:.72}to{opacity:1}}
+#stage>.screen:not(#titleScreen)>.scInner::-webkit-scrollbar{width:7px;height:7px}
+#stage>.screen:not(#titleScreen)>.scInner::-webkit-scrollbar-track{background:rgba(8,11,16,.7)}
+#stage>.screen:not(#titleScreen)>.scInner::-webkit-scrollbar-thumb{background:#5c4a20;border-radius:8px}
+#stage>.screen:not(#titleScreen) .runeRow{opacity:.55}
+#stage>.screen:not(#titleScreen) .sub{max-width:760px;margin-left:auto;margin-right:auto}
+#stage>.screen:not(#titleScreen) .btn,
+#stage>.screen:not(#titleScreen) .sbtn,
+#stage>.screen:not(#titleScreen) .hubChoice,
+#stage>.screen:not(#titleScreen) .card,
+#stage>.screen:not(#titleScreen) .routeCard,
+#stage>.screen:not(#titleScreen) .hcard{
+  transition:transform 140ms var(--ease-out),border-color 180ms ease,background-color 180ms ease,opacity 180ms ease;
+}
+#stage>.screen:not(#titleScreen) .btn:active,
+#stage>.screen:not(#titleScreen) .sbtn:active,
+#stage>.screen:not(#titleScreen) .hubChoice:active,
+#stage>.screen:not(#titleScreen) .card:active,
+#stage>.screen:not(#titleScreen) .routeCard:active,
+#stage>.screen:not(#titleScreen) .hcard:active{transform:scale(.97)}
+#stage>.screen:not(#titleScreen) .hubChoice,
+#stage>.screen:not(#titleScreen) .howCard,
+#stage>.screen:not(#titleScreen) .onlinePane,
+#stage>.screen:not(#titleScreen) .contractCard,
+#stage>.screen:not(#titleScreen) .bcard,
+#stage>.screen:not(#titleScreen) .statBox,
+#stage>.screen:not(#titleScreen) .deathLesson,
+#stage>.screen:not(#titleScreen) .settingsList .srow{
+  background:linear-gradient(160deg,rgba(24,29,39,.93),rgba(9,12,17,.93));
+  border-color:rgba(73,80,94,.92);
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.012);
+}
+
+/* Пауза: постоянная зона действий + независимая карта сборки. */
+#stage>#pauseScreen>.scInner{overflow:hidden}
+.pauseLayout{display:grid;grid-template-columns:minmax(260px,.72fr) minmax(0,1.28fr);gap:16px;min-height:430px;text-align:left}
+.pauseRail{display:flex;min-width:0;flex-direction:column;justify-content:center;padding:8px 4px}
+.pauseRail .runeRow,.pauseRail h2,.pauseRail .sub{text-align:center}
+.pauseRail .sub{margin-top:8px}
+.pauseBuildPane{min-width:0;min-height:0}
+#pauseBuild{height:100%;max-height:100%;margin:0;overflow:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch}
+#pauseBuild summary{position:sticky;top:-1px;z-index:2;padding:4px 0 9px;background:linear-gradient(180deg,rgba(8,11,16,1) 76%,rgba(8,11,16,0))}
+.pauseActions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;width:100%;margin:22px auto 0}
+.pauseActions .btn{width:100%;min-width:0;margin:0;min-height:50px}
+#pauseScreen .pauseConfirm:not(.hidden){
+  position:absolute;left:50%;top:50%;z-index:8;transform:translate(-50%,-50%);
+  width:min(520px,calc(100% - 28px));margin:0;
+  box-shadow:0 0 0 999px rgba(2,4,7,.78),0 22px 64px rgba(0,0,0,.72),inset 0 0 24px rgba(194,58,46,.08);
+}
+#offlineHubScreen .hubMenu,#loreHubScreen .hubMenu{max-width:980px;margin-left:auto;margin-right:auto}
+#howScreen .howGrid{max-width:1000px;margin-left:auto;margin-right:auto}
+#settScreen .settingsList{max-width:900px}
+#onlineScreen .onlineSetup,#onlineScreen .onlineRecords{max-width:980px}
+#bestScreen .bestGrid,#contractScreen .contractGrid{max-width:1000px;margin-left:auto;margin-right:auto}
+@media (hover:hover) and (pointer:fine){
+  #stage>.screen:not(#titleScreen) .hubChoice:hover,
+  #stage>.screen:not(#titleScreen) .card:hover,
+  #stage>.screen:not(#titleScreen) .routeCard:hover,
+  #stage>.screen:not(#titleScreen) .hcard:hover{transform:translateY(-2px);border-color:var(--gold)}
+}
+
+@media (max-height:560px) and (orientation:landscape){
+  body.touch #stage>.screen:not(#titleScreen){
+    padding:max(6px,var(--safe-top)) max(8px,var(--safe-right)) max(6px,var(--safe-bottom)) max(8px,var(--safe-left));
+    align-items:center;
+  }
+  body.touch #stage>.screen:not(#titleScreen)>.scInner{
+    width:100%;height:calc(var(--app-height,100dvh) - var(--safe-top) - var(--safe-bottom) - 12px);
+    max-height:none;margin:0;padding:10px 12px;
+    clip-path:polygon(10px 0,calc(100% - 10px) 0,100% 10px,100% calc(100% - 10px),calc(100% - 10px) 100%,10px 100%,0 calc(100% - 10px),0 10px);
+  }
+  body.touch #stage>.screen:not(#titleScreen) .runeRow{font-size:9px;letter-spacing:.42em;margin-bottom:2px}
+  body.touch #stage>.screen:not(#titleScreen) h2{font-size:clamp(21px,4.1vw,30px);line-height:1;letter-spacing:.09em;margin:0}
+  body.touch #stage>.screen:not(#titleScreen) .sub{font-size:11px;line-height:1.24;margin-top:5px}
+  body.touch #stage>.screen:not(#titleScreen) .btn{min-height:48px}
+  body.touch #stage>.screen:not(#titleScreen) .sbtn{min-height:44px}
+
+  body.touch #stage>#pauseScreen>.scInner{overflow:hidden}
+  body.touch .pauseLayout{height:100%;min-height:0;grid-template-columns:minmax(210px,31vw) minmax(0,1fr);gap:10px}
+  body.touch .pauseRail{height:100%;justify-content:center;padding:4px 2px}
+  body.touch .pauseRail .runeRow{display:block}
+  body.touch .pauseRail h2{font-size:clamp(24px,5vw,34px)}
+  body.touch .pauseRail .sub{font-size:10px;max-width:240px}
+  body.touch .pauseActions{grid-template-columns:repeat(2,minmax(0,1fr));gap:6px;margin-top:12px}
+  body.touch .pauseActions .btn{min-height:48px;padding:8px 7px;font-size:11px;letter-spacing:.08em}
+  body.touch .pauseBuildPane{height:100%;overflow:hidden}
+  body.touch #pauseBuild{height:100%;padding:8px 10px}
+  body.touch #pauseBuild summary{font-size:12px;padding:3px 0 7px}
+  body.touch #pauseBuild .buildGrid{grid-template-columns:repeat(2,minmax(0,1fr));gap:7px 10px;margin-top:5px}
+  body.touch #pauseBuild .buildGroup{padding:5px 7px;border:1px solid rgba(92,74,32,.52);background:rgba(13,17,24,.72)}
+  body.touch #pauseBuild .buildGroup strong{font-size:9px;letter-spacing:.08em;margin-bottom:3px}
+  body.touch #pauseBuild .buildGroup p{display:inline-flex;max-width:100%;margin:2px 3px 2px 0;padding:4px 6px;border:1px solid rgba(216,169,60,.2);background:rgba(216,169,60,.055);font:10px/1.05 'Forum';letter-spacing:.025em}
+  body.touch #pauseBuild .buildGroup small{display:none}
+  body.touch #pauseScreen .pauseConfirm strong{font-size:17px}
+  body.touch #pauseScreen .pauseConfirm p{font-size:12px;margin:6px auto 9px}
+
+  body.touch #offlineHubScreen .hubMenu,
+  body.touch #loreHubScreen .hubMenu{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px;margin-top:9px}
+  body.touch #offlineHubScreen .hubChoice,
+  body.touch #loreHubScreen .hubChoice{min-height:68px;padding:9px 10px}
+  body.touch #offlineHubScreen .hubChoice strong,
+  body.touch #loreHubScreen .hubChoice strong{font-size:12px}
+  body.touch #offlineHubScreen .hubChoice small,
+  body.touch #loreHubScreen .hubChoice small{font-size:9px;line-height:1.15}
+
+  body.touch #howScreen .howGrid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px;margin-top:9px}
+  body.touch #howScreen .howCard{padding:8px 9px;min-height:0}
+  body.touch #howScreen .howCard strong{font-size:11px}
+  body.touch #howScreen .howCard p{font-size:9.5px;line-height:1.2;margin-top:3px}
+
+  body.touch #settScreen .settingsList{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px;margin:8px auto 0;max-width:100%}
+  body.touch #settScreen .srow{min-height:56px;margin:0;padding:7px 9px;border:1px solid rgba(58,65,80,.8);align-content:center}
+  body.touch #settScreen .srow label{font-size:11px;letter-spacing:.06em}
+  body.touch #settScreen .srow .sdesc{font-size:9px;line-height:1.15}
+  body.touch #settScreen .srow:nth-child(10),
+  body.touch #settScreen .srow:nth-child(11),
+  body.touch #settScreen .srow:nth-child(12){grid-column:1/-1}
+  body.touch #settScreen .srow input[type="range"]{width:min(130px,36%)}
+  body.touch #settScreen .netInput{min-height:44px}
+  body.touch #settScreen #btnBackTitle4{margin-top:8px}
+
+  body.touch #prepScreen .prepCols{grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;margin-top:8px}
+  body.touch #prepScreen .hgrid{grid-template-columns:repeat(2,minmax(0,1fr));gap:6px}
+  body.touch #prepScreen .hcard{min-height:70px;padding:8px}
+  body.touch #prepScreen .oath{min-height:48px;padding:7px}
+  body.touch #prepScreen .secHead{margin-top:7px}
+
+  body.touch #chronScreen .chrCols{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px 14px;margin-top:8px}
+  body.touch #chronScreen .boardRow{padding:5px 7px;margin-bottom:4px;font-size:10px}
+  body.touch #chronScreen .achGrid{grid-template-columns:repeat(3,minmax(0,1fr));gap:5px;margin-top:7px}
+  body.touch #chronScreen .achCard{padding:6px 7px}
+  body.touch #chronScreen .achCard .aN{font-size:10px}
+  body.touch #chronScreen .achCard .aD{font-size:8.5px;line-height:1.15}
+
+  body.touch #bestScreen .bestGrid{grid-template-columns:repeat(3,minmax(0,1fr));gap:7px;margin:8px 0}
+  body.touch #bestScreen .bcard{padding:8px 7px}
+  body.touch #bestScreen .bcard .bRune{font-size:28px;margin-bottom:3px}
+  body.touch #bestScreen .bcard .bDesc{font-size:9px;line-height:1.18;min-height:0;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+  body.touch #bestScreen .bcard .bStats{font-size:8px;margin-top:5px;padding-top:5px}
+
+  body.touch #contractScreen .contractGrid{grid-template-columns:repeat(3,minmax(0,1fr));gap:7px;margin:8px auto}
+  body.touch #contractScreen .contractCard{min-height:0;padding:9px}
+  body.touch #contractScreen .contractName{font-size:12px}
+  body.touch #contractScreen .contractDesc{font-size:9.5px;line-height:1.15;min-height:0}
+  body.touch #contractScreen .contractRune{font-size:24px}
+
+  body.touch #onlineScreen .onlineSetup{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin:8px auto}
+  body.touch #onlineScreen .onlinePane{padding:9px;min-height:0}
+  body.touch #onlineScreen .onlineRecords{margin-bottom:6px}
+  body.touch #onlineScreen .roomList{max-height:150px}
+  body.touch #onlineScreen .secHead{font-size:10px}
+  body.touch #onlineScreen .onlineNotice{font-size:9.5px;line-height:1.25;margin-top:5px}
+
+  body.touch #deathScreen .statsGrid,
+  body.touch #sagaScreen .statsGrid{grid-template-columns:repeat(4,minmax(0,1fr));gap:7px;margin-top:8px}
+  body.touch #deathScreen .statBox,
+  body.touch #sagaScreen .statBox{padding:8px 6px}
+  body.touch #deathScreen .statBox .v,
+  body.touch #sagaScreen .statBox .v{font-size:22px}
+  body.touch #deathScreen .deathLesson{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;padding:8px;margin-top:8px}
+  body.touch #deathScreen .deathLesson>div{display:block;padding:0;border:0}
+  body.touch #deathScreen .deathLesson b{font-size:8px}
+  body.touch #deathScreen .deathLesson span{font-size:9px;line-height:1.18}
+  body.touch #sagaScreen .sagaActions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px;margin-top:9px}
+}
+@media (max-height:390px) and (orientation:landscape){
+  body.touch .pauseRail .runeRow,
+  body.touch .pauseRail .sub{display:none}
+  body.touch .pauseActions{margin-top:9px}
+  body.touch #pauseBuild .buildGrid{gap:5px 7px}
+  body.touch #stage>.screen:not(#titleScreen)>.scInner{padding:8px 10px}
+}
+@media (max-width:640px) and (orientation:portrait){
+  body.touch #stage>#pauseScreen>.scInner{overflow-y:auto}
+  body.touch .pauseLayout{display:flex;min-height:0;flex-direction:column;gap:10px}
+  body.touch .pauseRail{padding:0}
+  body.touch .pauseActions{grid-template-columns:repeat(2,minmax(0,1fr));margin-top:10px}
+  body.touch .pauseBuildPane{min-height:0}
+  body.touch #pauseBuild{max-height:44dvh}
+}
+@media (prefers-reduced-motion:reduce){
+  #stage>.screen:not(#titleScreen)>.scInner{animation:scFade .16s ease}
+  #stage>.screen:not(#titleScreen) .btn,
+  #stage>.screen:not(#titleScreen) .sbtn,
+  #stage>.screen:not(#titleScreen) .hubChoice,
+  #stage>.screen:not(#titleScreen) .card,
+  #stage>.screen:not(#titleScreen) .routeCard,
+  #stage>.screen:not(#titleScreen) .hcard{transition-duration:.01ms}
+}
+
 /* ===== CINEMATIC MAIN MENU ===== */
 #titleScreen{padding:0;align-items:stretch;justify-content:stretch;background:#030609;isolation:isolate;overflow:hidden}
 #titleBackdrop{position:absolute;z-index:0;inset:-5%;background-image:url('assets/images/main_menu/main_horizon.webp');background-size:cover;background-position:center center;will-change:transform;animation:titleBackdropDrift 20s var(--ease-in-out) infinite alternate}
@@ -1376,15 +1584,21 @@ body.touch .trainingActions{margin-top:3px}
 
   <section id="pauseScreen" class="screen hidden">
     <div class="scInner">
-      <div class="runeRow">ᛈ ᚨ</div>
-      <h2>ПАУЗА</h2>
-      <p class="sub">Битва ждёт. Мечи — тоже.</p>
-      <details id="pauseBuild" class="buildSummary" open><summary>СБОРКА ПОХОДА</summary><div class="buildGrid"></div></details>
-      <div id="pauseActions" class="pauseActions">
-        <button id="btnResume" class="btn small">ПРОДОЛЖИТЬ</button>
-        <button id="btnRestart" class="btn small">НАЧАТЬ ЗАНОВО</button>
-        <button id="btnMute" class="btn small">ЗВУК: ВКЛ</button>
-        <button id="btnQuitRun" class="btn small pauseQuit">ПОКИНУТЬ САГУ</button>
+      <div class="pauseLayout">
+        <aside class="pauseRail">
+          <div class="runeRow">ᛈ ᚨ</div>
+          <h2>ПАУЗА</h2>
+          <p class="sub">Битва ждёт. Мечи — тоже.</p>
+          <div id="pauseActions" class="pauseActions">
+            <button id="btnResume" class="btn small">ПРОДОЛЖИТЬ</button>
+            <button id="btnRestart" class="btn small">НАЧАТЬ ЗАНОВО</button>
+            <button id="btnMute" class="btn small">ЗВУК: ВКЛ</button>
+            <button id="btnQuitRun" class="btn small pauseQuit">ПОКИНУТЬ САГУ</button>
+          </div>
+        </aside>
+        <div class="pauseBuildPane">
+          <details id="pauseBuild" class="buildSummary" open><summary>СБОРКА ПОХОДА</summary><div class="buildGrid"></div></details>
+        </div>
       </div>
       <div id="pauseQuitConfirm" class="pauseConfirm hidden" role="dialog" aria-modal="true" aria-labelledby="pauseQuitTitle" aria-describedby="pauseQuitText" aria-hidden="true">
         <div class="pauseConfirmRune" aria-hidden="true">ᚾ</div>

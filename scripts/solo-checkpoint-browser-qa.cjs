@@ -177,6 +177,26 @@ async function main() {
     assert.deepEqual(mainMenuPortrait,{vertical:true,inside:true,targets:true});
     await cdp.send('Emulation.clearDeviceMetricsOverride');await cdp.eval("document.body.classList.remove('touch')");
     console.log('[QA] Cinematic main menu passed on desktop, 844×390 landscape and 390×844 portrait');
+    await cdp.send('Emulation.setDeviceMetricsOverride',{width:844,height:390,deviceScaleFactor:2,mobile:true});
+    const internalMenus=await cdp.eval(`(() => {
+      document.body.classList.add('touch');resize();
+      document.getElementById('btnOfflineHub').click();
+      const hubCols=getComputedStyle(document.querySelector('#offlineHubScreen .hubMenu')).gridTemplateColumns.split(' ').length>=3;
+      document.getElementById('btnBackOfflineHub').click();
+      document.getElementById('btnSettings').click();
+      const settingsCols=getComputedStyle(document.querySelector('#settScreen .settingsList')).gridTemplateColumns.split(' ').length>=2;
+      const shell=document.querySelector('#settScreen>.scInner'),rect=shell.getBoundingClientRect();
+      const shellFits=rect.bottom<=innerHeight+1&&rect.top>=0;
+      document.getElementById('btnBackTitle4').click();
+      return {hubCols,settingsCols,shellFits,titleUntouched:!document.getElementById('titleScreen').classList.contains('hidden'),
+        shellTop:Math.round(rect.top),shellBottom:Math.round(rect.bottom),shellHeight:Math.round(rect.height),innerHeight,H,
+        appHeight:getComputedStyle(document.documentElement).getPropertyValue('--app-height').trim()};
+    })()`);
+    console.log('[QA] Internal menu geometry:',internalMenus);
+    assert.equal(internalMenus.hubCols,true);assert.equal(internalMenus.settingsCols,true);
+    assert.equal(internalMenus.shellFits,true);assert.equal(internalMenus.titleUntouched,true);
+    await cdp.send('Emulation.clearDeviceMetricsOverride');await cdp.eval("document.body.classList.remove('touch')");
+    console.log('[QA] Internal menu UX shell passed without changing the title screen');
     const settingsMusic = await cdp.eval(`(() => {
       document.getElementById('btnSettings').click();
       const open=!document.getElementById('settScreen').classList.contains('hidden');
@@ -886,15 +906,15 @@ async function main() {
     const helpMobile=await cdp.eval(`(() => {
       document.getElementById('btnHowToPlay').click();
       const screen=document.getElementById('howScreen'),cards=[...screen.querySelectorAll('.howCard')];
-      const singleColumn=cards.length===6&&getComputedStyle(screen.querySelector('.howGrid')).gridTemplateColumns.split(' ').length===1;
+      const landscapeColumns=cards.length===6&&getComputedStyle(screen.querySelector('.howGrid')).gridTemplateColumns.split(' ').length===3;
       const noHorizontalOverflow=screen.scrollWidth<=innerWidth+1;
       const back=document.getElementById('btnHowBack').getBoundingClientRect();
       const reachable=getComputedStyle(screen).overflowY==='auto'&&back.height>=44;
       document.getElementById('btnHowBack').click();
-      return {singleColumn,noHorizontalOverflow,reachable};
+      return {landscapeColumns,noHorizontalOverflow,reachable};
     })()`);
-    assert.deepEqual(helpMobile,{singleColumn:true,noHorizontalOverflow:true,reachable:true});
-    console.log('[QA] How-to-play screen remains readable in phone layout');
+    assert.deepEqual(helpMobile,{landscapeColumns:true,noHorizontalOverflow:true,reachable:true});
+    console.log('[QA] How-to-play screen remains readable in compact landscape grid');
     const mobileStress=await cdp.eval(`(() => {
       const oldPerf=save.sett.perf;save.sett.perf='low';applyPerfLevel(0,true);
       startGame('solo');beginWave(30);wave.queue=[];wave.breakT=0;
@@ -918,20 +938,32 @@ async function main() {
     console.log('[QA] Phone-layout dense combat on low quality:',mobileStress);
     const mobileBuild = await cdp.eval(`(() => {
       startGame('solo');wave.num=1;wave.breakT=9;
-      pauseGame(true);
-      const pause=document.getElementById('pauseScreen');
+      const pl=players[0];
+      for(const u of UPG)pl.upgOwned[u.id]=Math.max(1,pl.upgOwned[u.id]||0);
+      team.relics=['ygg','loki','skadi','draupnir'].filter(id=>RELICS.some(r=>r.id===id));
+      pauseGame(true);renderBuildSummary('pauseBuild');
+      const pause=document.getElementById('pauseScreen'),shell=pause.querySelector('.scInner');
+      const rail=pause.querySelector('.pauseRail').getBoundingClientRect();
+      const pane=pause.querySelector('.pauseBuildPane').getBoundingClientRect();
       const summary=document.getElementById('pauseBuild');
-      const pauseReadable=getComputedStyle(pause).overflowY==='auto'&&summary.open&&
-        document.getElementById('btnResume').getBoundingClientRect().height>=48;
+      const resume=document.getElementById('btnResume').getBoundingClientRect();
+      const pauseReadable=summary.open&&getComputedStyle(shell).overflowY==='hidden'&&
+        getComputedStyle(summary).overflowY==='auto'&&rail.right<=pane.left+2&&
+        rail.left>=0&&pane.right<=innerWidth&&resume.height>=46&&resume.bottom<=innerHeight;
+      const compactBuild=getComputedStyle(summary.querySelector('.buildGroup small')).display==='none'&&
+        [...summary.querySelectorAll('.buildGroup p')].every(el=>getComputedStyle(el).display==='inline-flex');
+      const actionsPinned=[...document.querySelectorAll('#pauseActions .btn')].every(el=>{
+        const r=el.getBoundingClientRect();return r.left>=0&&r.right<=innerWidth&&r.top>=0&&r.bottom<=innerHeight;
+      });
       pauseGame(false);pending=1;openLevel();
       const button=document.getElementById('btnRerollGifts').getBoundingClientRect();
       const cards=[...document.querySelectorAll('#cards .card')].map(el=>el.getBoundingClientRect());
       const levelReachable=button.height>=44&&button.top>=0&&button.bottom<=innerHeight&&
         cards.length===3&&cards.every(r=>r.left>=0&&r.right<=innerWidth);
-      backToTitle();return {pauseReadable,levelReachable};
+      backToTitle();return {pauseReadable,compactBuild,actionsPinned,levelReachable};
     })()`);
-    assert.deepEqual(mobileBuild,{pauseReadable:true,levelReachable:true});
-    console.log('[QA] Mobile build summary and reroll layout passed');
+    assert.deepEqual(mobileBuild,{pauseReadable:true,compactBuild:true,actionsPinned:true,levelReachable:true});
+    console.log('[QA] Mobile two-pane pause, compact huge build and reroll layout passed');
     if (process.env.VALHEM_QA_TRAINING_SHOT) {
       await cdp.eval('startTraining()');
       await delay(150);
