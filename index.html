@@ -65,12 +65,12 @@ body.touch.ingame #touchUI{display:block}
 .tbtn span{font-size:8px;letter-spacing:.06em;color:#c8b98f;margin-top:2px}
 .tbtn.on{background:rgba(216,169,60,.4);transform:scale(.92)}
 .tbtn.ready{border-color:var(--ember);box-shadow:0 0 18px rgba(255,120,40,.65)}
-#actionPad{position:absolute;right:max(12px,var(--safe-right));bottom:max(16px,var(--safe-bottom));width:286px;height:172px;pointer-events:none}
-#actionPad .tbtn{position:absolute;pointer-events:auto;width:54px;height:54px;font-size:21px}
-#actionPad #tbAtk{right:0;bottom:0;width:78px;height:78px;font-size:28px}
-#tbDodge{right:3px;bottom:99px}#tbAxe{right:65px;bottom:96px}
-#tbBerserk{right:143px;bottom:76px}#tbParry{right:94px;bottom:0}
-#tbStance{right:167px;bottom:0}#tbSwap{right:232px;bottom:0}
+#actionPad{position:absolute;right:max(12px,var(--safe-right));bottom:max(16px,var(--safe-bottom));width:300px;height:190px;pointer-events:none}
+#actionPad .tbtn{position:absolute;pointer-events:auto;width:66px;height:66px;font-size:24px}
+#actionPad #tbAtk{right:0;bottom:0;width:92px;height:92px;font-size:32px}
+#tbDodge{right:1px;bottom:118px}#tbAxe{right:78px;bottom:112px}
+#tbBerserk{right:156px;bottom:82px}#tbSwap{right:110px;bottom:5px}
+#tbParry,#tbStance{display:none}
 #mobilePause{display:none;position:absolute;z-index:7;top:max(10px,var(--safe-top));right:max(12px,var(--safe-right));width:48px;height:48px;border:1px solid var(--gold-dim);border-radius:10px;background:rgba(5,7,11,.85);color:var(--gold-hi);font-size:24px;cursor:pointer;touch-action:manipulation}
 body.touch.ingame #mobilePause{display:block}
 #mobilePause:focus-visible{outline:2px solid var(--gold-hi);outline-offset:3px}
@@ -95,44 +95,45 @@ body.touch .bar{height:18px}
 body.touch .bar.rage{height:12px}
 body.touch .mrow{display:none}
 body.touch .wpn{font-size:9px;letter-spacing:.16em;margin-top:1px}
-body.touch #hudTC{top:max(6px,var(--safe-top));width:min(35vw,360px);padding:5px 12px}
-body.touch.solo-mode #hudTC{top:max(66px,calc(var(--safe-top) + 60px));right:max(8px,var(--safe-right));width:clamp(124px,22vw,168px);padding:5px 8px;opacity:.9}
-body.touch.solo-mode #hudTC #biomeTag{display:none}
-body.touch.solo-mode #hudTC #waveLabel{display:inline;margin:0;font-size:8px;letter-spacing:.2em}
-body.touch.solo-mode #hudTC #waveNum{display:inline;margin-left:4px;font-size:18px}
-body.touch.solo-mode #hudTC #foesLeft{margin-top:1px}
-body.touch.solo-mode #hudTC #chips{font-size:8px;line-height:1.2;white-space:normal}
-body.touch.solo-mode #hudTC #xpBar{width:100%}
+body.touch #hudTC,body.touch.solo-mode #hudTC{top:max(6px,var(--safe-top));left:50%;right:auto;transform:translateX(-50%);width:min(44vw,250px);padding:4px 10px;opacity:.94}
+body.touch #hudTC #biomeTag,body.touch.solo-mode #hudTC #biomeTag{display:none}
+body.touch #hudTC #waveLabel,body.touch.solo-mode #hudTC #waveLabel{display:inline;margin:0;font-size:8px;letter-spacing:.2em}
+body.touch #hudTC #waveNum,body.touch.solo-mode #hudTC #waveNum{display:inline;margin-left:4px;font-size:20px}
+body.touch #hudTC #foesLeft,body.touch.solo-mode #hudTC #foesLeft{display:inline;margin-left:7px;font-size:8px}
+body.touch #hudTC #chips,body.touch.solo-mode #hudTC #chips{font-size:8px;line-height:1.15;white-space:nowrap}
+body.touch #hudTC #xpBar,body.touch.solo-mode #hudTC #xpBar{width:100%}
+body.touch #relicStrip{display:none}
 body.touch #biomeTag{font-size:8px;letter-spacing:.28em}
 body.touch #waveLabel{font-size:9px;margin-top:1px}
 body.touch #waveNum{font-size:22px}
 body.touch #foesLeft{font-size:9px}
 body.touch #chips{font-size:10px;letter-spacing:.08em;margin-top:2px;white-space:nowrap}
 body.touch #xpBar{width:min(190px,26vw);height:5px;margin-top:3px}
-body.touch #bossWrap{top:clamp(88px,18dvh,112px);width:min(440px,58vw)}
-body.touch #breakInfo{top:clamp(120px,24dvh,148px);font-size:12px}
+body.touch #bossWrap{top:max(66px,calc(var(--safe-top) + 58px));width:min(520px,64vw)}
+body.touch #breakInfo{top:max(108px,calc(var(--safe-top) + 100px));font-size:11px}
 body.touch #hint{left:24%;bottom:max(10px,var(--safe-bottom));max-width:42vw;font-size:12px;white-space:normal;text-align:center}
-body.touch #shop{right:max(8px,var(--safe-right));width:min(270px,43vw);max-height:calc(100% - var(--safe-top) - var(--safe-bottom) - 16px);overflow-y:auto}
+body.touch #shop{left:50%;right:auto;top:50%;transform:translate(-50%,-50%);width:min(360px,70vw);max-height:calc(100% - var(--safe-top) - var(--safe-bottom) - 18px);overflow-y:auto}
 body.touch.shop-open #actionPad{opacity:.12;pointer-events:none}
 
 @media (max-height:500px) and (orientation:landscape){
- body.touch #hudTL{transform:scale(.88);transform-origin:top left}
- body.touch #hudTR{transform:scale(.88);transform-origin:top right}
- body.touch #hudTC{width:32vw;padding:4px 10px}
+ body.touch #hudTL{transform:scale(.86);transform-origin:top left}
+ body.touch #hudTR{transform:scale(.86);transform-origin:top right}
+ body.touch #hudTC{width:min(36vw,230px);padding:3px 9px}
  body.touch #biomeTag,body.touch #eventTag{display:none}
- body.touch #waveNum{font-size:20px}
- body.touch #chips{font-size:9px}
- body.touch #bossWrap{top:76px}
- body.touch #breakInfo{top:108px}
+ body.touch #waveNum{font-size:18px}
+ body.touch #chips{font-size:8px}
+ body.touch #bossWrap{top:max(55px,calc(var(--safe-top) + 50px));width:min(480px,58vw)}
+ body.touch #breakInfo{top:max(91px,calc(var(--safe-top) + 86px))}
+ body.touch.boss-active #hudTC{width:min(31vw,190px);padding:2px 8px}
 }
 
 @media (max-width:720px) and (orientation:landscape){
  body.touch .barsCol{width:132px}
  body.touch .portrait{width:42px;height:42px;font-size:22px}
- body.touch #hudTC{width:30vw}
+ body.touch #hudTC{width:32vw}
  body.touch #chips{font-size:8px}
  body.touch #xpBar{width:23vw}
- body.touch #actionPad{transform:scale(.9);transform-origin:bottom right}
+ body.touch #actionPad{transform:scale(.96);transform-origin:bottom right}
 }
 
 
@@ -170,11 +171,14 @@ body:not(.ingame) #hud{opacity:0;visibility:hidden;transition:opacity .14s ease,
 .combo{font-family:'Forum';font-size:12px;letter-spacing:.2em;text-align:center;margin-top:1px;
   text-shadow:0 0 10px rgba(255,150,60,.4)}
 
-#hudTC{position:absolute;top:12px;right:16px;left:auto;transform:none;text-align:center;
-  background:var(--panel);border:1px solid var(--line);padding:8px 34px;
+#hudTC{position:absolute;top:12px;left:50%;right:auto;transform:translateX(-50%);text-align:center;
+  min-width:280px;max-width:min(430px,44vw);background:var(--panel);border:1px solid var(--line);padding:6px 20px;
   clip-path:polygon(14px 0,calc(100% - 14px) 0,100% 100%,0 100%);
-  transition:opacity .18s var(--ease-out),transform .18s var(--ease-out)}
-body.coop-mode #hudTC{right:auto;left:50%;transform:translateX(-50%)}
+  transition:opacity .18s var(--ease-out),transform .18s var(--ease-out),padding .18s var(--ease-out)}
+body.boss-active #hudTC{min-width:220px;max-width:300px;padding:4px 16px}
+body.boss-active #hudTC #biomeTag,body.boss-active #hudTC #eventTag,body.boss-active #hudTC #chips,body.boss-active #hudTC #xpBar,body.boss-active #hudTC #relicStrip{display:none}
+body.boss-active #hudTC #waveLabel,body.boss-active #hudTC #waveNum,body.boss-active #hudTC #foesLeft{display:inline;margin:0 3px}
+body.boss-active #hudTC #waveNum{font-size:22px}
 #biomeTag{font-size:10px;letter-spacing:.42em;color:#8d94a3}
 #waveLabel{font-size:11px;letter-spacing:.5em;color:var(--gold);opacity:.85;margin-top:2px}
 #waveNum{font-size:30px;line-height:1;color:var(--bone);text-shadow:0 0 16px rgba(216,169,60,.35)}
@@ -186,6 +190,7 @@ body.coop-mode #hudTC{right:auto;left:50%;transform:translateX(-50%)}
 #xpFill{height:100%;width:0%;background:linear-gradient(90deg,#5db8cf,#8fd8e8)}
 
 #hudBC{position:absolute;bottom:18px;left:50%;transform:translateX(-50%);display:flex;gap:10px}
+#abParry,#abStance{display:none}
 .ab{position:relative;width:70px;height:70px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;overflow:hidden}
 .ab .rune{font-size:24px;color:var(--gold);text-shadow:0 0 10px rgba(216,169,60,.5)}
 .ab .abName{font-size:9px;letter-spacing:.16em;color:#b8bfcc}
@@ -194,7 +199,7 @@ body.coop-mode #hudTC{right:auto;left:50%;transform:translateX(-50%)}
 .ab.ready{box-shadow:0 0 18px rgba(255,120,40,.55), inset 0 0 12px rgba(255,120,40,.25);border-color:var(--ember);animation:abPulse 1s infinite}
 @keyframes abPulse{50%{box-shadow:0 0 30px rgba(255,120,40,.9), inset 0 0 16px rgba(255,120,40,.4)}}
 
-#bossWrap{position:absolute;top:132px;left:50%;transform:translateX(-50%);width:min(520px,70vw);text-align:center}
+#bossWrap{position:absolute;top:74px;left:50%;transform:translateX(-50%);width:min(620px,62vw);text-align:center;z-index:2}
 #bossName{font-size:15px;letter-spacing:.4em;color:#ffb37a;text-shadow:0 0 12px rgba(255,120,40,.6);margin-bottom:5px}
 #bossBar{height:12px;background:#0a0d13;border:1px solid #6b3226;overflow:hidden;
   clip-path:polygon(0 0,calc(100% - 8px) 0,100% 8px,100% 100%,8px 100%,0 calc(100% - 8px))}
@@ -203,7 +208,7 @@ body.coop-mode #hudTC{right:auto;left:50%;transform:translateX(-50%)}
 #bossStaggerFill{height:100%;width:0%;background:linear-gradient(90deg,#8fd8e8,#ffd97a);transition:width .08s linear}
 #bossStaggerBar.broken{border-color:var(--gold);box-shadow:0 0 14px rgba(255,217,122,.55)}
 #bossStaggerBar.broken #bossStaggerFill{animation:rageGlow .45s infinite}
-#breakInfo{position:absolute;top:172px;left:50%;transform:translateX(-50%);font-size:15px;letter-spacing:.22em;
+#breakInfo{position:absolute;top:122px;left:50%;transform:translateX(-50%);font-size:15px;letter-spacing:.22em;
   color:#c8b98f;text-shadow:0 1px 4px #000;white-space:nowrap}
 
 #bannerWrap{position:absolute;top:20%;left:0;right:0;text-align:center;pointer-events:none;opacity:0;z-index:6}
@@ -231,7 +236,7 @@ body.coach-open #breakInfo{opacity:0}
 body.touch #coach{top:clamp(112px,30dvh,126px);width:min(430px,calc(100% - var(--safe-left) - var(--safe-right) - 20px));padding:8px 42px 8px 9px}
 body.touch .coachRune{width:34px;height:34px;font-size:21px}body.touch .coachCopy strong{font-size:11px}body.touch .coachCopy p{font-size:11.5px}
 
-#shop{position:absolute;right:18px;top:50%;transform:translateY(-50%);width:272px;z-index:6;padding:14px;pointer-events:auto}
+#shop{position:absolute;left:50%;right:auto;top:50%;transform:translate(-50%,-50%);width:min(340px,calc(100% - 36px));z-index:9;padding:16px;pointer-events:auto;max-height:calc(100% - 40px);overflow-y:auto}
 #shopName{font-size:17px;letter-spacing:.14em;color:var(--gold);text-align:center;text-shadow:0 0 10px rgba(216,169,60,.4)}
 #shopGold{text-align:center;font-size:13px;letter-spacing:.22em;color:var(--gold-hi);margin:6px 0 10px}
 .shopItem{display:block;width:100%;text-align:left;background:#10151d;border:1px solid var(--line);color:var(--bone);
@@ -605,7 +610,7 @@ body.touch .srow select{min-height:44px}
  body.touch .routeCard .routeEffect{margin-top:6px;padding-top:5px;font-size:10px;line-height:1.18}
  body.touch #actionPad{right:max(8px,var(--safe-right));bottom:max(8px,var(--safe-bottom))}
  body.touch #hint{left:42%;max-width:28vw;bottom:max(7px,var(--safe-bottom));font-size:10.5px;line-height:1.15}
- body.touch #shop{right:max(6px,var(--safe-right));width:min(310px,48vw);padding:9px;max-height:calc(100% - var(--safe-top) - var(--safe-bottom) - 12px)}
+ body.touch #shop{left:50%;right:auto;top:50%;transform:translate(-50%,-50%);width:min(350px,58vw);padding:10px;max-height:calc(100% - var(--safe-top) - var(--safe-bottom) - 12px)}
  body.touch #shopName{font-size:14px}body.touch #shopGold{font-size:11px;margin:4px 0 6px}
  body.touch .shopItem{padding:8px 54px 8px 9px;margin-bottom:6px;font-size:12px;min-height:52px}
  body.touch .siName{font-size:13px}.touch .siDesc{font-size:10.5px}.touch .siCost{font-size:12px;top:8px;right:8px}
@@ -613,14 +618,14 @@ body.touch .srow select{min-height:44px}
 
 /* Очень низкие экраны — уменьшаем геометрию HUD, но не touch-target самих кнопок ниже безопасного уровня. */
 @media (max-height:420px) and (orientation:landscape){
- body.touch #actionPad{transform:scale(.84);transform-origin:bottom right}
- body.touch #hudTL{transform:scale(.82);transform-origin:top left}
- body.touch #hudTC{width:27vw;padding:3px 7px}
- body.touch #waveNum{font-size:18px}body.touch #chips{font-size:7.5px;letter-spacing:.035em}
- body.touch #bossWrap{top:66px;width:min(420px,55vw)}
- body.touch #bossName{font-size:11px;letter-spacing:.2em}
- body.touch #breakInfo{top:98px;font-size:10px;letter-spacing:.08em}
- body.touch #coach{top:96px;max-width:390px}
+ body.touch #actionPad{transform:scale(.96);transform-origin:bottom right}
+ body.touch #hudTL{transform:scale(.8);transform-origin:top left}
+ body.touch #hudTC{width:29vw;padding:2px 7px}
+ body.touch #waveNum{font-size:17px}body.touch #chips{font-size:7px;letter-spacing:.03em}
+ body.touch #bossWrap{top:max(51px,calc(var(--safe-top) + 46px));width:min(430px,54vw)}
+ body.touch #bossName{font-size:10px;letter-spacing:.18em}
+ body.touch #breakInfo{top:max(84px,calc(var(--safe-top) + 80px));font-size:9.5px;letter-spacing:.07em}
+ body.touch #coach{top:92px;max-width:390px}
 }
 
 /* Portrait используется для меню/мета-экранов: один выбор = одна большая удобная карточка. */
@@ -910,8 +915,10 @@ body.touch .trainingActions{margin-top:3px}
  body:not(.touch) .ab .rune{font-size:clamp(29px,1.75vw,36px)}
  body:not(.touch) .ab .abName{font-size:11px}
  body:not(.touch) .ab .key{font-size:10px}
- body:not(.touch) #bossWrap{top:clamp(190px,15dvh,230px)}
- body:not(.touch) #breakInfo{top:clamp(228px,19dvh,280px)}
+ body:not(.touch) #bossWrap{top:clamp(78px,7dvh,104px)}
+ body:not(.touch) #breakInfo{top:clamp(128px,11dvh,152px)}
+ body:not(.touch).boss-active #hudTC{min-width:240px;padding:5px 18px}
+ body:not(.touch).boss-active #waveNum{font-size:28px}
  body:not(.touch) #hint{bottom:clamp(126px,7.5vw,150px)}
  body:not(.touch) #muteHint{font-size:13px}
 }
@@ -1070,7 +1077,7 @@ body.touch .trainingActions{margin-top:3px}
       <p class="sub">Выбери нить, которую норны вплетут в твою сагу.</p>
       <div class="hubMenu" aria-label="Одиночные походы">
         <button id="btnHowToPlay" class="hubChoice"><strong>КАК ИГРАТЬ</strong><small>Бой, дороги, сохранение и цель первой саги.</small></button>
-        <button id="btnTraining" class="hubChoice"><strong>ТРЕНИРОВКА У ОЧАГА</strong><small>Потренируй атаку, рывок, парирование и добивание. Без риска для похода.</small></button>
+        <button id="btnTraining" class="hubChoice"><strong>ТРЕНИРОВКА У ОЧАГА</strong><small>Потренируй атаку, рывок, топор и добивание. Без риска для похода.</small></button>
         <button id="btnPrep" class="hubChoice"><strong>ВОЛЬНЫЙ ПОХОД</strong><small>Собери героя, прими клятвы и иди против волн.</small></button>
         <button id="btnDaily" class="hubChoice"><strong>ИСПЫТАНИЕ НОРН</strong><small>Одна судьба на день. Слава не копится — остаётся рекорд.</small></button>
         <button id="btnWeekly" class="hubChoice"><strong>САГА БУРИ</strong><small>Особое сказание на эту неделю.</small></button>
@@ -1090,12 +1097,12 @@ body.touch .trainingActions{margin-top:3px}
       <h2>КАК ИГРАТЬ</h2>
       <p class="sub">Сначала попробуй тренировку у очага. Она не тратит поход и не выдаёт наград.</p>
       <div class="howGrid">
-        <div class="howCard"><strong>БОЙ</strong><p>Двигайся и атакуй. Меняй меч, молот, копьё и лук. Рывок выводит из опасной области, точный парир ломает стойкость врага.</p></div>
+        <div class="howCard"><strong>БОЙ</strong><p>Двигайся, атакуй и чаще меняй позицию. Меняй меч, молот, копьё и лук; рывок выводит из опасной области, топор помогает держать давление на дистанции.</p></div>
         <div class="howCard"><strong>ОПАСНОСТЬ</strong><p>Смотри на отмеченные зоны и замахи: сильный удар заранее показан. Сломай стойкость опасного врага и добей его.</p></div>
         <div class="howCard"><strong>СБОРКА</strong><p>Собирай опыт и золото. Выбирай дары и мастерство, покупай у Синдри, после волны выбирай дорогу. Открой паузу, чтобы увидеть всю сборку.</p></div>
         <div class="howCard"><strong>ЦЕЛЬ</strong><p>Каждые пять волн ждёт Ётун. Победи Стража Врат Асгарда на волне XXX, чтобы завершить первую сагу или продолжить бесконечный поход.</p></div>
         <div class="howCard"><strong>СОХРАНЕНИЕ</strong><p>Свободный одиночный поход продолжится с начала прерванной волны. Между волнами можно сохранить поход и выйти через паузу. После смерти остаются слава и летопись.</p></div>
-        <div class="howCard"><strong>УПРАВЛЕНИЕ</strong><p>ПК: WASD, ЛКМ атака, ПКМ топор, пробел рывок, C парир, X стойка, F оружие, R ярость, E действие. Телефон: джойстик слева, кнопки справа, экран горизонтально.</p></div>
+        <div class="howCard"><strong>УПРАВЛЕНИЕ</strong><p>ПК: WASD, ЛКМ атака, ПКМ/Q топор, пробел рывок, F оружие, R ярость, E действие. Телефон: джойстик слева и пять крупных боевых кнопок справа, экран горизонтально.</p></div>
       </div>
       <button id="btnHowBack" class="btn small ghost hearthBack">НАЗАД К ВЫБОРУ ПОХОДА</button>
     </div>
@@ -1189,13 +1196,10 @@ body.touch .trainingActions{margin-top:3px}
           <div class="controlsGrid desktopControls">
             <div><kbd>W A S D</kbd> воин I</div>
             <div><kbd>ЛКМ</kbd> атака · <kbd>ПКМ</kbd> топор</div>
-            <div><kbd>C / СКМ</kbd> парирование</div>
-            <div><kbd>X</kbd> стойка оружия</div>
             <div><kbd>ПРОБЕЛ</kbd> рывок · <kbd>R</kbd> ярость</div>
             <div><kbd>F</kbd> оружие: меч→молот→копьё→лук</div>
             <div><kbd>СТРЕЛКИ</kbd> воин II (кооп)</div>
             <div><kbd>.</kbd> атака · <kbd>/</kbd> топор</div>
-            <div><kbd>,</kbd> парир · <kbd>'</kbd> стойка</div>
             <div><kbd>ENTER</kbd> оружие · <kbd>П.SHIFT</kbd> рывок</div>
             <div><kbd>ТАЧ</kbd> джойстик слева, кнопки справа</div>
             <div><kbd>E</kbd> добивание / звать волну · <kbd>1-3</kbd> выбор</div>
@@ -3062,7 +3066,6 @@ function damagePlayer(pl,dmg,ang,src,kind){
   if(pl.parryPow&&pl.weapon==='sword'){pl.stanceCd=0;addText(pl.x,pl.y-48,'СТОЙКА ГОТОВА!','#ffd97a',13);synergyOnce(pl,'riposte','СИНЕРГИЯ: ПАРИРОВАНИЕ -> СТОЙКА МЕЧА');}
   if(pl.weapon==='sword'&&masteryIs(pl,'sword','sword_guard')){pl.buffs.shield=Math.max(pl.buffs.shield,2.4);playerBurst(pl,96,pDmg(pl)*0.85,pDmg(pl)*0.42,'ОТВЕТ СТРАЖА','255,217,122');}
   if(pl.stormPow)stormStrike(pl,src,Math.max(18,pDmg(pl)*0.34));
-  if(trainingActive&&trainingStep===2)trainingAdvance();
   return;}
  if(runStats)runStats.hurtWave=true;
  resetCombo(pl);
@@ -3142,6 +3145,7 @@ function tryAxe(pl){
  for(let i=0;i<n;i++){const off=(i-(n-1)/2)*spread,a=pl.aim+off;
   projs.push({type:'axe',x:pl.x+Math.cos(a)*18,y:pl.y+Math.sin(a)*18,vx:Math.cos(a)*560,vy:Math.sin(a)*560,
    dmg:pDmg(pl)*1.35,r:11,life:0.85,spin:rand(0,TAU),own:pl});}
+ if(trainingActive&&trainingStep===2)trainingAdvance();
 }
 function tryParry(pl){
  if(!pl.alive||state!=='playing'||pl.parryCd>0||pl.parryT>0)return;
@@ -4106,12 +4110,12 @@ function draw(ts){
   ctx.fillStyle=t.c;ctx.fillText(t.s,t.x,t.y);ctx.globalAlpha=1;}
  drawCanopies(ts);
  ctx.restore();
- drawMerchantIndicator(ts);
  if(curBiome.id==='hel'&&state!=='title'){ctx.fillStyle='rgba(140,100,190,0.05)';ctx.fillRect(0,0,W,H);}
  if(curEvent&&curEvent.type==='storm'&&state!=='title'){ctx.fillStyle='rgba(190,210,235,0.05)';ctx.fillRect(0,0,W,H);}
  drawVignette();
  lowHpOverlay(ts);
  drawDarkness();
+ drawMerchantIndicator(ts);
 }
 function drawPoolGlow(ts){
  if(curBiome.id!=='fire')return;
@@ -4384,24 +4388,30 @@ function drawMerchant(ts){
 function drawMerchantIndicator(ts){
  if(!merchant.active||shop.open||state!=='playing'||!players.length)return;
  const sx=merchant.x-cam.x,sy=merchant.y-cam.y;
- const edge=54,top=touchMode?112:88,bottom=58;
+ const edge=58,top=touchMode?82:72,bottom=62;
  const visible=sx>=edge&&sx<=W-edge&&sy>=top&&sy<=H-bottom;
  const x=clamp(sx,edge,W-edge),y=clamp(sy,top,H-bottom);
  const dist=Math.max(0,Math.round(Math.hypot(merchant.x-players[0].x,merchant.y-players[0].y)/10)*10);
  const pulse=1+Math.sin(ts*5)*0.12;
- ctx.save();ctx.translate(x,y);ctx.globalAlpha=0.94;
+ ctx.save();ctx.globalCompositeOperation='source-over';ctx.translate(x,y);ctx.globalAlpha=1;
+ ctx.shadowColor='rgba(0,0,0,.95)';ctx.shadowBlur=10;
  if(visible){
-  ctx.translate(0,-52+Math.sin(ts*4)*4);
-  ctx.fillStyle='#ffd75f';ctx.beginPath();ctx.moveTo(0,14);ctx.lineTo(-9,-2);ctx.lineTo(9,-2);ctx.closePath();ctx.fill();
+  ctx.translate(0,-54+Math.sin(ts*4)*4);
+  ctx.strokeStyle='#080a0d';ctx.lineWidth=7;ctx.beginPath();ctx.moveTo(0,15);ctx.lineTo(-10,-3);ctx.lineTo(10,-3);ctx.closePath();ctx.stroke();
+  ctx.fillStyle='#ffe071';ctx.fill();
  }else{
   const angle=Math.atan2(sy-H/2,sx-W/2);ctx.rotate(angle);
-  ctx.fillStyle='#ffd75f';ctx.beginPath();ctx.moveTo(18,0);ctx.lineTo(-5,-10);ctx.lineTo(-5,10);ctx.closePath();ctx.fill();
-  ctx.rotate(-angle);
+  ctx.strokeStyle='#080a0d';ctx.lineWidth=7;ctx.beginPath();ctx.moveTo(20,0);ctx.lineTo(-6,-11);ctx.lineTo(-6,11);ctx.closePath();ctx.stroke();
+  ctx.fillStyle='#ffe071';ctx.fill();ctx.rotate(-angle);
  }
- ctx.strokeStyle='rgba(255,215,95,.85)';ctx.lineWidth=2;ctx.beginPath();ctx.arc(0,0,25*pulse,0,TAU);ctx.stroke();
- ctx.fillStyle='rgba(5,7,12,.82)';ctx.fillRect(-48,29,96,19);
- ctx.font='12px Forum,serif';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillStyle='#ffe49a';
- ctx.fillText('ᛗ СИНДРИ · '+dist,0,39);
+ ctx.shadowBlur=0;
+ ctx.strokeStyle='rgba(4,6,9,.95)';ctx.lineWidth=6;ctx.beginPath();ctx.arc(0,0,26*pulse,0,TAU);ctx.stroke();
+ ctx.strokeStyle='#ffd75f';ctx.lineWidth=2.5;ctx.beginPath();ctx.arc(0,0,26*pulse,0,TAU);ctx.stroke();
+ ctx.fillStyle='rgba(3,5,8,.94)';ctx.strokeStyle='rgba(255,215,95,.82)';ctx.lineWidth=1;
+ ctx.beginPath();ctx.roundRect(-53,30,106,22,7);ctx.fill();ctx.stroke();
+ ctx.font='700 12px Forum,serif';ctx.textAlign='center';ctx.textBaseline='middle';
+ ctx.strokeStyle='rgba(0,0,0,.95)';ctx.lineWidth=4;ctx.strokeText('ᛗ СИНДРИ · '+dist,0,41);
+ ctx.fillStyle='#ffe8a7';ctx.fillText('ᛗ СИНДРИ · '+dist,0,41);
  ctx.restore();
 }
 function drawEnemy(e,ts){
@@ -4710,7 +4720,7 @@ function setBars(s,pl){
 }
 function syncHUD(){
  document.body.classList.toggle('ingame',state==='playing'||orientationPaused);
- if(!players.length)return;
+ if(!players.length){document.body.classList.remove('boss-active');return;}
  setBars('1',players[0]);
  if(mode==='coop'&&players[1])setBars('2',players[1]);
  $('lvl').textContent=team.level;$('kills').textContent=kills;$('gold').textContent=team.gold;
@@ -4732,6 +4742,7 @@ function syncHUD(){
  if(touchMode&&players[0])$('tbBerserk').classList.toggle('ready',!save.oaths.fury&&players[0].rage>=100&&players[0].berserk<=0);
  let boss=null;for(let i=0;i<enemies.length;i++)if(enemies[i].type==='troll'){boss=enemies[i];break;}
  if(!boss)for(let i=0;i<enemies.length;i++)if(enemies[i].isJarl){boss=enemies[i];break;}
+ document.body.classList.toggle('boss-active',!!boss);
  $('bossWrap').classList.toggle('hidden',!boss);
  if(boss){$('bossFill').style.width=clamp(boss.hp/boss.maxHp*100,0,100)+'%';
   $('bossStaggerFill').style.width=clamp(boss.stagger/boss.maxStagger*100,0,100)+'%';
@@ -4870,7 +4881,7 @@ function renderSettings(){
 const TRAINING_STEPS=[
  {title:'АТАКА',pc:'Щёлкни левой кнопкой мыши по манекену.',touch:'Нажми АТАКА рядом с манекеном.'},
  {title:'РЫВОК',pc:'Нажми пробел или Shift, чтобы сделать рывок.',touch:'Нажми РЫВОК справа.'},
- {title:'ПАРИРОВАНИЕ',pc:'Манекен ударит по сигналу. Нажми C перед ударом.',touch:'Манекен ударит по сигналу. Нажми ПАРИР перед ударом.'},
+ {title:'ТОПОР',pc:'Нажми Q и попади метательным топором по манекену.',touch:'Нажми ТОПОР справа.'},
  {title:'ДОБИВАНИЕ',pc:'Подойди к сломленному врагу и нажми E.',touch:'Подойди к сломленному врагу и нажми АТАКА.'}
 ];
 function trainingDummy(){
@@ -4888,24 +4899,16 @@ function renderTraining(){
 }
 function trainingAdvance(){
  if(!trainingActive)return;
- trainingStep++;trainingTimer=trainingStep===2?2.5:0;
+ trainingStep++;trainingTimer=0;
  projs=[];trails=[];parts=[];texts=[];portals=[];telegraphs=[];
  touchAttack=false;mouseDown=false;
  const pl=players[0];pl.swing=null;pl.thrust=null;pl.hammerOut=false;pl.atkCd=0;pl.dodgeCd=0;pl.parryCd=0;pl.parryT=0;pl.dodgeT=0;pl.iframes=0;
- pl.x=ARENA.w/2;pl.y=ARENA.h/2+150;pl.vx=0;pl.vy=0;pl.aim=-Math.PI/2;
+ pl.axeCd=0;pl.x=ARENA.w/2;pl.y=ARENA.h/2+150;pl.vx=0;pl.vy=0;pl.aim=-Math.PI/2;
  trainingDummy();renderTraining();AU.sRune();
 }
 function updateTraining(dt){
  const pl=players[0];if(!pl)return;
- if(trainingStep===2){
-  const e=enemies[0];if(e){e.x=pl.x;e.y=pl.y-65;e.kx=0;e.ky=0;}
-  trainingTimer-=dt;
-  if(trainingTimer<=0){
-   trainingTimer=2.5;
-   if(e){damagePlayer(pl,6,-Math.PI/2,e,'training');pl.hp=pl.maxHp;}
-  }
-  $('trainingInstruction').textContent=(touchMode?TRAINING_STEPS[2].touch:TRAINING_STEPS[2].pc)+' Удар через '+Math.max(0,trainingTimer).toFixed(1)+' с.';
- }
+ if(trainingStep===2){const e=enemies[0];if(e){e.x=pl.x;e.y=pl.y-76;e.kx=0;e.ky=0;}}
 }
 function startTraining(){
  if(onlineActive)return;

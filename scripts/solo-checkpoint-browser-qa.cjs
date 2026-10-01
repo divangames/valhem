@@ -248,11 +248,9 @@ async function main() {
       dispatchEvent(new KeyboardEvent('keydown',{code:'Space',bubbles:true}));
       const dodge=trainingStep===2;
       dispatchEvent(new KeyboardEvent('keyup',{code:'Space',bubbles:true}));
-      trainingTimer=.01;
-      dispatchEvent(new KeyboardEvent('keydown',{code:'KeyC',bubbles:true}));
-      updateTraining(.02);
-      const parry=trainingStep===3;
-      dispatchEvent(new KeyboardEvent('keyup',{code:'KeyC',bubbles:true}));
+      dispatchEvent(new KeyboardEvent('keydown',{code:'KeyQ',bubbles:true}));
+      const axeStep=trainingStep===3;
+      dispatchEvent(new KeyboardEvent('keyup',{code:'KeyQ',bubbles:true}));
       dispatchEvent(new KeyboardEvent('keydown',{code:'KeyE',bubbles:true}));
       const execute=trainingStep===4&&enemies.length===0;
       dispatchEvent(new KeyboardEvent('keyup',{code:'KeyE',bubbles:true}));
@@ -266,12 +264,12 @@ async function main() {
         document.getElementById('pauseScreen').classList.contains('hidden');
       pauseGame(true);
       document.getElementById('btnQuitRun').click();document.getElementById('btnQuitYes').click();
-      return {opened,hudHidden,paused,pauseRestart,combatActions,attack,dodge,parry,execute,repeated,
+      return {opened,hudHidden,paused,pauseRestart,combatActions,attack,dodge,axeStep,execute,repeated,
         exited:!trainingActive&&state==='title'&&
           !document.getElementById('offlineHubScreen').classList.contains('hidden'),
         unchanged:stored===localStorage.getItem('valhem_save')&&checkpoint===localStorage.getItem(SOLO_CHECKPOINT_KEY)};
     })()`);
-    assert.deepEqual(trainingDesktop,{opened:true,hudHidden:true,paused:true,pauseRestart:true,combatActions:true,attack:true,dodge:true,parry:true,execute:true,
+    assert.deepEqual(trainingDesktop,{opened:true,hudHidden:true,paused:true,pauseRestart:true,combatActions:true,attack:true,dodge:true,axeStep:true,execute:true,
       repeated:true,exited:true,unchanged:true});
     const buildAndReroll = await cdp.eval(`(() => {
       startGame('solo');wave.num=1;wave.breakT=9;wave.queue=[];enemies=[];
@@ -760,6 +758,24 @@ async function main() {
     await until(() => cdp.eval('innerWidth===844'));
     await cdp.eval('resize();backToTitle();discardSoloCheckpoint()');
     console.log('[QA] Portrait phone start saved the first wave');
+    const mobileCombatUi=await cdp.eval(`(() => {
+      startGame('solo');syncHUD();wave.breakT=9;merchant.active=true;genOffers();openShop();
+      const shopRect=document.getElementById('shop').getBoundingClientRect();
+      const shopCentered=Math.abs(shopRect.left+shopRect.width/2-innerWidth/2)<3&&Math.abs(shopRect.top+shopRect.height/2-innerHeight/2)<3;
+      closeShop();
+      const hiddenControls=['tbParry','tbStance','abParry','abStance'].every(id=>getComputedStyle(document.getElementById(id)).display==='none');
+      const buttons=['tbAtk','tbAxe','tbDodge','tbBerserk','tbSwap'].map(id=>getComputedStyle(document.getElementById(id)));
+      const largeButtons=getComputedStyle(document.getElementById('touchUI')).display!=='none'&&
+        buttons.every(s=>parseFloat(s.width)>=64&&parseFloat(s.height)>=64)&&parseFloat(getComputedStyle(document.getElementById('tbAtk')).width)>=90;
+      enemies=[];wave.queue=[];wave.breakT=0;const pl=players[0];spawnEnemy('troll',pl.x+180,pl.y,true);syncHUD();
+      const waveHud=document.getElementById('hudTC').getBoundingClientRect(),boss=document.getElementById('bossWrap').getBoundingClientRect();
+      const bossClear=document.body.classList.contains('boss-active')&&boss.top>=waveHud.bottom+3&&
+        getComputedStyle(document.getElementById('chips')).display==='none';
+      const source=draw.toString(),indicatorAboveDarkness=source.indexOf('drawDarkness();')>=0&&source.indexOf('drawMerchantIndicator(ts);')>source.indexOf('drawDarkness();');
+      backToTitle();return {shopCentered,hiddenControls,largeButtons,bossClear,indicatorAboveDarkness};
+    })()`);
+    assert.deepEqual(mobileCombatUi,{shopCentered:true,hiddenControls:true,largeButtons:true,bossClear:true,indicatorAboveDarkness:true});
+    console.log('[QA] Centered shop, persistent merchant marker, simplified large controls and boss HUD passed');
     const mobileTerrain=await cdp.eval(`(() => {
       startGame('solo');const result=[];
       for(const [n,kind] of [[1,'rune'],[6,'root'],[11,'icefield'],[16,'fire'],[21,'dark'],[26,'skyline']]){
@@ -909,16 +925,16 @@ async function main() {
       updateProjectiles(.02);
       el=fire('tbDodge',92);stop(el,92);
       const dodge=trainingStep===2;
-      trainingTimer=.01;el=fire('tbParry',93);updateTraining(.02);stop(el,93);
-      const parry=trainingStep===3;
+      el=fire('tbAxe',93);stop(el,93);
+      const axeStep=trainingStep===3;
       el=fire('tbAtk',94);updatePlayer(players[0],.02);stop(el,94);
       const execute=trainingStep===4;
       document.getElementById('mobilePause').click();
       const paused=state==='paused'&&!document.getElementById('pauseScreen').classList.contains('hidden');
       document.getElementById('btnQuitRun').click();document.getElementById('btnQuitYes').click();
-      return {visible,hudHidden,panelClear,paused,combatActions,attack,dodge,parry,execute,unchanged:stored===localStorage.getItem('valhem_save')};
+      return {visible,hudHidden,panelClear,paused,combatActions,attack,dodge,axeStep,execute,unchanged:stored===localStorage.getItem('valhem_save')};
     })()`);
-    assert.deepEqual(trainingMobile,{visible:true,hudHidden:true,panelClear:true,paused:true,combatActions:true,attack:true,dodge:true,parry:true,execute:true,unchanged:true});
+    assert.deepEqual(trainingMobile,{visible:true,hudHidden:true,panelClear:true,paused:true,combatActions:true,attack:true,dodge:true,axeStep:true,execute:true,unchanged:true});
     console.log('[QA] Mobile touch training passed');
     const inputRelease = await cdp.eval(`(() => {
       const atk=document.getElementById('tbAtk'),zone=document.getElementById('joyZone'),base=document.getElementById('joyBase');
