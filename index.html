@@ -296,6 +296,14 @@ h1{font-family:'Forum';font-weight:400;font-size:clamp(56px,10vw,126px);line-hei
 .hubTidings{width:min(760px,100%);margin:14px auto 0;padding:10px 16px;border-top:1px solid rgba(124,97,40,.35);border-bottom:1px solid rgba(124,97,40,.2)}
 .hubTidings #dailyLine,.hubTidings #weeklyLine{line-height:1.5}
 .hearthBack{margin-top:18px;min-height:44px}
+.howGrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;width:min(780px,100%);margin:18px auto;text-align:left}
+.howCard{min-width:0;padding:12px 16px;border:1px solid var(--line);background:rgba(9,13,19,.88)}
+.howCard strong{display:block;color:var(--gold-hi);font:18px 'Forum';letter-spacing:.08em}
+.howCard p{margin:5px 0 0;color:#c5c6c4;font-size:14px;line-height:1.4}
+body.touch .howGrid{grid-template-columns:1fr;gap:7px}
+body.touch .howCard{padding:10px 12px}
+body.touch .howCard p{font-size:13px}
+@media(max-width:640px){.howGrid{grid-template-columns:1fr;gap:7px}.howCard{padding:10px 12px}.howCard p{font-size:13px}}
 
 @media(max-width:640px){
  .titleMenu,.hubMenu{grid-template-columns:minmax(0,1fr);gap:8px}
@@ -862,8 +870,8 @@ body.touch .trainingActions{margin-top:3px}
     <div class="scInner">
       <div class="runeRow">ᚠ ᚢ ᚦ ᚨ ᚱ ᚲ ᚷ ᚹ</div>
       <h1>VALHEM</h1>
-      <div><span class="packBadge">РЕЛИЗ v2.6.0 «МУЗЫКА ЗЕМЕЛЬ»</span></div>
-      <p class="tag">Шесть земель, фазовые ётуны, реликвии и оружейное мастерство, стойкость и добивания, кооп на одном экране, чертог славы и ежедневные саги. Играй на клавиатуре или на стекле планшета.</p>
+      <div><span class="packBadge">VALHEM v2.7.0 «ПЕРВАЯ САГА»</span></div>
+      <p class="tag">Пройди шесть земель до Врат Асгарда, собери оружейную сборку и заверши первую сагу на волне XXX. После победы выбирай: вернуться к очагу или идти дальше.</p>
       <div class="orn">ᛟ</div>
       <div class="titleMenu" aria-label="Главные пути">
         <button id="btnContinueSolo" class="titleChoice resume hidden"><strong>ПРОДОЛЖИТЬ ПОХОД</strong><small id="continueSoloDetails"></small></button>
@@ -874,7 +882,7 @@ body.touch .trainingActions{margin-top:3px}
         <button id="btnSettings" class="titleChoice compact"><strong>РУНЫ ОЧАГА</strong><small>Звук, экран и управление</small></button>
       </div>
       <div id="titleStats"></div>
-      <div class="credit">VALHEM v2.6.0 «МУЗЫКА ЗЕМЕЛЬ» · MOBILE FIRST</div>
+      <div class="credit">VALHEM v2.7.0 «ПЕРВАЯ САГА» · MOBILE FIRST</div>
     </div>
   </section>
 
@@ -884,6 +892,7 @@ body.touch .trainingActions{margin-top:3px}
       <h2>ПУТЬ ОДИНОЧКИ</h2>
       <p class="sub">Выбери нить, которую норны вплетут в твою сагу.</p>
       <div class="hubMenu" aria-label="Одиночные походы">
+        <button id="btnHowToPlay" class="hubChoice"><strong>КАК ИГРАТЬ</strong><small>Бой, дороги, сохранение и цель первой саги.</small></button>
         <button id="btnTraining" class="hubChoice"><strong>ТРЕНИРОВКА У ОЧАГА</strong><small>Потренируй атаку, рывок, парирование и добивание. Без риска для похода.</small></button>
         <button id="btnPrep" class="hubChoice"><strong>ВОЛЬНЫЙ ПОХОД</strong><small>Собери героя, прими клятвы и иди против волн.</small></button>
         <button id="btnDaily" class="hubChoice"><strong>ИСПЫТАНИЕ НОРН</strong><small>Одна судьба на день. Слава не копится — остаётся рекорд.</small></button>
@@ -895,6 +904,23 @@ body.touch .trainingActions{margin-top:3px}
         <div id="weeklyLine"></div>
       </div>
       <button id="btnBackOfflineHub" class="btn small ghost hearthBack">НАЗАД К ОЧАГУ</button>
+    </div>
+  </section>
+
+  <section id="howScreen" class="screen hidden">
+    <div class="scInner">
+      <div class="runeRow">ᚠ ᚢ ᚦ ᚨ</div>
+      <h2>КАК ИГРАТЬ</h2>
+      <p class="sub">Сначала попробуй тренировку у очага. Она не тратит поход и не выдаёт наград.</p>
+      <div class="howGrid">
+        <div class="howCard"><strong>БОЙ</strong><p>Двигайся и атакуй. Меняй меч, молот, копьё и лук. Рывок выводит из опасной области, точный парир ломает стойкость врага.</p></div>
+        <div class="howCard"><strong>ОПАСНОСТЬ</strong><p>Смотри на отмеченные зоны и замахи: сильный удар заранее показан. Сломай стойкость опасного врага и добей его.</p></div>
+        <div class="howCard"><strong>СБОРКА</strong><p>Собирай опыт и золото. Выбирай дары и мастерство, покупай у Синдри, после волны выбирай дорогу. Открой паузу, чтобы увидеть всю сборку.</p></div>
+        <div class="howCard"><strong>ЦЕЛЬ</strong><p>Каждые пять волн ждёт Ётун. Победи Стража Врат Асгарда на волне XXX, чтобы завершить первую сагу или продолжить бесконечный поход.</p></div>
+        <div class="howCard"><strong>СОХРАНЕНИЕ</strong><p>Свободный одиночный поход продолжится с начала прерванной волны. Между волнами можно сохранить поход и выйти через паузу. После смерти остаются слава и летопись.</p></div>
+        <div class="howCard"><strong>УПРАВЛЕНИЕ</strong><p>ПК: WASD, ЛКМ атака, ПКМ топор, пробел рывок, C парир, X стойка, F оружие, R ярость, E действие. Телефон: джойстик слева, кнопки справа, экран горизонтально.</p></div>
+      </div>
+      <button id="btnHowBack" class="btn small ghost hearthBack">НАЗАД К ВЫБОРУ ПОХОДА</button>
     </div>
   </section>
 
@@ -1130,7 +1156,7 @@ body.touch .trainingActions{margin-top:3px}
           <button class="sbtn danger" id="btnWipe">СТЕРЕТЬ</button>
         </div>
         <div class="srow">
-          <label>Версия<span class="sdesc">VALHEM v2.6.0 «МУЗЫКА ЗЕМЕЛЬ» · VERIFIED ONLINE RECORDS</span></label>
+          <label>Версия<span class="sdesc">VALHEM v2.7.0 «ПЕРВАЯ САГА» · VERIFIED ONLINE RECORDS</span></label>
           <span class="sval">ᛟ</span>
         </div>
       </div>
@@ -1257,7 +1283,7 @@ body.touch .trainingActions{margin-top:3px}
  - Положение игроков, враги, снаряды и эффекты синхронизируются через защищённый WebSocket.
  - Имена игроков отображаются над персонажами; одиночный и локальный режимы сохранены.
 */
- var VERSION='2.6.0 «МУЗЫКА ЗЕМЕЛЬ»';
+ var VERSION='2.7.0 «ПЕРВАЯ САГА»';
 const TAU=Math.PI*2;
 const clamp=function(v,a,b){return v<a?a:(v>b?b:v);};
 const lerp=function(a,b,t){return a+(b-a)*t;};
@@ -3269,7 +3295,7 @@ function doRest(){
 /* ============ shop ============ */
 function genOffers(){const w=wave.num,u=drawUpgrade();
  shop.offers=[
-  {id:'potion',name:'Целительный мёд',desc:'Восстановить 40% здоровья воинов',cost:40+w*3},
+  {id:'potion',name:'Целительный мёд',desc:'Восстановить 40% здоровья воинов',cost:w<=2?5+w*5:40+w*3},
   {id:'maxhp',name:'Закалка крови',desc:'+20 к макс. здоровью всех воинов',cost:65+w*4},
   {id:'upg',name:u.name,desc:u.desc,cost:120+w*6,upg:u}];
  if(runStats)runStats.shopBought=0;
@@ -4514,7 +4540,7 @@ function syncHUD(){
 }
 
 /* ============ meta screens ============ */
-const ALL_SCREENS=['titleScreen','offlineHubScreen','loreHubScreen','onlineScreen','prepScreen','hallScreen','chronScreen','bestScreen','contractScreen','settScreen','deathScreen','sagaScreen','pauseScreen','levelScreen','pathScreen'];
+const ALL_SCREENS=['titleScreen','offlineHubScreen','howScreen','loreHubScreen','onlineScreen','prepScreen','hallScreen','chronScreen','bestScreen','contractScreen','settScreen','deathScreen','sagaScreen','pauseScreen','levelScreen','pathScreen'];
 function showOnly(id){for(let i=0;i<ALL_SCREENS.length;i++)$(ALL_SCREENS[i]).classList.toggle('hidden',ALL_SCREENS[i]!==id);}
 function updateTitleStats(){
  updateSoloCheckpointMenu();
@@ -4977,6 +5003,8 @@ $('btnDiscardSolo').onclick=function(){
 };
 $('btnLoreHub').onclick=function(){AU.init();AU.sClick();showOnly('loreHubScreen');};
 $('btnBackOfflineHub').onclick=function(){AU.sClick();updateTitleStats();showOnly('titleScreen');};
+$('btnHowToPlay').onclick=function(){AU.sClick();showOnly('howScreen');};
+$('btnHowBack').onclick=function(){AU.sClick();showOnly('offlineHubScreen');};
 $('btnBackLoreHub').onclick=function(){AU.sClick();updateTitleStats();showOnly('titleScreen');};
 $('btnTraining').onclick=startTraining;
 $('btnTrainingAgain').onclick=startTraining;

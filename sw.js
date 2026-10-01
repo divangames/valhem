@@ -1,4 +1,4 @@
-const CACHE='valhem-v21-biome-music';
+const CACHE='valhem-v22-first-saga';
 const APP_SHELL=['./','./index.html','./icon.svg','./icon-192.png','./icon-512.png','./manifest.webmanifest','./startup.css','./startup.js','./assets/divan/divan.webp','./assets/music/VALHEM - Viking Trail.opus','./assets/music/Death.m4a','./assets/music/bioms/01 VALHEM - Crypt Battle Charge.m4a'];
 self.addEventListener('install',e=>{e.waitUntil(caches.open(CACHE).then(c=>c.addAll(APP_SHELL)).then(()=>self.skipWaiting()));});
 self.addEventListener('activate',e=>{e.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(key=>key!==CACHE).map(key=>caches.delete(key)))).then(()=>self.clients.claim()));});

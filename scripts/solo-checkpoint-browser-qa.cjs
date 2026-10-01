@@ -135,6 +135,42 @@ async function main() {
       return {open,adjusted,muted,returned:!document.getElementById('titleScreen').classList.contains('hidden')};
     })()`);
     assert.deepEqual(settingsMusic, {open:true,adjusted:true,muted:true,returned:true});
+    const helpDesktop=await cdp.eval(`(() => {
+      document.getElementById('btnOfflineHub').click();
+      document.getElementById('btnHowToPlay').click();
+      const shown=!document.getElementById('howScreen').classList.contains('hidden');
+      const cards=document.querySelectorAll('#howScreen .howCard').length;
+      const explains=document.getElementById('howScreen').textContent.includes('XXX')&&
+        document.getElementById('howScreen').textContent.includes('прерванной волны');
+      document.getElementById('btnHowBack').click();
+      const returned=!document.getElementById('offlineHubScreen').classList.contains('hidden');
+      return {shown,cards,explains,returned};
+    })()`);
+    assert.deepEqual(helpDesktop,{shown:true,cards:6,explains:true,returned:true});
+    console.log('[QA] How-to-play screen and navigation passed on desktop');
+    const earlyBalance=await cdp.eval(`(() => {
+      const oldHero=save.hero,oldDaily=dailyMode,oldWeekly=weeklyMode;
+      dailyMode=false;weeklyMode=false;
+      const waves=[1,2,3,4,5].map(n=>waveComp(n,biomeForWave(n)).length);
+      const weights={};for(const u of UPG)weights[upRarity(u)]=(weights[upRarity(u)]||0)+RARITY[upRarity(u)].weight;
+      const fights=[];
+      for(const hero of Object.keys(HEROES))for(const weapon of Object.keys(WEAP)){
+        save.hero=hero;initRun('solo');state='playing';wave.num=1;wave.breakT=0;
+        const pl=players[0],distance=weapon==='sword'?62:(weapon==='spear'?100:(weapon==='bow'?170:110));
+        pl.weapon=weapon;pl.aim=0;const foe=spawnEnemy('draugr',pl.x+distance,pl.y,true);
+        let frames=0;
+        while(enemies.includes(foe)&&frames<200){tryAttack(pl);updateProjectiles(.05);pl.atkCd=Math.max(0,pl.atkCd-.05);frames++;}
+        fights.push({hero,weapon,seconds:Math.round(frames*.05*10)/10,defeated:!enemies.includes(foe)});
+      }
+      const potionPrices=[1,2,3,5].map(n=>{wave.num=n;genOffers();return shop.offers[0].cost;});
+      save.hero=oldHero;dailyMode=oldDaily;weeklyMode=oldWeekly;backToTitle();
+      return {waves,weights,fights,potionPrices};
+    })()`);
+    assert.deepEqual(earlyBalance.waves,[5,7,11,14,3]);
+    assert.equal(earlyBalance.fights.length,16);
+    assert.equal(earlyBalance.fights.every(f=>f.defeated&&f.seconds<=10),true);
+    assert.deepEqual(earlyBalance.potionPrices,[10,15,49,55]);
+    console.log('[QA] Early-wave balance:',JSON.stringify(earlyBalance));
     for (const width of [1920,2560]) {
       await cdp.send('Emulation.setDeviceMetricsOverride',
         {width,height:1080,deviceScaleFactor:1,mobile:false});
@@ -525,7 +561,7 @@ async function main() {
       const cp=readSoloCheckpoint();
       return {gold:cp.team.gold,offers:cp.shopOffers.length,hp:cp.players[0].hp};
     })()`);
-    assert.deepEqual(purchased, {gold:211,offers:2,hp:97});
+    assert.deepEqual(purchased, {gold:242,offers:2,hp:97});
     await reload(cdp);
     const afterPurchase = await cdp.eval(`(() => {
       resumeSoloCheckpoint();return {gold:team.gold,offers:shop.offers.length,hp:players[0].hp};
@@ -763,6 +799,39 @@ async function main() {
     })()`);
     assert.deepEqual(mobileWaveResume,{paused:true,visible:true,resumed:true,fromWave:4});
     console.log('[QA] Mobile interrupted-wave continuation passed');
+    const helpMobile=await cdp.eval(`(() => {
+      document.getElementById('btnHowToPlay').click();
+      const screen=document.getElementById('howScreen'),cards=[...screen.querySelectorAll('.howCard')];
+      const singleColumn=cards.length===6&&getComputedStyle(screen.querySelector('.howGrid')).gridTemplateColumns.split(' ').length===1;
+      const noHorizontalOverflow=screen.scrollWidth<=innerWidth+1;
+      const back=document.getElementById('btnHowBack').getBoundingClientRect();
+      const reachable=getComputedStyle(screen).overflowY==='auto'&&back.height>=44;
+      document.getElementById('btnHowBack').click();
+      return {singleColumn,noHorizontalOverflow,reachable};
+    })()`);
+    assert.deepEqual(helpMobile,{singleColumn:true,noHorizontalOverflow:true,reachable:true});
+    console.log('[QA] How-to-play screen remains readable in phone layout');
+    const mobileStress=await cdp.eval(`(() => {
+      const oldPerf=save.sett.perf;save.sett.perf='low';applyPerfLevel(0,true);
+      startGame('solo');beginWave(30);wave.queue=[];wave.breakT=0;
+      const pl=players[0];
+      for(let i=0;i<40;i++){const a=i*TAU/40;spawnEnemy('draugr',pl.x+Math.cos(a)*180,pl.y+Math.sin(a)*120,true);}
+      spawnSagaFinal();
+      for(let i=0;i<600;i++)parts.push({type:'spark',x:pl.x+i%30,y:pl.y+i%20,vx:0,vy:0,t:0,life:1,size:2});
+      updateParts(.016);telegraphs.push({x:pl.x+90,y:pl.y,r:52,t:.4,dur:1.2,dmg:20,kind:'lightning'});
+      const start=performance.now();for(let i=0;i<6;i++)draw(start/1000+i*.016);syncHUD();
+      const renderMs=Math.round((performance.now()-start)/6*10)/10;
+      const boss=document.getElementById('bossWrap').getBoundingClientRect();
+      const hud=document.getElementById('hudTL').getBoundingClientRect();
+      const result={enemies:enemies.length,parts:parts.length,cap:partCap()+90,
+        renderMs,readable:boss.left>=0&&boss.right<=innerWidth&&hud.left>=0&&hud.right<=innerWidth,
+        low:perfLevel===0};
+      backToTitle();save.sett.perf=oldPerf;applyPerfLevel(basePerfLevel(),true);return result;
+    })()`);
+    assert.equal(mobileStress.enemies,41);
+    assert.equal(mobileStress.parts<=mobileStress.cap,true);
+    assert.equal(mobileStress.readable&&mobileStress.low&&Number.isFinite(mobileStress.renderMs),true);
+    console.log('[QA] Phone-layout dense combat on low quality:',mobileStress);
     const mobileBuild = await cdp.eval(`(() => {
       startGame('solo');wave.num=1;wave.breakT=9;
       pauseGame(true);
@@ -889,6 +958,26 @@ async function main() {
     assert.equal(await cdp.eval("!document.getElementById('brandSplash').classList.contains('hidden')"), true);
     await cdp.send('Input.dispatchTouchEvent', {type:'touchEnd',touchPoints:[]});
     console.log('[QA] First mobile tap and touch zoom guards passed');
+    await until(() => cdp.eval("document.getElementById('brandSplash').classList.contains('hidden')"),8000);
+    await cdp.eval(`(() => {
+      save.hero='viking';save.oaths={iron:false,fury:false,horde:false,blood:false};
+      save.chal={spear:false,noheal:false,noshop:false,endless:false};
+      startGame('solo');players[0].hp=100000;players[0].maxHp=100000;players[0].iframes=100000;
+      window.qaSagaAuto=setInterval(function(){
+        if(state==='saga'||state==='dead'){clearInterval(window.qaSagaAuto);return;}
+        if(state==='levelup'){if(choices[0])choose(choices[0]);return;}
+        if(state==='path'){const safe=routeChoices.find(c=>['fire','cache','altar','boss_altar'].includes(c.id));
+          if(safe)choosePath(safe);return;}
+        if(state==='playing'){if(wave.breakT>0)horn();wave.t=0;enemies.slice().forEach(killEnemy);pickups=[];}
+      },16);
+    })()`);
+    try{await until(() => cdp.eval("state==='saga'&&wave.num===30&&team.sagaComplete"),90000);}
+    catch(error){console.error('[QA] Saga pipeline state:',await cdp.eval("({wave:wave.num,state,queue:wave.queue.length,enemies:enemies.length,breakT:wave.breakT,routes:routeHistory.length,paths:routeChoices.map(c=>c.id)})"));throw error;}
+    const fullSaga=await cdp.eval(`(() => ({wave:wave.num,state,complete:team.sagaComplete,
+      routes:routeHistory.length,reward:team.sagaReward,record:save.board.some(r=>r.runId===team.runId&&r.saga)}))()`);
+    assert.equal(fullSaga.wave,30);assert.equal(fullSaga.routes,28);
+    assert.equal(fullSaga.record&&fullSaga.reward>0,true);
+    console.log('[QA] Automated uninterrupted saga I–XXX reached the finale:',fullSaga);
     console.log('[OK] Solo checkpoint: route, build, combat rollback, purchase, contracts, death, discard, mobile and offline PWA');
   } finally {
     if (cdp) { try { await cdp.send('Browser.close'); } catch (_) {} }

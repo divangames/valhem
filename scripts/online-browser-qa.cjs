@@ -246,6 +246,12 @@ async function main() {
     await until(() => guest.eval("state==='path'&&team.sagaComplete&&document.getElementById('sagaScreen').classList.contains('hidden')"));
     assert.equal(await guest.eval('team.runId'),runId);
     console.log('[QA] Saga finale, guest result and continuing build synchronized');
+    await guest.eval("window.qaOriginalSnapshot=applyOnlineSnapshot;applyOnlineSnapshot=function(world){setTimeout(function(){window.qaOriginalSnapshot(world);},180)}");
+    await host.eval("routeChoices=[ROUTE_NODES.fire];choosePath(routeChoices[0]);wave.breakT=1000");
+    await until(() => guest.eval("state==='playing'&&wave.num===30&&team.sagaComplete"),15000);
+    assert.equal(await guest.eval('team.runId'),await host.eval('team.runId'));
+    await guest.eval('applyOnlineSnapshot=window.qaOriginalSnapshot;delete window.qaOriginalSnapshot');
+    console.log('[QA] Delayed guest snapshots preserved the saga continuation phase');
   } finally {
     for (const cdp of browsers) try {await cdp.send('Browser.close');} catch (_) {}
     for (const child of children) child.kill();
