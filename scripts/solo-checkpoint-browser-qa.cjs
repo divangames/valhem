@@ -370,6 +370,46 @@ async function main() {
       await until(() => cdp.eval("biomeMusic.readyState>=2 && !biomeMusic.paused"),12000);
       assert.equal((await cdp.eval("decodeURIComponent(biomeMusic.currentSrc)")).endsWith(file),true);
     }
+    const terrainDesktop=await cdp.eval(`(() => {
+      backToTitle();startGame('solo');freeze=0;
+      const oldIron=save.oaths.iron;save.oaths.iron=true;
+      const checks=[];
+      for(const [n,kind,zoneKind] of [[1,'rune',null],[6,'root','roots'],[11,'icefield','icefield'],
+        [16,'fire','fire'],[21,'dark','dark'],[26,'skyline',null]]){
+        beginWave(n);state='playing';wave.breakT=0;wave.queue=['draugr'];wave.t=999;zoneT=0.001;freeze=0;
+        const pl=players[0];pl.hp=pl.maxHp;pl.iframes=0;
+        update(.02);
+        const mark=telegraphs.find(t=>t.terrain&&t.kind===kind);
+        if(!mark){checks.push({spawned:false});continue;}
+        const distance=kind==='skyline'?Math.abs(mark.vertical?pl.x-mark.x:pl.y-mark.y):Math.hypot(pl.x-mark.x,pl.y-mark.y);
+        const reachable=Math.max(0,mark.r+pl.r-distance)/pl.speed<mark.dur;
+        pl.x=mark.x;pl.y=mark.y;pl.vx=0;pl.vy=0;
+        const moveKey=kind==='skyline'&&!mark.vertical?(mark.y>ARENA.h/2?'KeyW':'KeyS'):
+          (mark.x>ARENA.w/2?'KeyA':'KeyD');
+        keys[moveKey]=true;
+        const hp=pl.hp;state='paused';
+        for(let i=0;i<28;i++){state='playing';wave.breakT=0;zoneT=99;update(.05);if(state!=='playing')break;}
+        keys[moveKey]=false;
+        checks.push({spawned:true,reachable,avoided:pl.hp===hp,
+          effect:zoneKind?zones.some(z=>z.kind===zoneKind):true});
+        state='paused';
+      }
+      const pl=players[0];state='paused';pl.x=ARENA.w/2;pl.y=ARENA.h/2;
+      pl.snareT=0;pl.chillT=0;pl.dodgeT=0;keys.KeyD=true;
+      const speedIn=kind=>{zones=[{kind,x:pl.x,y:pl.y,r:90,t:1,dur:3}];pl.vx=0;pl.vy=0;updatePlayer(pl,.05);return pl.vx;};
+      const rootSpeed=speedIn('roots'),darkSpeed=speedIn('dark');
+      zones=[];pl.vx=0;pl.vy=0;updatePlayer(pl,.05);const normalSpeed=pl.vx;
+      keys.KeyD=false;zones=[{kind:'icefield',x:pl.x,y:pl.y,r:90,t:1,dur:3}];pl.vx=200;pl.vy=0;
+      updatePlayer(pl,.05);const iceMomentum=pl.vx;
+      zones=[];pl.vx=200;pl.vy=0;updatePlayer(pl,.05);const normalMomentum=pl.vx;
+      const effects={rootsSlow:rootSpeed<normalSpeed,darkSlow:darkSpeed<normalSpeed,
+        iceSlides:iceMomentum>normalMomentum,
+        serialized:makeOnlineSnapshot().telegraphs!==undefined&&makeOnlineSnapshot().zones!==undefined};
+      save.oaths.iron=oldIron;backToTitle();return {checks,effects};
+    })()`);
+    assert.deepEqual(terrainDesktop.checks,Array(6).fill({spawned:true,reachable:true,avoided:true,effect:true}));
+    assert.deepEqual(terrainDesktop.effects,{rootsSlow:true,darkSlow:true,iceSlides:true,serialized:true});
+    console.log('[QA] Six terrain rules spawn, allow walking out with the iron oath and apply their effects');
     const musicControls=await cdp.eval(`(() => {
       toggleMute();const muted=biomeMusic.volume===0;
       toggleMute();const restored=biomeMusic.volume>0;
@@ -549,6 +589,29 @@ async function main() {
     await until(() => cdp.eval('innerWidth===844'));
     await cdp.eval('resize();backToTitle();discardSoloCheckpoint()');
     console.log('[QA] Portrait phone start saved the first wave');
+    const mobileTerrain=await cdp.eval(`(() => {
+      startGame('solo');const result=[];
+      for(const [n,kind] of [[1,'rune'],[6,'root'],[11,'icefield'],[16,'fire'],[21,'dark'],[26,'skyline']]){
+        beginWave(n);freeze=0;wave.breakT=0;wave.queue=['draugr'];wave.t=999;zoneT=0.001;
+        const pl=players[0];pl.x=ARENA.w/2;pl.y=ARENA.h/2;pl.vx=0;pl.vy=0;
+        cam.x=pl.x-W/2;cam.y=pl.y-H/2;state='playing';update(.02);
+        const mark=telegraphs.find(t=>t.terrain&&t.kind===kind);
+        result.push(!!mark&&mark.dur>=1.2&&(kind==='skyline'||
+          mark.x-mark.r>=cam.x&&mark.x+mark.r<=cam.x+W&&
+          mark.y-mark.r>=cam.y&&mark.y+mark.r<=cam.y+H));
+      }
+      beginWave(1);freeze=0;wave.breakT=0;wave.queue=['draugr'];wave.t=999;zoneT=0.001;
+      const pl=players[0];pl.x=ARENA.w/2;pl.y=ARENA.h/2;pl.vx=0;pl.vy=0;
+      cam.x=pl.x-W/2;cam.y=pl.y-H/2;state='playing';update(.02);draw(performance.now()/1000);
+      return result;
+    })()`);
+    assert.deepEqual(mobileTerrain,[true,true,true,true,true,true]);
+    if(process.env.VALHEM_QA_TERRAIN_SHOT){
+      const shot=await cdp.send('Page.captureScreenshot',{format:'png'});
+      fs.writeFileSync(process.env.VALHEM_QA_TERRAIN_SHOT,Buffer.from(shot.data,'base64'));
+    }
+    await cdp.eval('backToTitle()');
+    console.log('[QA] Six terrain warnings fit the 844×390 viewport');
     const mobile = await cdp.eval(`(() => {
       localStorage.removeItem(SOLO_CHECKPOINT_KEY);soloCheckpoint=null;
       save.sett.touch='on';persist();detectTouch();resize();

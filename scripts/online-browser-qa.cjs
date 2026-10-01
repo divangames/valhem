@@ -118,6 +118,12 @@ async function main() {
     await until(() => guest.eval("state==='playing'&&document.getElementById('pauseScreen').classList.contains('hidden')"));
     console.log('[QA] Guest can pause locally and return to the host phase');
 
+    await host.eval("telegraphs.push({x:1120,y:800,r:42,t:0,dur:8,dmg:0,kind:'skyline',vertical:true,terrain:true});zones.push({x:1120,y:800,r:88,t:0,dur:8,kind:'icefield'})");
+    await until(() => guest.eval("telegraphs.some(t=>t.kind==='skyline'&&t.vertical&&t.terrain)&&zones.some(z=>z.kind==='icefield')"));
+    await host.eval("telegraphs=telegraphs.filter(t=>t.kind!=='skyline');zones=zones.filter(z=>z.kind!=='icefield')");
+    await until(() => guest.eval("!telegraphs.some(t=>t.kind==='skyline')&&!zones.some(z=>z.kind==='icefield')"));
+    console.log('[QA] Terrain warnings and fields synchronized to the guest');
+
     await host.eval("pending=1;openLevel()");
     await until(() => guest.eval("state==='levelup'&&!document.getElementById('levelScreen').classList.contains('hidden')&&choices.length===3"));
     assert.equal(await guest.eval("document.getElementById('levelSub').textContent.includes('хозяин мира')"),true);
