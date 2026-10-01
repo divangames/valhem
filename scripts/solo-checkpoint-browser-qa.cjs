@@ -122,6 +122,24 @@ async function main() {
       fs.writeFileSync(process.env.VALHEM_QA_SHOT, Buffer.from(shot.data, 'base64'));
     }
     await until(() => cdp.eval("document.getElementById('brandSplash').classList.contains('hidden')"), 14000);
+    const nameRiteInitial=await cdp.eval(`(() => {
+      const rite=document.getElementById('nameRite'),confirm=document.getElementById('btnNameConfirm');
+      dispatchEvent(new KeyboardEvent('keydown',{key:'Escape',code:'Escape',bubbles:true}));
+      return {visible:!rite.classList.contains('hidden'),required:!save.profileNamed,disabled:confirm.disabled,
+        stageInert:document.getElementById('stage').inert,noClose:!rite.querySelector('[data-close],.close')};
+    })()`);
+    assert.deepEqual(nameRiteInitial,{visible:true,required:true,disabled:true,stageInert:true,noClose:true});
+    const nameRiteConfirmed=await cdp.eval(`(() => {
+      const input=document.getElementById('fighterNameInput');input.value='ЭЙРИК';input.dispatchEvent(new Event('input',{bubbles:true}));
+      const enabled=!document.getElementById('btnNameConfirm').disabled;document.getElementById('fighterNameForm').requestSubmit();
+      return {enabled,named:save.profileNamed,name:save.net.name,formHidden:document.getElementById('nameRiteFormWrap').classList.contains('hidden'),
+        hintVisible:!document.getElementById('nameRiteDone').classList.contains('hidden'),sameInSettings:document.getElementById('settNetName').value==='ЭЙРИК',
+        persisted:JSON.parse(localStorage.getItem('valhem_save')).profileNamed===true};
+    })()`);
+    assert.deepEqual(nameRiteConfirmed,{enabled:true,named:true,name:'ЭЙРИК',formHidden:true,hintVisible:true,sameInSettings:true,persisted:true});
+    await cdp.eval("document.getElementById('btnNameDone').click()");
+    assert.deepEqual(await cdp.eval(`({hidden:document.getElementById('nameRite').classList.contains('hidden'),stageInert:document.getElementById('stage').inert})`),{hidden:true,stageInert:false});
+    console.log('[QA] Mandatory first-run Viking naming rite passed');
     try {
       await until(() => cdp.eval("!document.getElementById('menuMusic').paused && document.getElementById('menuMusic').volume>0"), 10000);
     } catch (error) {
@@ -164,11 +182,14 @@ async function main() {
       const open=!document.getElementById('settScreen').classList.contains('hidden');
       const slider=document.getElementById('settVol');slider.value='20';slider.dispatchEvent(new Event('input'));
       const adjusted=Math.abs(document.getElementById('menuMusic').volume-0.13)<0.001;
+      const nameInput=document.getElementById('settNetName');nameInput.value='РАГНАР';nameInput.dispatchEvent(new Event('change',{bubbles:true}));
+      const renamed=save.net.name==='РАГНАР'&&save.profileNamed&&scoreForCurrentRun().name==='РАГНАР'&&
+        document.getElementById('onlineName').value==='РАГНАР'&&document.getElementById('onlineName').readOnly;
       toggleMute();const muted=document.getElementById('menuMusic').volume===0;
       toggleMute();document.getElementById('btnBackTitle4').click();
-      return {open,adjusted,muted,returned:!document.getElementById('titleScreen').classList.contains('hidden')};
+      return {open,adjusted,renamed,muted,returned:!document.getElementById('titleScreen').classList.contains('hidden')};
     })()`);
-    assert.deepEqual(settingsMusic, {open:true,adjusted:true,muted:true,returned:true});
+    assert.deepEqual(settingsMusic, {open:true,adjusted:true,renamed:true,muted:true,returned:true});
     const helpDesktop=await cdp.eval(`(() => {
       document.getElementById('btnOfflineHub').click();
       document.getElementById('btnHowToPlay').click();

@@ -814,6 +814,32 @@ button,a,[role="button"],.titleChoice,.hubChoice,.sbtn{touch-action:manipulation
 }
 
 
+/* ===== FIRST NAME RITE ===== */
+#nameRite{position:fixed;inset:0;z-index:1090;display:grid;place-items:center;padding:max(20px,var(--safe-top)) max(18px,var(--safe-right)) max(20px,var(--safe-bottom)) max(18px,var(--safe-left));background:radial-gradient(circle at 50% 38%,rgba(54,40,19,.22),rgba(3,5,8,.9) 58%,rgba(2,3,5,.97));backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);overflow:auto}
+#nameRite.hidden{display:none}
+.nameRiteCard{width:min(520px,100%);max-height:calc(100dvh - var(--safe-top) - var(--safe-bottom) - 28px);overflow:auto;padding:28px 28px 24px;text-align:center;color:var(--bone);border:1px solid #8a6d2a;background:linear-gradient(180deg,rgba(25,22,16,.98),rgba(7,9,12,.98));box-shadow:0 28px 80px rgba(0,0,0,.72),inset 0 0 0 1px rgba(255,220,135,.05),inset 0 0 45px rgba(216,169,60,.055);clip-path:polygon(18px 0,calc(100% - 18px) 0,100% 18px,100% calc(100% - 18px),calc(100% - 18px) 100%,18px 100%,0 calc(100% - 18px),0 18px)}
+.nameRiteRunes{font:15px 'Forum';letter-spacing:.8em;color:var(--gold);opacity:.72;padding-left:.8em;margin-bottom:8px}
+.nameRiteCard h2{margin:0;font:clamp(28px,5vw,40px)/1 'Forum';font-weight:400;letter-spacing:.12em;color:#f3e7ca;text-shadow:0 0 22px rgba(216,169,60,.25)}
+.nameRiteLead{width:min(410px,100%);margin:14px auto 0;font:15px/1.45 'Alegreya';color:#c9c0aa}
+.nameRiteLabel{display:block;margin:20px 0 8px;font:11px 'Forum';letter-spacing:.22em;color:#b99a58}
+#fighterNameInput{width:min(360px,100%);height:56px;padding:0 16px;border:1px solid #765f30;background:rgba(4,6,9,.88);color:#fff0c6;text-align:center;font:22px 'Forum';letter-spacing:.12em;outline:none;caret-color:var(--gold-hi);box-shadow:inset 0 0 18px rgba(0,0,0,.42)}
+#fighterNameInput::placeholder{color:#5e5a50}
+#fighterNameInput:focus{border-color:var(--gold-hi);box-shadow:0 0 0 2px rgba(216,169,60,.13),inset 0 0 18px rgba(0,0,0,.42)}
+.nameRiteRule{min-height:18px;margin-top:7px;font:12px 'Alegreya';color:#8f9298}
+.nameRiteRule.bad{color:#ff8b77}
+#btnNameConfirm,#btnNameDone{width:min(360px,100%);min-height:52px;margin:14px auto 0}
+#btnNameConfirm:disabled{opacity:.36;filter:saturate(.35);cursor:not-allowed;transform:none}
+.nameRiteSeal{width:62px;height:62px;display:grid;place-items:center;margin:2px auto 13px;border:1px solid var(--gold-dim);border-radius:50%;font:34px 'Forum';color:var(--gold-hi);box-shadow:0 0 22px rgba(216,169,60,.16)}
+.nameRiteChosen{margin:14px 0 0;font:clamp(22px,5vw,30px) 'Forum';letter-spacing:.12em;color:#ffe29a}
+.nameRiteHint{margin:12px auto 0;max-width:400px;font:14px/1.45 'Alegreya';color:#b9b09d}
+body.name-rite-open{overflow:hidden}
+@media(max-height:520px) and (orientation:landscape){
+ .nameRiteCard{width:min(650px,92vw);padding:16px 22px 14px}
+ .nameRiteRunes{font-size:10px;margin-bottom:3px}.nameRiteCard h2{font-size:25px}.nameRiteLead{font-size:12px;line-height:1.3;margin-top:7px}
+ .nameRiteLabel{margin-top:10px}#fighterNameInput{height:46px;font-size:18px}#btnNameConfirm,#btnNameDone{min-height:46px;margin-top:8px}
+ .nameRiteSeal{width:46px;height:46px;font-size:26px;margin-bottom:7px}.nameRiteHint{font-size:12px;margin-top:7px}
+}
+
 /* ===== v2.4.1 SELF-CONTAINED STARTUP ===== */
 #startup{position:fixed;inset:0;z-index:1000;display:flex;align-items:center;justify-content:center;padding:24px;touch-action:manipulation;
  background:radial-gradient(ellipse at 50% 42%,#17191d 0%,#101318 58%,#0b0e13 100%);color:var(--bone);
@@ -1130,7 +1156,8 @@ body.touch .trainingActions{margin-top:3px}
       <div class="onlineSetup">
         <div class="onlinePane" id="onlineLobbyPane">
           <div class="secHead">ИМЯ ВОИНА</div>
-          <input class="netInput" id="onlineName" maxlength="18" placeholder="Имя персонажа">
+          <input class="netInput" id="onlineName" maxlength="18" readonly aria-readonly="true">
+          <div class="onlineNotice">Имя высечено в саге · изменить можно в «Рунах очага».</div>
           <div class="onlineWorldBox">
             <div class="secHead">СЕТЕВОЙ МИР</div>
             <div id="onlineWorldState" class="onlineWorldState">Проверяем сохранение мира…</div>
@@ -1321,8 +1348,8 @@ body.touch .trainingActions{margin-top:3px}
           <input class="netInput" id="settApi" type="url" inputmode="url" placeholder="https://game.example.ru">
         </div>
         <div class="srow">
-          <label>Имя в таблице<span class="sdesc">1–18 символов</span></label>
-          <input class="netInput" id="settNetName" maxlength="18" placeholder="СКАЛЬД">
+          <label>Имя бойца<span class="sdesc">Высечено в летописи и видно дружине · 1–18 знаков</span></label>
+          <input class="netInput" id="settNetName" maxlength="18" autocomplete="off" placeholder="ЭЙРИК">
         </div>
         <div class="srow">
           <label>Облако и сервер<span class="sdesc" id="netStatus">OFFLINE · игра работает локально</span></label>
@@ -1480,6 +1507,28 @@ body.touch .trainingActions{margin-top:3px}
  </div>
  <div class="brandLogoWrap"><img src="assets/divan/divan_logo.webp" alt="DIVAN GAMES" decoding="async"></div>
 </div>
+<section id="nameRite" class="hidden" role="dialog" aria-modal="true" aria-labelledby="nameRiteTitle">
+ <div class="nameRiteCard">
+  <div id="nameRiteFormWrap">
+   <div class="nameRiteRunes" aria-hidden="true">ᚾ ᚨ ᚠ ᚾ</div>
+   <h2 id="nameRiteTitle">НАРЕКИ СВОЕГО БОЙЦА</h2>
+   <p class="nameRiteLead">Без имени нет саги. Высеки имя, под которым тебя узнают скальды, дружина и Чертог рекордов.</p>
+   <form id="fighterNameForm" novalidate>
+    <label class="nameRiteLabel" for="fighterNameInput">ИМЯ, КОТОРЫМ ТЕБЯ ПОМНЯТ</label>
+    <input id="fighterNameInput" type="text" maxlength="18" autocomplete="off" autocapitalize="words" spellcheck="false" placeholder="ЭЙРИК" aria-describedby="nameRiteRule">
+    <div id="nameRiteRule" class="nameRiteRule">1–18 знаков · это имя увидит твоя дружина</div>
+    <button id="btnNameConfirm" class="btn" type="submit" disabled>ВЫСЕЧЬ ИМЯ В САГЕ</button>
+   </form>
+  </div>
+  <div id="nameRiteDone" class="hidden">
+   <div class="nameRiteSeal" aria-hidden="true">ᛟ</div>
+   <h2>ИМЯ ВЫСЕЧЕНО</h2>
+   <div id="nameRiteChosen" class="nameRiteChosen"></div>
+   <p class="nameRiteHint">Так тебя запомнят скальды и товарищи. Если норны изменят судьбу, новое имя можно высечь в «Рунах очага».</p>
+   <button id="btnNameDone" class="btn" type="button">К ОЧАГУ</button>
+  </div>
+ </div>
+</section>
 <audio id="menuMusic" preload="none" loop>
  <source src="assets/music/VALHEM%20-%20Viking%20Trail.opus" type="audio/ogg; codecs=opus">
  <source src="assets/music/VALHEM%20-%20Viking%20Trail.wav" type="audio/wav">
@@ -1582,7 +1631,7 @@ addEventListener('orientationchange',function(){if(typeof resetHeldInput==='func
 if(window.visualViewport)visualViewport.addEventListener('resize',resize);
 
 /* ============ save ============ */
- const DEF={glory:0,best:0,dailyBest:0,lastDay:'',weeklyBest:0,lastWeek:'',sagaRuns:{},contractDay:'',contractProg:{},contractDone:{},net:{id:'',token:'',name:'СКАЛЬД',api:''},pendingScores:[],hero:'viking',
+ const DEF={profileNamed:false,glory:0,best:0,dailyBest:0,lastDay:'',weeklyBest:0,lastWeek:'',sagaRuns:{},contractDay:'',contractProg:{},contractDone:{},net:{id:'',token:'',name:'СКАЛЬД',api:''},pendingScores:[],hero:'viking',
  heroes:{berserk:false,maiden:false,ulf:false},
  up:{hp:0,dmg:0,spd:0,rage:0,gold:0,gift:0,valk:0},
  oaths:{iron:false,fury:false,horde:false,blood:false},
@@ -1605,6 +1654,33 @@ function load(){try{const s=JSON.parse(localStorage.getItem('valhem_save'));
    sett:Object.assign({},DEF.sett,s.sett||{})});}catch(e){}
  return JSON.parse(JSON.stringify(DEF));}
 let save=load();
+function cleanFighterName(v){return String(v||'').replace(/[\u0000-\u001F\u007F<>]/g,'').replace(/\s+/g,' ').trim().slice(0,18);}
+function fighterNameReady(){return !!(save.profileNamed&&save.net&&cleanFighterName(save.net.name));}
+function setFighterName(value){
+ const name=cleanFighterName(value);if(!name)return '';
+ if(!save.net)save.net={id:'',token:'',name:name,api:''};
+ save.net.name=name;save.profileNamed=true;persist();
+ const sett=$('settNetName'),online=$('onlineName');if(sett)sett.value=name;if(online)online.value=name;
+ return name;
+}
+function syncNameRiteInput(){
+ const input=$('fighterNameInput'),button=$('btnNameConfirm'),rule=$('nameRiteRule');if(!input||!button||!rule)return;
+ const name=cleanFighterName(input.value),hasRaw=!!String(input.value||'').trim();
+ button.disabled=!name;rule.classList.toggle('bad',hasRaw&&!name);
+ rule.textContent=hasRaw&&!name?'ИМЯ НЕ МОЖЕТ УЙТИ В ТУМАН':'1–18 знаков · это имя увидит твоя дружина';
+}
+function showNameRite(){
+ if(fighterNameReady())return false;
+ const rite=$('nameRite'),stage=$('stage'),form=$('nameRiteFormWrap'),done=$('nameRiteDone'),input=$('fighterNameInput');if(!rite||!input)return false;
+ form.classList.remove('hidden');done.classList.add('hidden');
+ const old=cleanFighterName(save.net&&save.net.name);input.value=old&&old!=='СКАЛЬД'?old:'';
+ rite.classList.remove('hidden');document.body.classList.add('name-rite-open');if(stage)stage.inert=true;syncNameRiteInput();
+ setTimeout(function(){try{input.focus({preventScroll:true});}catch(e){input.focus();}},80);return true;
+}
+function hideNameRite(){
+ const rite=$('nameRite'),stage=$('stage');if(!fighterNameReady())return false;
+ if(rite)rite.classList.add('hidden');document.body.classList.remove('name-rite-open');if(stage)stage.inert=false;return true;
+}
 let trainingActive=false,trainingStep=0,trainingTimer=0,trainingSaved=null;
 function persist(){if(trainingActive)return;try{localStorage.setItem('valhem_save',JSON.stringify(save));}catch(e){}}
 function randomNetSecret(){if(window.crypto&&crypto.getRandomValues){const bytes=new Uint8Array(32);crypto.getRandomValues(bytes);return Array.from(bytes,function(v){return v.toString(16).padStart(2,'0');}).join('');}return 't-'+Date.now().toString(36)+'-'+Math.random().toString(36).slice(2)+Math.random().toString(36).slice(2);}
@@ -1662,7 +1738,7 @@ let onlinePhaseSignature='',onlineShopSignature='',netGuestInputAt=0;
 let onlineWorld=null,onlineResumeCheckpoint=null,onlineCheckpointSaving=false,onlineCheckpointTask=null,onlineApplyingCheckpoint=false,onlineReconnectTimer=0,onlineReconnectAttempts=0,onlineSocketGeneration=0;
 let netGuestInput={mx:0,my:0,attack:false};
 function cleanOnlineName(v,max,fallback){return String(v||'').replace(/[<>]/g,'').trim().slice(0,max)||(fallback||'');}
-function onlineIdentity(){ensureNetId();const input=$('onlineName');const name=cleanOnlineName(input&&input.value,18,(save.net&&save.net.name)||'СКАЛЬД');save.net.name=name;persist();if(input)input.value=name;return {clientId:save.net.id,name:name};}
+function onlineIdentity(){ensureNetId();const input=$('onlineName'),name=cleanFighterName(save.net&&save.net.name)||'ВОИН';if(input)input.value=name;return {clientId:save.net.id,name:name};}
 function onlineWorldCredentials(){ensureNetId();return {clientId:save.net.id,token:save.net.token};}
 function onlineWorldDate(value){try{return new Date(value).toLocaleString('ru-RU',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'});}catch(e){return '';}}
 function renderOnlineWorld(){const stateEl=$('onlineWorldState'),modeEl=$('onlineWorldMode'),del=$('btnDeleteOnlineWorld');if(!stateEl||!modeEl||!del)return;if(onlineWorld){stateEl.textContent='';const name=document.createElement('strong');name.textContent=cleanOnlineName(onlineWorld.worldName,28,'Сетевой мир');stateEl.appendChild(name);stateEl.appendChild(document.createTextNode(' · завершена волна '+roman(onlineWorld.wave||0)));stateEl.appendChild(document.createElement('br'));stateEl.appendChild(document.createTextNode('Сохранено '+onlineWorldDate(onlineWorld.updatedAt)));modeEl.options[0].disabled=false;if(modeEl.value!=='new')modeEl.value='resume';del.classList.remove('hidden');if(!$('onlineWorldName').value)$('onlineWorldName').value=onlineWorld.worldName||'';}else{stateEl.textContent='Сохранённого сетевого мира нет. Будет создан новый.';modeEl.options[0].disabled=true;modeEl.value='new';del.classList.add('hidden');}}
@@ -1680,7 +1756,7 @@ async function pollOnlineRoom(){if(!onlineRoom)return;try{const r=await netCall(
 function startOnlinePoll(){stopOnlinePoll();onlinePoll=setInterval(pollOnlineRoom,3000);}
 function stopOnlinePoll(){if(onlinePoll){clearInterval(onlinePoll);onlinePoll=0;}}
 async function leaveOnlineRoom(){const room=onlineRoom;if(!room)return;if(onlineHost&&state==='playing'&&wave.breakT>0&&!wave.queue.length&&!enemies.length)await Promise.race([saveOnlineWorldCheckpoint(false),new Promise(function(resolve){setTimeout(resolve,2000);})]);onlineRoom=null;onlineActive=false;onlineHost=false;onlineGuest=false;onlineRoleHost=false;onlineResumeCheckpoint=null;stopOnlinePoll();closeOnlineSocket();renderCurrentRoom();try{await netCall('/rooms/'+room.code+'/leave',{method:'POST',body:JSON.stringify({clientId:ensureNetId()})});}catch(e){}if(state!=='title')backToTitle();loadOnlineWorld();refreshRooms();}
-function openOnline(){AU.init();AU.sClick();ensureNetId();$('onlineName').value=(save.net&&save.net.name)||'СКАЛЬД';$('onlineWorldName').value='Мир '+((save.net&&save.net.name)||'СКАЛЬДА');$('onlineCode').value='';renderCurrentRoom();showOnly('onlineScreen');loadOnlineWorld();renderOnlineBoard();if(onlineRoom){pollOnlineRoom();startOnlinePoll();connectOnlineSocket();}else refreshRooms();}
+function openOnline(){if(!fighterNameReady()){showNameRite();return;}AU.init();AU.sClick();ensureNetId();const fighter=cleanFighterName(save.net&&save.net.name)||'ВОИН';$('onlineName').value=fighter;$('onlineWorldName').value='Мир '+fighter;$('onlineCode').value='';renderCurrentRoom();showOnly('onlineScreen');loadOnlineWorld();renderOnlineBoard();if(onlineRoom){pollOnlineRoom();startOnlinePoll();connectOnlineSocket();}else refreshRooms();}
 function onlineWsUrl(){return netBase().replace(/^http/,'ws')+'/ws?room='+encodeURIComponent(onlineRoom.code)+'&clientId='+encodeURIComponent(ensureNetId());}
 function closeOnlineSocket(){setOnlineLink('');onlineSocketGeneration++;if(onlineReconnectTimer){clearTimeout(onlineReconnectTimer);onlineReconnectTimer=0;}if(onlineSocket){const ws=onlineSocket;onlineSocket=null;try{ws.close();}catch(e){}}}
 function scheduleOnlineReconnect(){if(!onlineRoom||onlineReconnectTimer)return;onlineReconnectAttempts++;const delay=Math.min(10000,700*Math.pow(1.65,Math.min(onlineReconnectAttempts,7)));setOnlineStatus('ВОССТАНАВЛИВАЕМ СВЯЗЬ · попытка '+onlineReconnectAttempts,false);if(onlineActive){setOnlineLink('СВЯЗЬ ПОТЕРЯНА · ВОССТАНАВЛИВАЕМ ПОХОД');setHint('СВЯЗЬ ПОТЕРЯНА · ВОЗВРАЩАЕМСЯ В МИР',4);}onlineReconnectTimer=setTimeout(async function(){onlineReconnectTimer=0;if(!onlineRoom)return;try{const r=await netCall('/rooms/'+onlineRoom.code+'/join',{method:'POST',body:JSON.stringify(onlineIdentity())});onlineRoom=r.room;renderCurrentRoom();connectOnlineSocket();}catch(e){if(onlineReconnectAttempts<12)scheduleOnlineReconnect();else{setOnlineStatus('НЕ УДАЛОСЬ ВЕРНУТЬСЯ · '+e.message,false);if(onlineActive){setOnlineLink('МИР НЕДОСТУПЕН · ОТКРОЙ ПАУЗУ И ПОКИНЬ ПОХОД');setHint('МИР НЕДОСТУПЕН · ВЕРНИСЬ В ОНЛАЙН-МЕНЮ',6);}}}},delay);}
@@ -4911,7 +4987,7 @@ function renderSettings(){
  $('settVolV').textContent=save.sett.vol+'%';
  $('settScale').value=save.sett.scale;
  $('settScaleV').textContent=save.sett.scale+'%';
- $('settApi').value=(save.net&&save.net.api)||'';$('settNetName').value=(save.net&&save.net.name)||'СКАЛЬД';
+ $('settApi').value=(save.net&&save.net.api)||'';$('settNetName').value=cleanFighterName(save.net&&save.net.name)||'';
  $('settTouch').value=save.sett.touch||'auto';$('settPerf').value=save.sett.perf||'auto';$('settTouchSize').value=save.sett.touchSize||100;$('settTouchSizeV').textContent=(save.sett.touchSize||100)+'%';$('settMirror').classList.toggle('on',!!save.sett.mirror);
  $('settShake').classList.toggle('on',save.sett.shake!==false);
  $('settHitstop').classList.toggle('on',save.sett.hitstop!==false);
@@ -5109,9 +5185,22 @@ async function toggleFS(){
 }
 ensureContracts();ensureNetId();soloCheckpoint=readSoloCheckpoint();updateTitleStats();resize();
 
+/* ============ rite of naming ============ */
+$('fighterNameInput').addEventListener('input',syncNameRiteInput);
+$('fighterNameForm').addEventListener('submit',function(event){
+ event.preventDefault();
+ const name=setFighterName($('fighterNameInput').value);
+ if(!name){syncNameRiteInput();$('nameRiteRule').classList.add('bad');$('nameRiteRule').textContent='БЕЗ ИМЕНИ В САГУ НЕ ВОЙТИ';return;}
+ $('nameRiteChosen').textContent=name;
+ $('nameRiteFormWrap').classList.add('hidden');$('nameRiteDone').classList.remove('hidden');
+ try{AU.sRune();}catch(e){}
+ setTimeout(function(){$('btnNameDone').focus({preventScroll:true});},40);
+});
+$('btnNameDone').onclick=function(){try{AU.sClick();}catch(e){}hideNameRite();updateTitleStats();};
+
 /* ============ settings handlers ============ */
 $('settApi').addEventListener('change',function(e){save.net.api=e.target.value.trim();persist();setNetStatus('API ИЗМЕНЁН · ПРОВЕРЬ СОЕДИНЕНИЕ');});
-$('settNetName').addEventListener('change',function(e){save.net.name=(e.target.value.trim()||'СКАЛЬД').slice(0,18);e.target.value=save.net.name;persist();});
+$('settNetName').addEventListener('change',function(e){const previous=cleanFighterName(save.net&&save.net.name),next=cleanFighterName(e.target.value);if(!next){e.target.value=previous;e.target.setCustomValidity('БЕЗ ИМЕНИ В САГУ НЕ ВОЙТИ');e.target.reportValidity();setTimeout(function(){e.target.setCustomValidity('');},1200);return;}e.target.setCustomValidity('');setFighterName(next);e.target.value=next;});
 $('btnNetTest').onclick=function(){netTest();};$('btnCloudSave').onclick=function(){netBackup();};$('btnCloudLoad').onclick=function(){netRestore();};
 $('settVol').addEventListener('input',function(e){save.sett.vol=+e.target.value;$('settVolV').textContent=save.sett.vol+'%';AU.setVol(save.sett.vol/100);menuMusicVolume(false);syncGameMusicVolume();persist();});
 $('settScale').addEventListener('input',function(e){save.sett.scale=+e.target.value;$('settScaleV').textContent=save.sett.scale+'%';resize();persist();});
@@ -5288,7 +5377,7 @@ $('btnStartOnline').onclick=function(){requestOnlineStart();};
 $('btnDeleteOnlineWorld').onclick=function(){deleteOnlineWorld();};
 $('onlineWorldMode').addEventListener('change',function(){if(this.value==='resume'&&onlineWorld&&onlineWorld.worldName)$('onlineWorldName').value=onlineWorld.worldName;});
 $('onlineCode').addEventListener('input',function(e){e.target.value=e.target.value.toUpperCase().replace(/[^A-Z2-9]/g,'').slice(0,6);});
-$('onlineName').addEventListener('change',function(e){save.net.name=cleanOnlineName(e.target.value,18,'СКАЛЬД');e.target.value=save.net.name;persist();});
+$('onlineName').addEventListener('focus',function(){this.blur();});
 $('btnStartSolo').onclick=function(){startGame('solo');};
 $('btnStartCoop').onclick=function(){startGame('coop');};
 $('btnAgain').onclick=function(){if(!onlineActive)startGame(mode);};
@@ -5318,6 +5407,7 @@ function loop(now){
 let gameLoopStarted=false;
 window.startValhem=function(){if(gameLoopStarted)return;gameLoopStarted=true;try{AU.init();playMenuMusic(true);}catch(error){}if(save.pendingScores.length)void flushPendingScores();last=performance.now();requestAnimationFrame(loop);};
 window.finishBrandSplash=function(){
+ if(!fighterNameReady())showNameRite();
  if(document.hidden||audioBackground)return;
  if(menuMusic&&menuMusic.paused){const playing=menuMusic.play();if(playing&&playing.catch)playing.catch(function(){});}
  menuMusicVolume(true);

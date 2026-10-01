@@ -73,7 +73,7 @@ async function browser(url, api, profiles, children) {
   const cdp = new Cdp(ws);
   await cdp.send('Runtime.enable');
   await until(() => cdp.eval("typeof openOnline==='function' && typeof startValhem==='function'"), 45000);
-  await cdp.eval("save.net.api=" + JSON.stringify(api) + ";persist();startValhem();document.getElementById('startup').remove();openOnline();true");
+  await cdp.eval("save.net.api=" + JSON.stringify(api) + ";setFighterName('QA');persist();startValhem();document.getElementById('startup').remove();openOnline();true");
   return cdp;
 }
 async function main() {
@@ -109,9 +109,9 @@ async function main() {
       assert.deepEqual(rows,['Астрид','Эйрик']);
     }
     console.log('[QA] Two independent browsers share the same Chronicle leaderboard');
-    await host.eval("document.getElementById('onlineName').value='Хозяин';createRoom()");
+    await host.eval("setFighterName('Хозяин');document.getElementById('onlineName').value=save.net.name;createRoom()");
     const code = await until(() => host.eval("onlineRoom&&onlineRoom.code"));
-    await guest.eval("document.getElementById('onlineName').value='Гость';joinRoom(" + JSON.stringify(code) + ")");
+    await guest.eval("setFighterName('Гость');document.getElementById('onlineName').value=save.net.name;joinRoom(" + JSON.stringify(code) + ")");
     await until(() => guest.eval("onlineRoom&&onlineRoom.code===" + JSON.stringify(code)));
     await until(() => host.eval("onlineRoom&&onlineRoom.playerCount===2&&onlineSocket&&onlineSocket.readyState===1"));
     await host.eval('requestOnlineStart()');
