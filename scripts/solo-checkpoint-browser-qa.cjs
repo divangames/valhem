@@ -271,6 +271,55 @@ async function main() {
       backToTitle();discardSoloCheckpoint();return spent&&same;
     })()`), true);
     console.log('[QA] Build summary and one-use gift reroll passed');
+    const waveStartSave = await cdp.eval(`(() => {
+      startGame('solo');
+      const first=readSoloCheckpoint();
+      const initial=first?.wave===0&&first?.resumeWave===1&&
+        document.getElementById('continueSoloDetails').textContent.includes('волны I');
+      team.gold=42;wave.breakT=0;beginWave(1);
+      const checkpoint=readSoloCheckpoint();
+      team.gold=999;players[0].hp=5;kills=20;
+      pauseGame(true);
+      const exitLabel=document.getElementById('btnQuitRun').textContent==='СОХРАНИТЬ И ВЫЙТИ'&&
+        document.getElementById('pauseQuitText').textContent.includes('текущей волны');
+      document.getElementById('btnQuitRun').click();document.getElementById('btnQuitYes').click();
+      const exited=state==='title'&&!document.getElementById('btnContinueSolo').classList.contains('hidden');
+      return {initial,exitLabel,exited,wave:checkpoint?.wave,resumeWave:checkpoint?.resumeWave,
+        gold:checkpoint?.team.gold,hp:checkpoint?.players[0].hp,kills:checkpoint?.kills};
+    })()`);
+    assert.deepEqual(waveStartSave,{initial:true,exitLabel:true,exited:true,wave:0,resumeWave:1,gold:42,hp:100,kills:0});
+    await reload(cdp);
+    await until(() => cdp.eval("!document.getElementById('bootEnter').classList.contains('hidden')"));
+    const waveEnter=await cdp.eval(`(() => {const r=document.getElementById('bootEnter').getBoundingClientRect();
+      return {x:r.left+r.width/2,y:r.top+r.height/2};})()`);
+    await cdp.send('Input.dispatchMouseEvent',{type:'mousePressed',x:waveEnter.x,y:waveEnter.y,button:'left',clickCount:1});
+    await cdp.send('Input.dispatchMouseEvent',{type:'mouseReleased',x:waveEnter.x,y:waveEnter.y,button:'left',clickCount:1});
+    await until(() => cdp.eval("document.getElementById('brandSplash').classList.contains('hidden')"),8000);
+    const firstWaveResume=await cdp.eval(`(() => {
+      const visible=!document.getElementById('btnContinueSolo').classList.contains('hidden');
+      document.getElementById('btnContinueSolo').click();
+      const restored=wave.num===0&&wave.breakT>0&&team.gold===42&&players[0].hp===100&&kills===0;
+      wave.breakT=.01;update(.03);
+      const restarted=wave.num===1&&wave.queue.length>0&&readSoloCheckpoint()?.resumeWave===1;
+      backToTitle();return {visible,restored,restarted};
+    })()`);
+    assert.deepEqual(firstWaveResume,{visible:true,restored:true,restarted:true});
+    const laterWaveResume=await cdp.eval(`(() => {
+      startGame('solo');wave.num=2;wave.breakT=0;wave.queue=[];enemies=[];
+      team.gold=120;players[0].hp=60;routePending=Object.assign(neutralRoute(),{id:'elite',name:'Охота на элиту',eliteBoost:.4});
+      beginWave(3);
+      const checkpoint=readSoloCheckpoint();
+      team.gold=999;players[0].hp=9;kills=55;
+      pauseGame(true);document.getElementById('btnQuitRun').click();document.getElementById('btnQuitYes').click();
+      resumeSoloCheckpoint();
+      const restored=wave.num===2&&team.gold===120&&players[0].hp===60&&kills===0;
+      wave.breakT=.01;update(.03);
+      const restarted=wave.num===3&&routeActive.id==='elite'&&team.gold===120&&players[0].hp===60;
+      backToTitle();discardSoloCheckpoint();
+      return {saved:checkpoint?.wave===2&&checkpoint?.resumeWave===3,restored,restarted};
+    })()`);
+    assert.deepEqual(laterWaveResume,{saved:true,restored:true,restarted:true});
+    console.log('[QA] Solo resumes from the start of the interrupted wave after exit and reload');
     const deathLesson = await cdp.eval(`(() => {
       const originalName=save.net.name;save.net.name='ЭЙРИК';persist();
       startGame('solo');wave.num=2;wave.breakT=0;
@@ -464,10 +513,42 @@ async function main() {
       return {visible,wave:wave.num,gold:team.gold,state};
     })()`), {visible:true,wave:1,gold:77,state:'playing'});
     console.log('[QA] Offline PWA reload passed');
+    assert.equal(await cdp.eval(`(() => {
+      wave.breakT=0;beginWave(2);const cp=readSoloCheckpoint();
+      team.gold=999;backToTitle();return cp?.wave===1&&cp?.resumeWave===2&&cp?.team.gold===77;
+    })()`),true);
+    await reload(cdp);
+    await until(() => cdp.eval("!document.getElementById('bootEnter').classList.contains('hidden')"));
+    const offlineWaveEnter=await cdp.eval(`(() => {const r=document.getElementById('bootEnter').getBoundingClientRect();
+      return {x:r.left+r.width/2,y:r.top+r.height/2};})()`);
+    await cdp.send('Input.dispatchMouseEvent',{type:'mousePressed',x:offlineWaveEnter.x,y:offlineWaveEnter.y,button:'left',clickCount:1});
+    await cdp.send('Input.dispatchMouseEvent',{type:'mouseReleased',x:offlineWaveEnter.x,y:offlineWaveEnter.y,button:'left',clickCount:1});
+    await until(() => cdp.eval("document.getElementById('brandSplash').classList.contains('hidden')"),8000);
+    assert.deepEqual(await cdp.eval(`(() => {
+      const offline=!navigator.onLine;
+      const visible=!document.getElementById('btnContinueSolo').classList.contains('hidden');
+      document.getElementById('btnContinueSolo').click();
+      return {offline,visible,wave:wave.num,next:readSoloCheckpoint()?.resumeWave,gold:team.gold};
+    })()`),{offline:true,visible:true,wave:1,next:2,gold:77});
+    console.log('[QA] Offline PWA interrupted-wave continuation passed');
     await cdp.send('Network.emulateNetworkConditions', {offline:false,latency:0,downloadThroughput:0,uploadThroughput:0});
     await cdp.send('Emulation.setDeviceMetricsOverride',
       {width:844,height:390,deviceScaleFactor:2,mobile:true});
     await cdp.send('Emulation.setTouchEmulationEnabled', {enabled:true,maxTouchPoints:1});
+    await cdp.send('Emulation.setDeviceMetricsOverride',
+      {width:390,height:844,deviceScaleFactor:2,mobile:true});
+    await until(() => cdp.eval('innerWidth===390'));
+    assert.deepEqual(await cdp.eval(`(() => {
+      save.sett.touch='on';persist();detectTouch();resize();startGame('solo');
+      const cp=readSoloCheckpoint();
+      return {portrait:W<H,paused:state==='paused'&&orientationPaused,
+        firstWave:cp?.wave===0&&cp?.resumeWave===1};
+    })()`),{portrait:true,paused:true,firstWave:true});
+    await cdp.send('Emulation.setDeviceMetricsOverride',
+      {width:844,height:390,deviceScaleFactor:2,mobile:true});
+    await until(() => cdp.eval('innerWidth===844'));
+    await cdp.eval('resize();backToTitle();discardSoloCheckpoint()');
+    console.log('[QA] Portrait phone start saved the first wave');
     const mobile = await cdp.eval(`(() => {
       localStorage.removeItem(SOLO_CHECKPOINT_KEY);soloCheckpoint=null;
       save.sett.touch='on';persist();detectTouch();resize();
@@ -477,9 +558,26 @@ async function main() {
       button.click();
       const resumed=state==='playing'&&touchMode&&wave.num===1&&W>H;
       abandonRun();
-      return {visible,resumed,cleared:readSoloCheckpoint()===null};
+      const saved=readSoloCheckpoint()?.wave===1;
+      discardSoloCheckpoint();return {visible,resumed,saved};
     })()`);
-    assert.deepEqual(mobile, {visible:true,resumed:true,cleared:true});
+    assert.deepEqual(mobile, {visible:true,resumed:true,saved:true});
+    const mobileWaveResume=await cdp.eval(`(() => {
+      startGame('solo');wave.num=3;wave.breakT=0;wave.queue=[];enemies=[];
+      beginWave(4);
+      document.getElementById('mobilePause').click();
+      const paused=state==='paused'&&document.getElementById('btnQuitRun').textContent==='СОХРАНИТЬ И ВЫЙТИ';
+      document.getElementById('btnQuitRun').click();document.getElementById('btnQuitYes').click();
+      const checkpoint=readSoloCheckpoint();
+      const button=document.getElementById('btnContinueSolo'),rect=button.getBoundingClientRect();
+      const visible=!button.classList.contains('hidden')&&rect.left>=0&&rect.right<=innerWidth;
+      button.click();
+      const resumed=state==='playing'&&wave.num===3&&wave.breakT>0&&touchMode;
+      discardSoloCheckpoint();backToTitle();
+      return {paused,visible,resumed,fromWave:checkpoint?.resumeWave};
+    })()`);
+    assert.deepEqual(mobileWaveResume,{paused:true,visible:true,resumed:true,fromWave:4});
+    console.log('[QA] Mobile interrupted-wave continuation passed');
     const mobileBuild = await cdp.eval(`(() => {
       startGame('solo');wave.num=1;wave.breakT=9;
       pauseGame(true);

@@ -1983,7 +1983,8 @@ function freeSoloRun(){return !trainingActive&&mode==='solo'&&!dailyMode&&!weekl
 function validSoloCheckpoint(cp){
  const pl=cp&&Array.isArray(cp.players)&&cp.players[0];
  return !!(cp&&cp.schema===1&&cp.kind==='free-solo'&&HEROES[cp.hero]&&
-  Number.isSafeInteger(cp.wave)&&cp.wave>=1&&cp.wave<100000&&
+  Number.isSafeInteger(cp.wave)&&cp.wave>=0&&cp.wave<100000&&
+  (cp.resumeWave==null?cp.wave>=1:(Number.isSafeInteger(cp.resumeWave)&&cp.resumeWave===cp.wave+1))&&
   cp.team&&Number.isFinite(cp.team.gold)&&cp.team.gold>=0&&Number.isFinite(cp.team.level)&&cp.team.level>=1&&
   Number.isFinite(cp.team.xp)&&Number.isFinite(cp.team.xpNext)&&Array.isArray(cp.team.relics)&&
   cp.team.relics.every(function(id){return !!relicDef(id);})&&
@@ -2011,7 +2012,7 @@ function updateSoloCheckpointMenu(){
  const cp=soloCheckpoint,show=!!cp;
  $('btnContinueSolo').classList.toggle('hidden',!show);
  $('btnDiscardSolo').classList.toggle('hidden',!show);
- if(show)$('continueSoloDetails').textContent=HEROES[cp.hero].name+' · завершена волна '+roman(cp.wave)+' · далее '+roman(cp.wave+1);
+ if(show)$('continueSoloDetails').textContent=HEROES[cp.hero].name+' · начать с волны '+roman(cp.resumeWave||cp.wave+1);
  if(!show||!soloDiscardArmed)$('btnDiscardSolo').textContent='ОТКАЗАТЬСЯ ОТ СОХРАНЁННОГО ПОХОДА';
 }
 function discardSoloCheckpoint(){
@@ -2019,9 +2020,11 @@ function discardSoloCheckpoint(){
  clearGiftReroll();
  soloCheckpoint=null;soloDiscardArmed=false;updateSoloCheckpointMenu();
 }
-function saveSoloCheckpoint(){
- if(!freeSoloRun()||state!=='playing'||wave.num<1||wave.breakT<=0||wave.queue.length||enemies.length||pending||masteryQueue.length||relicQueue.length||!players[0]||!players[0].alive)return false;
- const cp={schema:1,kind:'free-solo',hero:save.hero,wave:wave.num,
+function saveSoloCheckpoint(resumeWave){
+ const atWaveStart=Number.isSafeInteger(resumeWave)&&resumeWave===wave.num+1;
+ if(!freeSoloRun()||state!=='playing'||(!atWaveStart&&(wave.num<1||wave.breakT<=0))||
+  wave.queue.length||enemies.length||pending||masteryQueue.length||relicQueue.length||!players[0]||!players[0].alive)return false;
+ const cp={schema:1,kind:'free-solo',hero:save.hero,wave:wave.num,resumeWave:atWaveStart?resumeWave:null,
   team:team,players:players,pickups:pickups,barrels:barrels,altars:altars,pillars:PILLARS,
   shopOffers:shop.offers,routePending:routePending,routeHistory:routeHistory,
   kills:kills,runTime:runTime,runStats:runStats,oaths:save.oaths,chal:save.chal,
@@ -2047,12 +2050,12 @@ function resumeSoloCheckpoint(){
  shop.offers=cp.shopOffers;shop.goldShown=-1;
  routePending=Object.assign(neutralRoute(),cp.routePending);routeHistory=cp.routeHistory;
  kills=Math.max(0,Number(cp.kills)||0);runTime=Math.max(0,Number(cp.runTime)||0);
- runStats=Object.assign(runStats,cp.runStats);wave={num:cp.wave,queue:[],t:0,breakT:9};
+ runStats=Object.assign(runStats,cp.runStats);wave={num:cp.wave,queue:[],t:0,breakT:cp.resumeWave?0.35:9};
  const biome=BIOMES.find(function(b){return b.id===cp.biome;});if(biome)curBiome=biome;
  buildBG();merchant.active=!save.chal.noshop&&!save.chal.endless;
  state='playing';playBiomeMusic(curBiome);for(let i=0;i<ALL_SCREENS.length;i++)$(ALL_SCREENS[i]).classList.add('hidden');
  commitSoloContracts(cp);soloPendingContracts={};
- syncOrientationPause();renderRelicStrip();showBanner('ПОХОД ПРОДОЛЖЕН','СЛЕДУЮЩАЯ ВОЛНА · '+roman(wave.num+1));
+ syncOrientationPause();renderRelicStrip();showBanner('ПОХОД ПРОДОЛЖЕН','ВОЛНА · '+roman(cp.resumeWave||wave.num+1));
  return true;
 }
 const PAL=[
@@ -3156,6 +3159,7 @@ function spawnBarrelsAndAltars(n){
   altars.push({x:x,y:y,kind:pick(['speed','damage','shield']),cd:0});}
 }
 function beginWave(n){
+ saveSoloCheckpoint(n);
  wave.num=n;contractAdd('waves',1);
  activateRouteForWave(n);
  if(hasRelic('ygg')){for(let i=0;i<players.length;i++){const p=players[i];if(p.alive&&p.hp<p.maxHp){const before=p.hp;healP(p,p.maxHp*.18);if(p.hp>before)addText(p.x,p.y-34,'ИГГДРАСИЛЬ +'+Math.round(p.hp-before),'#7ddb82',12);}}}
@@ -4460,10 +4464,12 @@ function openWeeklyPrep(){weeklyMode=true;dailyMode=false;AU.init();AU.sClick();
 function startGame(m){
  if(touchMode)requestLandscape();
  AU.init();stopMenuMusic();AU.sClick();AU.duck(AU.vol);
- if(freeSoloRun()&&players.length)flushSoloContracts();
+ if(freeSoloRun()&&players.length)soloPendingContracts={};
  if(m==='solo'&&!dailyMode&&!weeklyMode)discardSoloCheckpoint();
  save.stats.runs++;persist();
- initRun(m);state='playing';playBiomeMusic(curBiome);syncOrientationPause();
+ initRun(m);state='playing';playBiomeMusic(curBiome);
+ if(freeSoloRun())saveSoloCheckpoint(1);
+ syncOrientationPause();
  for(let i=0;i<ALL_SCREENS.length;i++)$(ALL_SCREENS[i]).classList.add('hidden');
  let oathN=0;for(let i=0;i<OATHS.length;i++)if(save.oaths[OATHS[i].id])oathN++;
  if(runStats&&oathN===4)runStats.oathAll=true;
@@ -4477,14 +4483,14 @@ function setPauseQuit(open,focus){
  if(focus!==false)requestAnimationFrame(function(){(pauseQuitOpen?$('btnQuitNo'):$('btnQuitRun')).focus();});
 }
 function abandonRun(){
- if(freeSoloRun()){discardSoloCheckpoint();flushSoloContracts();}
+ if(freeSoloRun())soloPendingContracts={};
  setPauseQuit(false,false);closeShop();clearSeed();AU.sClick();AU.duck(AU.vol);
  if(onlineRoom)void leaveOnlineRoom();
  else{onlineActive=false;onlineHost=false;onlineGuest=false;onlineRoleHost=false;stopOnlinePoll();closeOnlineSocket();}
  backToTitle();
 }
 function pauseGame(on){
- if(on&&state==='playing'){state='paused';setPauseQuit(false,false);$('btnRestart').textContent=trainingActive?'ПОВТОРИТЬ ТРЕНИРОВКУ':'НАЧАТЬ ЗАНОВО';$('btnQuitRun').textContent=trainingActive?'К ОЧАГУ':'ПОКИНУТЬ САГУ';$('pauseQuitTitle').textContent=trainingActive?'ВЕРНУТЬСЯ К ОЧАГУ?':'ОБОРВАТЬ НИТЬ ЭТОЙ САГИ?';$('pauseQuitText').textContent=trainingActive?'Тренировку можно начать снова в любой момент.':'Незавершённый поход канет в тумане, а воин вернётся к главному очагу.';touchAttack=false;touchMove.x=0;touchMove.y=0;mouseDown=false;for(const key in keys)keys[key]=false;renderBuildSummary('pauseBuild');$('pauseScreen').classList.remove('hidden');AU.duck(0.1);syncGameMusicVolume();requestAnimationFrame(function(){$('btnResume').focus();});}
+ if(on&&state==='playing'){if(freeSoloRun())saveSoloCheckpoint();state='paused';setPauseQuit(false,false);$('btnRestart').textContent=trainingActive?'ПОВТОРИТЬ ТРЕНИРОВКУ':'НАЧАТЬ ЗАНОВО';$('btnQuitRun').textContent=trainingActive?'К ОЧАГУ':(freeSoloRun()?'СОХРАНИТЬ И ВЫЙТИ':'ПОКИНУТЬ САГУ');$('pauseQuitTitle').textContent=trainingActive?'ВЕРНУТЬСЯ К ОЧАГУ?':(freeSoloRun()?'СОХРАНИТЬ ПОХОД И ВЫЙТИ?':'ОБОРВАТЬ НИТЬ ЭТОЙ САГИ?');$('pauseQuitText').textContent=trainingActive?'Тренировку можно начать снова в любой момент.':(freeSoloRun()?(wave.breakT>0?'Продолжение начнётся со следующей волны.':'Продолжение начнётся с начала текущей волны.'):'Незавершённый поход канет в тумане, а воин вернётся к главному очагу.');touchAttack=false;touchMove.x=0;touchMove.y=0;mouseDown=false;for(const key in keys)keys[key]=false;renderBuildSummary('pauseBuild');$('pauseScreen').classList.remove('hidden');AU.duck(0.1);syncGameMusicVolume();requestAnimationFrame(function(){$('btnResume').focus();});}
  else if(!on&&state==='paused'){setPauseQuit(false,false);if(onlineGuest)onlinePhaseSignature='';state='playing';$('pauseScreen').classList.add('hidden');AU.duck(AU.vol);syncOrientationPause();syncGameMusicVolume();}
 }
 let lastDamageCause=null;
