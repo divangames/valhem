@@ -660,12 +660,12 @@ button,a,[role="button"],.titleChoice,.hubChoice,.sbtn{touch-action:manipulation
 
 
 /* ===== v2.4.1 SELF-CONTAINED STARTUP ===== */
-#startup{position:fixed;inset:0;z-index:1000;display:flex;align-items:center;justify-content:center;padding:24px;
+#startup{position:fixed;inset:0;z-index:1000;display:flex;align-items:center;justify-content:center;padding:24px;touch-action:manipulation;
  background:radial-gradient(ellipse at 50% 42%,#17191d 0%,#101318 58%,#0b0e13 100%);color:var(--bone);
  transition:opacity .28s ease,transform .28s ease}
 #startup.startupExit{opacity:0;transform:scale(1.015);pointer-events:none}
 #onlineLinkStatus{position:fixed;z-index:90;top:max(12px,env(safe-area-inset-top));left:50%;transform:translateX(-50%);max-width:min(92vw,620px);padding:10px 16px;border:1px solid #d8a93c;background:rgba(16,19,24,.96);color:#f0e7cf;text-align:center;font-size:15px;pointer-events:none}
-#brandSplash{position:fixed;inset:0;z-index:1100;background:#000;overflow:hidden;pointer-events:auto}
+#brandSplash{position:fixed;inset:0;z-index:1100;background:#000;overflow:hidden;pointer-events:auto;touch-action:manipulation}
 #brandSplash img{display:block;width:100%;height:100%;object-fit:cover;opacity:0}
 #brandSplash.playing img{animation:brandReveal 5s linear both}
 @keyframes brandReveal{
@@ -4258,8 +4258,13 @@ function renderChronicle(){
  if(!save.board.length)b.innerHTML='<div class="sold">Летопись пуста. Соверши первый поход.</div>';
  for(let i=0;i<save.board.length;i++){const r=save.board[i];
   const d=document.createElement('div');d.className='boardRow';
-  d.innerHTML='<span class="rk">'+(i+1)+'</span><span class="bw">'+roman(r.w)+'</span><span class="bk">'+r.k+' уб.</span>'
-   +'<span class="bh">'+(HEROES[r.h]?HEROES[r.h].name:r.h)+' · '+(r.m==='II'?'кооп':'соло')+(r.ch?' · испыт.':'')+'</span><span class="bd">'+r.d+'</span>';
+  const hero=HEROES[r.h]?HEROES[r.h].name:r.h;
+  const name=cleanOnlineName(r.n,18,(save.net&&save.net.name)||'СКАЛЬД');
+  d.appendChild(onlineBoardCell('rk',i+1));
+  d.appendChild(onlineBoardCell('bw',roman(r.w)));
+  d.appendChild(onlineBoardCell('bk',r.k+' уб.'));
+  d.appendChild(onlineBoardCell('bh',name+' · '+hero+' · '+(r.m==='II'?'кооп':'соло')+(r.ch?' · испыт.':'')));
+  d.appendChild(onlineBoardCell('bd',r.d));
   b.appendChild(d);}
  const st=save.stats;
  $('chrStats').innerHTML=
@@ -4476,7 +4481,7 @@ function showDeath(){
   if(save.lastDay!==today){save.dailyBest=0;save.lastDay=today;}
   if(wave.num>save.dailyBest){save.dailyBest=wave.num;dailyRec=true;}}
  let weeklyRec=false;if(weeklyMode){const wk=weekKey();if(save.lastWeek!==wk){save.weeklyBest=0;save.lastWeek=wk;}if(wave.num>save.weeklyBest){save.weeklyBest=wave.num;weeklyRec=true;}}
- save.board.push({w:wave.num,k:kills,h:save.hero,m:mode==='coop'?'II':'I',d:fmtDate(),ch:chalMult()>1||oathMult()>1,s:wave.num*1000+kills});
+ save.board.push({w:wave.num,k:kills,h:save.hero,n:cleanOnlineName(save.net&&save.net.name,18,'СКАЛЬД'),m:mode==='coop'?'II':'I',d:fmtDate(),ch:chalMult()>1||oathMult()>1,s:wave.num*1000+kills});
  save.board.sort(function(a,b){return b.s-a.s;});
  save.board=save.board.slice(0,10);
  persist();netSubmitScore();if(onlineActive){if(onlineHost)finishOnlineWorld();}else netBackup();
@@ -4733,6 +4738,13 @@ window.finishBrandSplash=function(){menuMusicVolume(true);};
  const installCard=document.getElementById('installCard');
  if(installCard)installCard.classList.add('hidden');
  let started=false;
+ // iOS Safari permits pinch zoom even when viewport scaling is disabled.
+ if(navigator.maxTouchPoints>0){
+  const blockZoom=function(event){if(event.cancelable)event.preventDefault();};
+  document.addEventListener('gesturestart',blockZoom,{passive:false});
+  document.addEventListener('gesturechange',blockZoom,{passive:false});
+  document.addEventListener('dblclick',blockZoom,{passive:false});
+ }
  function addCheck(text,ok){
   if(!checks)return;
   const li=document.createElement('li');
@@ -4782,7 +4794,7 @@ window.finishBrandSplash=function(){menuMusicVolume(true);};
      if(typeof window.finishBrandSplash==='function')window.finishBrandSplash();
     },5000);
     };
-    enter.addEventListener('pointerup',enterGame,{passive:false});
+    enter.addEventListener('pointerdown',enterGame,{passive:false});
     enter.addEventListener('click',enterGame);
     enter.addEventListener('keydown',function(event){if(event.key==='Enter'||event.key===' '){enterGame(event);}});
    }

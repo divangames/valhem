@@ -106,6 +106,7 @@ async function main() {
     const enter = await cdp.eval(`(() => {const r=document.getElementById('bootEnter').getBoundingClientRect();
       return {x:r.left+r.width/2,y:r.top+r.height/2};})()`);
     await cdp.send('Input.dispatchMouseEvent', {type:'mousePressed',x:enter.x,y:enter.y,button:'left',clickCount:1});
+    assert.equal(await cdp.eval("!document.getElementById('brandSplash').classList.contains('hidden')"), true);
     await cdp.send('Input.dispatchMouseEvent', {type:'mouseReleased',x:enter.x,y:enter.y,button:'left',clickCount:1});
     assert.equal(await cdp.eval("!document.getElementById('brandSplash').classList.contains('hidden')"), true);
     assert.equal(await cdp.eval("getComputedStyle(document.querySelector('#brandSplash img')).animationDuration"), '5s');
@@ -195,6 +196,7 @@ async function main() {
     assert.deepEqual(trainingDesktop,{opened:true,hudHidden:true,paused:true,pauseRestart:true,combatActions:true,attack:true,dodge:true,parry:true,execute:true,
       repeated:true,exited:true,unchanged:true});
     const deathLesson = await cdp.eval(`(() => {
+      const originalName=save.net.name;save.net.name='ЭЙРИК';persist();
       startGame('solo');wave.num=2;wave.breakT=0;
       const pl=players[0];pl.hp=5;pl.iframes=0;pl.revives=0;
       damagePlayer(pl,8,0,{type:'wolf',x:pl.x-20,y:pl.y});
@@ -203,11 +205,14 @@ async function main() {
       const build=document.getElementById('deathBuild').textContent;
       const advice=document.getElementById('deathAdvice').textContent;
       const deathAudio=deathMusicPlayed&&!deathMusic.paused&&deathMusic.src.endsWith('/Death.m4a')&&biomeMusic.paused;
+      renderChronicle();
+      const recordName=save.board[0].n==='ЭЙРИК'&&document.querySelector('#boardRows .bh').textContent.startsWith('ЭЙРИК ·');
+      save.net.name=originalName;persist();
       backToTitle();
       return {cause,build:build.includes('МЕЧ'),advice:advice.length>15,
-        deathAudio,stopped:deathMusic.paused};
+        deathAudio,recordName,stopped:deathMusic.paused};
     })()`);
-    assert.deepEqual(deathLesson,{cause:'укус волка',build:true,advice:true,deathAudio:true,stopped:true});
+    assert.deepEqual(deathLesson,{cause:'укус волка',build:true,advice:true,deathAudio:true,recordName:true,stopped:true});
     const noFieldCoach = await cdp.eval(`(() => {
       startGame('solo');firstEnemyCoach();defenseCoach();
       const solo=coachQueue.length===0&&!document.getElementById('coach').classList.contains('show')&&
@@ -461,6 +466,27 @@ async function main() {
       button.click();return {before,after:readSoloCheckpoint()===null};
     })()`);
     assert.deepEqual(discard, {before:true,after:true});
+    await reload(cdp);
+    await until(() => cdp.eval("!document.getElementById('bootEnter').classList.contains('hidden')"));
+    const mobileBoot = await cdp.eval(`(() => {
+      const button=document.getElementById('bootEnter');
+      const r=button.getBoundingClientRect();
+      const gesture=new Event('gesturestart',{bubbles:true,cancelable:true});
+      document.dispatchEvent(gesture);
+      const doubleTap=new Event('dblclick',{bubbles:true,cancelable:true});
+      document.dispatchEvent(doubleTap);
+      return {x:r.left+r.width/2,y:r.top+r.height/2,touch:navigator.maxTouchPoints>0,
+        gestureBlocked:gesture.defaultPrevented,doubleTapBlocked:doubleTap.defaultPrevented,
+        startupTouchAction:getComputedStyle(document.getElementById('startup')).touchAction};
+    })()`);
+    assert.equal(mobileBoot.touch, true);
+    assert.equal(mobileBoot.gestureBlocked, true);
+    assert.equal(mobileBoot.doubleTapBlocked, true);
+    assert.equal(mobileBoot.startupTouchAction, 'manipulation');
+    await cdp.send('Input.dispatchTouchEvent', {type:'touchStart',touchPoints:[{x:mobileBoot.x,y:mobileBoot.y,id:1}]});
+    assert.equal(await cdp.eval("!document.getElementById('brandSplash').classList.contains('hidden')"), true);
+    await cdp.send('Input.dispatchTouchEvent', {type:'touchEnd',touchPoints:[]});
+    console.log('[QA] First mobile tap and touch zoom guards passed');
     console.log('[OK] Solo checkpoint: route, build, combat rollback, purchase, contracts, death, discard, mobile and offline PWA');
   } finally {
     if (cdp) { try { await cdp.send('Browser.close'); } catch (_) {} }
