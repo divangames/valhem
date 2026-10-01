@@ -235,6 +235,17 @@ async function main() {
     await until(() => guest.eval("wave.num===5&&state==='path'&&team.relics.length>0"),10000);
     assert.equal(await guest.eval('kills'),await host.eval('kills'));
     console.log('[QA] Automatic combat pipeline completed waves I–V and the Jotun in both browsers');
+    await host.eval("document.getElementById('pathScreen').classList.add('hidden');state='playing';wave.num=29;wave.breakT=0;beginWave(30);wave.queue=[];enemies=[];spawnSagaFinal()");
+    await until(() => guest.eval("wave.num===30&&enemies.some(e=>e.sagaFinal)"));
+    await host.eval('enemies=[];waveClear()');
+    await until(() => guest.eval("state==='saga'&&team.sagaComplete&&!document.getElementById('sagaScreen').classList.contains('hidden')"));
+    assert.equal(await guest.eval("document.getElementById('sagaActions').classList.contains('hidden')"),true);
+    assert.equal(await guest.eval("save.board.some(r=>r.saga&&r.w===30)"),true);
+    const runId = await host.eval('team.runId');
+    await host.eval('sagaContinue()');
+    await until(() => guest.eval("state==='path'&&team.sagaComplete&&document.getElementById('sagaScreen').classList.contains('hidden')"));
+    assert.equal(await guest.eval('team.runId'),runId);
+    console.log('[QA] Saga finale, guest result and continuing build synchronized');
   } finally {
     for (const cdp of browsers) try {await cdp.send('Browser.close');} catch (_) {}
     for (const child of children) child.kill();

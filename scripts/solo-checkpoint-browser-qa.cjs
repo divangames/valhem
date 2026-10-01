@@ -543,6 +543,29 @@ async function main() {
     await reload(cdp);
     assert.equal(await cdp.eval("document.getElementById('btnContinueSolo').classList.contains('hidden')"), true);
     console.log('[QA] Invalid schema rejected');
+    const saga = await cdp.eval(`(() => {
+      const heroes=Object.keys(HEROES),spawns=[];
+      save.chal.endless=false;save.oaths.iron=true;
+      for(const hero of heroes){
+        save.hero=hero;startGame('solo');state='playing';wave.num=29;wave.breakT=0;
+        beginWave(30);spawns.push(wave.queue.filter(t=>t==='saga_final').length);
+        wave.queue=[];enemies=[];const boss=spawnSagaFinal();
+        if(!boss.sagaFinal||boss.phase!==1||boss.bossName!=='СТРАЖ ВРАТ АСГАРДА')return {error:'boss'};
+        bossPhaseShift(boss,2);bossPhaseShift(boss,3);
+        if(boss.phase!==3)return {error:'phase'};
+        enemies=[];waveClear();
+        if(state!=='saga'||!team.sagaComplete||document.getElementById('sagaScreen').classList.contains('hidden'))return {error:'screen'};
+        const glory=save.glory,build=team.runId,amount=team.sagaReward;
+        waveClear();grantSagaReward(amount);
+        if(save.glory!==glory||!save.board.some(r=>r.runId===build&&r.saga))return {error:'duplicate'};
+        sagaContinue();
+        if(state!=='path'||team.runId!==build||!team.sagaComplete)return {error:'continue'};
+        backToTitle();
+      }
+      return {spawns,iron:save.oaths.iron};
+    })()`);
+    assert.deepEqual(saga,{spawns:[1,1,1,1],iron:true});
+    console.log('[QA] Saga finale: four heroes, iron oath, three phases, one reward and build continuation passed');
     assert.equal(await cdp.eval(`(() => {
       localStorage.removeItem(SOLO_CHECKPOINT_KEY);soloCheckpoint=null;
       startGame('solo');wave.num=1;wave.queue=[];enemies=[];team.gold=77;doRest();
