@@ -632,6 +632,33 @@ async function main() {
     })()`);
     assert.deepEqual(trainingMobile,{visible:true,hudHidden:true,panelClear:true,paused:true,combatActions:true,attack:true,dodge:true,parry:true,execute:true,unchanged:true});
     console.log('[QA] Mobile touch training passed');
+    const backgroundMusic = await cdp.eval(`(async () => {
+      const settle=()=>new Promise(resolve=>setTimeout(resolve,120));
+      const tracks=[menuMusic,biomeMusic,deathMusic];
+      const paused=()=>tracks.every(track=>track.paused);
+      backToTitle();
+      Object.defineProperty(document,'hidden',{configurable:true,value:true});
+      document.dispatchEvent(new Event('visibilitychange'));await settle();
+      const menuPaused=paused()&&(!AU.ctx||AU.ctx.state==='suspended');
+      delete document.hidden;
+      document.dispatchEvent(new Event('visibilitychange'));await settle();
+      const menuResumed=!menuMusic.paused&&(!AU.ctx||AU.ctx.state==='running');
+      startGame('solo');await settle();
+      dispatchEvent(new Event('blur'));await settle();
+      const combatPaused=state==='paused'&&paused()&&(!AU.ctx||AU.ctx.state==='suspended');
+      dispatchEvent(new Event('focus'));await settle();
+      const combatResumed=!biomeMusic.paused&&state==='paused';
+      pauseGame(false);
+      showDeath();await settle();
+      dispatchEvent(new Event('pagehide'));await settle();
+      const deathPaused=paused()&&(!AU.ctx||AU.ctx.state==='suspended');
+      dispatchEvent(new Event('pageshow'));await settle();
+      const deathResumed=!deathMusic.paused;
+      backToTitle();
+      return {menuPaused,menuResumed,combatPaused,combatResumed,deathPaused,deathResumed};
+    })()`);
+    assert.deepEqual(backgroundMusic,{menuPaused:true,menuResumed:true,combatPaused:true,combatResumed:true,deathPaused:true,deathResumed:true});
+    console.log('[QA] Mobile background music pauses in menu, combat and death, then resumes');
     const mobileDeathLayout = await cdp.eval(`(() => {
       startGame('solo');wave.num=1;wave.breakT=0;
       const pl=players[0];pl.hp=5;pl.iframes=0;pl.revives=0;

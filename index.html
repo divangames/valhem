@@ -1546,6 +1546,7 @@ function recordKill(type,mod){
 const AU={
 ctx:null,mGain:null,droneGain:null,vol:0.5,muted:false,nextT:0,mstep:0,musicOn:false,
 init:function(){
+ if(document.hidden||audioBackground)return;
  if(this.ctx){if(this.ctx.state==='suspended')this.ctx.resume();return;}
  const C=window.AudioContext||window.webkitAudioContext;if(!C)return;
  try{
@@ -1628,7 +1629,7 @@ const BIOME_MUSIC_FILES={
  hel:'05 VALHEM - Helheim Wasteland Combat.m4a',
  asgard:'06 VALHEM - Gates of Asgard Instrumental.m4a'
 };
-let biomeMusicKey='',biomeMusicFade=0,deathMusicPlayed=false;
+let biomeMusicKey='',biomeMusicFade=0,deathMusicPlayed=false,audioBackground=null;
 function gameMusicTarget(){return AU.muted?0:Math.min(1,(save.sett.vol/100)*0.65)*(state==='paused'?0.3:1);}
 function syncGameMusicVolume(){
  cancelAnimationFrame(biomeMusicFade);
@@ -1647,13 +1648,16 @@ function stopDeathMusic(){
 function playBiomeMusic(biome){
  if(!biomeMusic||!biome||!BIOME_MUSIC_FILES[biome.id])return;
  if(biomeMusicKey===biome.id){
-  if(biomeMusic.paused){const playing=biomeMusic.play();if(playing&&playing.catch)playing.catch(function(){});}
+  if(audioBackground)audioBackground.biome=true;
+  else if(!document.hidden&&biomeMusic.paused){const playing=biomeMusic.play();if(playing&&playing.catch)playing.catch(function(){});}
   return;
  }
  cancelAnimationFrame(biomeMusicFade);
  biomeMusic.pause();biomeMusicKey=biome.id;
  biomeMusic.src='assets/music/bioms/'+encodeURIComponent(BIOME_MUSIC_FILES[biome.id]);
  biomeMusic.load();biomeMusic.volume=0;AU.setGameMusic(false);
+ if(audioBackground){audioBackground.biome=true;return;}
+ if(document.hidden)return;
  const playing=biomeMusic.play();
  if(playing&&playing.catch)playing.catch(function(){if(state==='playing')AU.setGameMusic(true);});
  const began=performance.now();
@@ -1666,6 +1670,8 @@ function playDeathMusic(){
  if(deathMusicPlayed||!deathMusic)return;
  deathMusicPlayed=true;stopBiomeMusic();AU.setGameMusic(false);
  deathMusic.currentTime=0;deathMusic.volume=AU.muted?0:Math.min(1,(save.sett.vol/100)*0.65);
+ if(audioBackground){audioBackground.death=true;return;}
+ if(document.hidden)return;
  const playing=deathMusic.play();if(playing&&playing.catch)playing.catch(function(){});
 }
 let menuMusicFade=0,menuMusicFadeFallback=0;
@@ -1683,6 +1689,8 @@ function menuMusicVolume(fade){
 function playMenuMusic(silent){
  stopBiomeMusic();stopDeathMusic();AU.setGameMusic(false);
  if(!menuMusic)return;
+ if(audioBackground){audioBackground.menu=true;return;}
+ if(document.hidden)return;
  if(menuMusic.paused){menuMusic.volume=0;const playing=menuMusic.play();if(playing&&playing.catch)playing.catch(function(){});}
  if(!silent)menuMusicVolume(true);
 }
@@ -1690,6 +1698,22 @@ function stopMenuMusic(){
  cancelAnimationFrame(menuMusicFade);clearTimeout(menuMusicFadeFallback);
  if(menuMusic){menuMusic.pause();menuMusic.currentTime=0;}
  stopDeathMusic();AU.setGameMusic(false);
+}
+function suspendBackgroundAudio(){
+ if(audioBackground)return;
+ if(state==='playing'&&!onlineActive)pauseGame(true);
+ audioBackground={menu:!!menuMusic&&(gameLoopStarted&&state==='title'),biome:!!biomeMusic&&!!biomeMusicKey&&(state==='playing'||state==='paused'),death:!!deathMusic&&deathMusicPlayed&&state==='dead'};
+ cancelAnimationFrame(menuMusicFade);clearTimeout(menuMusicFadeFallback);cancelAnimationFrame(biomeMusicFade);
+ [menuMusic,biomeMusic,deathMusic].forEach(function(track){if(track)track.pause();});
+ if(AU.ctx&&AU.ctx.state==='running'){const suspended=AU.ctx.suspend();if(suspended&&suspended.catch)suspended.catch(function(){});}
+}
+function resumeBackgroundAudio(){
+ if(!audioBackground||document.hidden)return;
+ const previous=audioBackground;audioBackground=null;
+ if(AU.ctx&&AU.ctx.state==='suspended'){const resumed=AU.ctx.resume();if(resumed&&resumed.catch)resumed.catch(function(){});}
+ if(previous.menu&&state==='title'&&menuMusic){menuMusicVolume(false);const playing=menuMusic.play();if(playing&&playing.catch)playing.catch(function(){});}
+ if(previous.biome&&(state==='playing'||state==='paused')&&biomeMusic){syncGameMusicVolume();const playing=biomeMusic.play();if(playing&&playing.catch)playing.catch(function(){});}
+ if(previous.death&&state==='dead'&&deathMusic){syncGameMusicVolume();const playing=deathMusic.play();if(playing&&playing.catch)playing.catch(function(){});}
 }
 
 /* ============ biomes ============ */
@@ -4714,8 +4738,11 @@ stage.addEventListener('mousedown',function(e){
  else if(e.button===2)tryAxe(players[0]);});
 addEventListener('mouseup',function(e){if(e.button===0)mouseDown=false;});
 stage.addEventListener('contextmenu',function(e){e.preventDefault();});
-addEventListener('blur',function(){if(state==='playing'&&!onlineActive)pauseGame(true);});
-document.addEventListener('visibilitychange',function(){if(document.hidden&&state==='playing'&&!onlineActive)pauseGame(true);});
+addEventListener('blur',suspendBackgroundAudio);
+addEventListener('focus',resumeBackgroundAudio);
+addEventListener('pagehide',suspendBackgroundAudio);
+addEventListener('pageshow',resumeBackgroundAudio);
+document.addEventListener('visibilitychange',function(){if(document.hidden)suspendBackgroundAudio();else resumeBackgroundAudio();});
 document.addEventListener('pointerdown',function(){AU.init();},{once:true});
 $('btnOfflineHub').onclick=function(){AU.init();AU.sClick();updateTitleStats();showOnly('offlineHubScreen');};
 $('btnContinueSolo').onclick=function(){resumeSoloCheckpoint();};
@@ -4780,6 +4807,7 @@ function loop(now){
 let gameLoopStarted=false;
 window.startValhem=function(){if(gameLoopStarted)return;gameLoopStarted=true;try{AU.init();playMenuMusic(true);}catch(error){}last=performance.now();requestAnimationFrame(loop);};
 window.finishBrandSplash=function(){
+ if(document.hidden||audioBackground)return;
  if(menuMusic&&menuMusic.paused){const playing=menuMusic.play();if(playing&&playing.catch)playing.catch(function(){});}
  menuMusicVolume(true);
 };
