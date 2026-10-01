@@ -459,6 +459,14 @@ body.touch .touchOnly{display:flex}
 .sbtn.danger{border-color:#6b3226;color:#ff9a8a;background:#1c0f0c}
 
 .pauseActions{display:flex;justify-content:center;gap:8px;flex-wrap:wrap;margin-top:20px}
+.buildSummary{width:min(860px,100%);margin:14px auto 0;padding:10px 14px;border:1px solid var(--gold-dim);background:rgba(8,11,16,.9);text-align:left;color:#cbd0d5}
+.buildSummary summary{font:15px 'Forum';letter-spacing:.12em;color:var(--gold-hi);cursor:pointer;touch-action:manipulation}
+.buildGrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px 18px;margin-top:10px}
+.buildGroup{min-width:0}.buildGroup strong{display:block;margin-bottom:4px;font:12px 'Forum';letter-spacing:.12em;color:var(--gold)}
+.buildGroup p{font-size:13px;line-height:1.35;margin:3px 0;overflow-wrap:anywhere}
+.buildGroup small{display:block;color:#9aa3b2;font-size:11px;line-height:1.3}
+#btnRerollGifts{display:block;min-height:44px;margin:12px auto 0}
+@media(max-width:640px){.buildGrid{grid-template-columns:minmax(0,1fr)}.buildSummary{padding:9px 11px}}
 .pauseQuit{border-color:#6b3226;color:#ffb0a0;background:linear-gradient(180deg,#25120e,#110b09)}
 .pauseConfirm{width:min(520px,100%);margin:20px auto 0;padding:18px;background:rgba(12,10,10,.96);border:1px solid #6b3226;
  box-shadow:0 18px 50px rgba(0,0,0,.55),inset 0 0 24px rgba(194,58,46,.08)}
@@ -1117,6 +1125,7 @@ body.touch .trainingActions{margin-top:3px}
       <div class="runeRow">ᛈ ᚨ</div>
       <h2>ПАУЗА</h2>
       <p class="sub">Битва ждёт. Мечи — тоже.</p>
+      <details id="pauseBuild" class="buildSummary" open><summary>СБОРКА ПОХОДА</summary><div class="buildGrid"></div></details>
       <div id="pauseActions" class="pauseActions">
         <button id="btnResume" class="btn small">ПРОДОЛЖИТЬ</button>
         <button id="btnRestart" class="btn small">НАЧАТЬ ЗАНОВО</button>
@@ -1140,6 +1149,8 @@ body.touch .trainingActions{margin-top:3px}
       <div class="runeRow">ᛞ  ᚱ ᛬ ᛟ ᛞ ᛁ ᚾ ᚨ</div>
       <h2 id="levelTitle">ДАР ОДИНА</h2>
       <p class="sub" id="levelSub">Всеотец смотрит на тебя. Выбери одну руну.</p>
+      <details id="levelBuild" class="buildSummary"><summary>МОЯ СБОРКА</summary><div class="buildGrid"></div></details>
+      <button id="btnRerollGifts" class="sbtn hidden" type="button">ПЕРЕБРОСИТЬ ДАРЫ · 1 ИЗ 1</button>
       <div id="cards"></div>
     </div>
   </section>
@@ -1657,16 +1668,17 @@ function playDeathMusic(){
  deathMusic.currentTime=0;deathMusic.volume=AU.muted?0:Math.min(1,(save.sett.vol/100)*0.65);
  const playing=deathMusic.play();if(playing&&playing.catch)playing.catch(function(){});
 }
-let menuMusicFade=0;
+let menuMusicFade=0,menuMusicFadeFallback=0;
 function menuMusicVolume(fade){
  if(!menuMusic)return;
- cancelAnimationFrame(menuMusicFade);
+ cancelAnimationFrame(menuMusicFade);clearTimeout(menuMusicFadeFallback);
  const target=AU.muted?0:Math.min(1,(save.sett.vol/100)*0.65);
  if(!fade){menuMusic.volume=target;return;}
  const from=menuMusic.volume,start=performance.now();
  function step(now){const t=Math.min(1,(now-start)/800);menuMusic.volume=from+(target-from)*t;
   if(t<1)menuMusicFade=requestAnimationFrame(step);}
  menuMusicFade=requestAnimationFrame(step);
+ menuMusicFadeFallback=setTimeout(function(){menuMusic.volume=target;},900);
 }
 function playMenuMusic(silent){
  stopBiomeMusic();stopDeathMusic();AU.setGameMusic(false);
@@ -1675,7 +1687,7 @@ function playMenuMusic(silent){
  if(!silent)menuMusicVolume(true);
 }
 function stopMenuMusic(){
- cancelAnimationFrame(menuMusicFade);
+ cancelAnimationFrame(menuMusicFade);clearTimeout(menuMusicFadeFallback);
  if(menuMusic){menuMusic.pause();menuMusic.currentTime=0;}
  stopDeathMusic();AU.setGameMusic(false);
 }
@@ -1944,7 +1956,7 @@ let team={level:1,xp:0,xpNext:8,gold:0,relics:[],relicSlots:4,nornWave:-1,heimda
 let enemies=[],projs=[],parts=[],pickups=[],texts=[],trails=[],telegraphs=[],portals=[],zones=[];
 let barrels=[],altars=[];
 let wave={num:0,queue:[],t:0,breakT:0},kills=0,runTime=0;
-let shake=0,freeze=0,slowmo=0,dieT=0,ambT=0,pending=0,choices=[],ragePing=[false,false],masteryQueue=[],masteryMode=false,relicQueue=[],relicMode=false,relicSource='',impactFx={a:0,col:'255,255,255'},bossMusic=0;
+let shake=0,freeze=0,slowmo=0,dieT=0,ambT=0,pending=0,choices=[],choiceBusy=false,ragePing=[false,false],masteryQueue=[],masteryMode=false,relicQueue=[],relicMode=false,relicSource='',impactFx={a:0,col:'255,255,255'},bossMusic=0;
 let curEvent=null,zoneT=2;
 let dailyMode=false,weeklyMode=false;
 let routeChoices=[],routeHistory=[];
@@ -1989,6 +2001,12 @@ function readSoloCheckpoint(){
   const cp=JSON.parse(raw);return validSoloCheckpoint(cp)?cp:null;}catch(e){return null;}
 }
 let soloCheckpoint=null,soloDiscardArmed=false;
+const GIFT_REROLL_KEY='valhem_gift_reroll_v1';
+function giftRerollDraft(){try{const data=JSON.parse(localStorage.getItem(GIFT_REROLL_KEY)||'null');return data&&data.runId===team.runId?data:null;}catch(e){return null;}}
+function rememberGiftReroll(){
+ try{localStorage.setItem(GIFT_REROLL_KEY,JSON.stringify({runId:team.runId,wave:wave.num,level:team.level,choices:choices.map(function(u){return u.id;})}));}catch(e){}
+}
+function clearGiftReroll(){try{localStorage.removeItem(GIFT_REROLL_KEY);}catch(e){}}
 function updateSoloCheckpointMenu(){
  const cp=soloCheckpoint,show=!!cp;
  $('btnContinueSolo').classList.toggle('hidden',!show);
@@ -1998,6 +2016,7 @@ function updateSoloCheckpointMenu(){
 }
 function discardSoloCheckpoint(){
  try{localStorage.removeItem(SOLO_CHECKPOINT_KEY);}catch(e){}
+ clearGiftReroll();
  soloCheckpoint=null;soloDiscardArmed=false;updateSoloCheckpointMenu();
 }
 function saveSoloCheckpoint(){
@@ -2010,6 +2029,7 @@ function saveSoloCheckpoint(){
   commitId:String(Date.now())+'-'+Math.random().toString(36).slice(2)};
  try{const raw=JSON.stringify(cp);if(raw.length>200000)return false;
   localStorage.setItem(SOLO_CHECKPOINT_KEY,raw);soloCheckpoint=JSON.parse(raw);
+  clearGiftReroll();
   commitSoloContracts(soloCheckpoint);soloPendingContracts={};updateSoloCheckpointMenu();return true;
  }catch(e){return false;}
 }
@@ -2021,6 +2041,8 @@ function resumeSoloCheckpoint(){
  save.oaths=Object.assign({},DEF.oaths,cp.oaths);save.chal=Object.assign({},DEF.chal,cp.chal);persist();
  initRun('solo');
  team=cp.team;players=cp.players;pickups=cp.pickups;barrels=Array.isArray(cp.barrels)?cp.barrels:[];altars=Array.isArray(cp.altars)?cp.altars:[];
+ team.runId=team.runId||cp.commitId;
+ team.giftRerolls=giftRerollDraft()?0:(Number.isInteger(team.giftRerolls)?team.giftRerolls:1);
  if(Array.isArray(cp.pillars)&&cp.pillars.length===PILLARS_BASE.length)PILLARS=cp.pillars;
  shop.offers=cp.shopOffers;shop.goldShown=-1;
  routePending=Object.assign(neutralRoute(),cp.routePending);routeHistory=cp.routeHistory;
@@ -2233,8 +2255,8 @@ function drawUpgrade(pool){
  for(let i=0;i<arr.length;i++){r-=RARITY[upRarity(arr[i])].weight;if(r<=0)return arr[i];}
  return arr[arr.length-1];
 }
-function rollUpgrades(n){
- let pool=UPG.slice(),out=[];
+function rollUpgrades(n,excluded){
+ let pool=UPG.filter(function(u){return !excluded||excluded.indexOf(u.id)<0;}),out=[];
  while(out.length<n&&pool.length){
   const u=drawUpgrade(pool);out.push(u);pool=pool.filter(function(it){return it.id!==u.id;});
   if(upRarity(u)==='legendary')pool=pool.filter(function(it){return upRarity(it)!=='legendary';});
@@ -2299,10 +2321,11 @@ function initRun(m){
  document.body.classList.toggle('solo-mode',m!=='coop');
  document.body.classList.toggle('coop-mode',m==='coop');
  for(let i=0;i<players.length;i++)metaApply(players[i]);
- team={level:1,xp:0,xpNext:8,gold:25*save.up.gold,relics:[],relicSlots:4,nornWave:-1,heimdallWave:-1};
+ team={level:1,xp:0,xpNext:8,gold:25*save.up.gold,relics:[],relicSlots:4,nornWave:-1,heimdallWave:-1,
+  runId:String(Date.now())+'-'+Math.random().toString(36).slice(2),giftRerolls:freeSoloRun()?1:0};
  enemies=[];projs=[];pickups=[];texts=[];trails=[];telegraphs=[];portals=[];zones=[];
  barrels=[];altars=[];
- kills=0;runTime=0;shake=0;freeze=0;slowmo=0;pending=0;ragePing=[false,false];masteryQueue=[];masteryMode=false;relicQueue=[];relicMode=false;relicSource='';impactFx={a:0,col:'255,255,255'};bossMusic=0;
+ kills=0;runTime=0;shake=0;freeze=0;slowmo=0;pending=0;choiceBusy=false;ragePing=[false,false];masteryQueue=[];masteryMode=false;relicQueue=[];relicMode=false;relicSource='';impactFx={a:0,col:'255,255,255'};bossMusic=0;
  curEvent=null;zoneT=2;
  routeChoices=[];routeHistory=[];routePending=Object.assign({},ROUTE_NEUTRAL);routeActive=Object.assign({},ROUTE_NEUTRAL);
  wave={num:0,queue:[],t:0,breakT:1.5};
@@ -2903,17 +2926,59 @@ function collectRune(){
  if((pending>0||masteryQueue.length)&&state==='playing')openLevel();
 }
 function openLevel(){
- state='levelup';AU.sLevel();closeShop();relicMode=relicQueue.length>0;masteryMode=!relicMode&&masteryQueue.length>0;
+ state='levelup';choiceBusy=false;AU.sLevel();closeShop();relicMode=relicQueue.length>0;masteryMode=!relicMode&&masteryQueue.length>0;
  if(relicMode){relicSource=relicQueue[0];$('levelTitle').textContent=relicSource==='jotun'?'МИФИЧЕСКАЯ РЕЛИКВИЯ':'РЕЛИКВИЯ ЯРЛА';$('levelSub').textContent='Выбери один артефакт. В забеге доступно только '+team.relicSlots+' слота реликвий.';choices=relicChoices(relicSource);}
  else if(masteryMode){const w=masteryQueue[0];$('levelTitle').textContent='МАСТЕРСТВО: '+WEAPNAME[w];$('levelSub').textContent='Выбери одну ветвь. Остальные пути этого оружия закроются до конца забега.';choices=(WEAPON_MASTERY[w]||[]).slice();}
- else{$('levelTitle').textContent='ДАР ОДИНА';$('levelSub').textContent=mode==='coop'?'Всеотец смотрит на вас обоих. Дар получат оба воина. Редкость решает судьбу.':'Всеотец смотрит на тебя. Выбери одну руну. Редкость решает судьбу.';choices=rollUpgrades(3);}
+ else{$('levelTitle').textContent='ДАР ОДИНА';$('levelSub').textContent=mode==='coop'?'Всеотец смотрит на вас обоих. Дар получат оба воина. Редкость решает судьбу.':'Всеотец смотрит на тебя. Выбери одну руну. Редкость решает судьбу.';
+  const draft=freeSoloRun()?giftRerollDraft():null;
+  choices=draft&&draft.wave===wave.num&&draft.level===team.level&&draft.choices.length===3?
+   draft.choices.map(upDef).filter(Boolean):rollUpgrades(3);
+  if(choices.length!==3)choices=rollUpgrades(3);
+ }
  renderLevelCards();
+}
+function rerollGifts(){
+ if(state!=='levelup'||relicMode||masteryMode||!freeSoloRun()||team.giftRerolls!==1||choices.length!==3)return false;
+ const previous=choices.map(function(u){return u.id;});
+ choices=rollUpgrades(3,previous);
+ if(choices.length!==3)return false;
+ team.giftRerolls=0;rememberGiftReroll();AU.sRune();renderLevelCards();return true;
 }
 function cardText(parent,tag,className,value){
  const element=document.createElement(tag);element.className=className;element.textContent=String(value==null?'':value);parent.appendChild(element);
 }
+function buildGroup(wrap,title,items){
+ const group=document.createElement('div');group.className='buildGroup';cardText(group,'strong','',title);
+ if(!items.length)cardText(group,'p','', 'Пока нет');
+ else items.forEach(function(item){cardText(group,'p','',item.name);if(item.desc)cardText(group,'small','',item.desc);});
+ wrap.appendChild(group);
+}
+function renderBuildSummary(id){
+ const root=$(id),grid=root&&root.querySelector('.buildGrid');if(!grid)return;
+ grid.replaceChildren();
+ const rerolls=freeSoloRun()?Math.max(0,Number(team.giftRerolls)||0):0;
+ root.querySelector('summary').textContent=(id==='pauseBuild'?'СБОРКА ПОХОДА':'МОЯ СБОРКА')+
+  (freeSoloRun()?' · ПЕРЕБРОС '+rerolls+'/1':' · БЕЗ ПЕРЕБРОСА');
+ for(let i=0;i<players.length;i++){
+  const pl=players[i],label=players.length>1?' · ВОИН '+(i+1):'';
+  const mastery=masteryDef(pl,pl.weapon);
+  buildGroup(grid,'ОРУЖИЕ И МАСТЕРСТВО'+label,[{name:WEAPNAME[pl.weapon]||pl.weapon,desc:mastery?mastery.name+' — '+mastery.desc:'Мастерство ещё не выбрано'}]);
+  const gifts=Object.keys(pl.upgOwned||{}).filter(function(key){return pl.upgOwned[key]>0&&UPG.some(function(u){return u.id===key;});}).map(function(key){const u=upDef(key),count=pl.upgOwned[key];return {name:u.name+(count>1?' ×'+count:''),desc:u.desc};});
+  buildGroup(grid,'ДАРЫ'+label,gifts);
+  const synergies=[];
+  if(hasUp(pl,'storm'))synergies.push({name:'Молния Всеотца',desc:'Дар «Пробуждение Мьёльнира»: молния от молота и парирования.'});
+  if(hasUp(pl,'burn')&&hasUp(pl,'frost'))synergies.push({name:'Термошок',desc:'Дары огня и льда: дополнительный урон и слом стойкости.'});
+  if(pl.weapon==='hammer'&&hasUp(pl,'frost'))synergies.push({name:'Раскол',desc:'Молот и лёд: удар по замороженному врагу повреждает соседних.'});
+  if(pl.weapon==='sword'&&hasUp(pl,'parryPow'))synergies.push({name:'Стойка после парирования',desc:'Меч и «Контрудар»: успешный парир возвращает стойку.'});
+  buildGroup(grid,'АКТИВНЫЕ СИНЕРГИИ'+label,synergies);
+ }
+ buildGroup(grid,'РЕЛИКВИИ',team.relics.map(function(id){const r=relicDef(id);return r?{name:r.name,desc:r.desc}:null;}).filter(Boolean));
+ buildGroup(grid,'КЛЯТВЫ',OATHS.filter(function(o){return save.oaths[o.id];}).map(function(o){return {name:o.name,desc:o.desc};}));
+ buildGroup(grid,'ПЕРЕБРОС ДАРОВ',[{name:freeSoloRun()?rerolls+' из 1':'Недоступен',desc:freeSoloRun()?'Только обычный выбор дара в свободном походе.':'В этом режиме набор даров не перебрасывается.'}]);
+}
 function renderLevelCards(){
  const wrap=$('cards');wrap.innerHTML='';
+ $('btnRerollGifts').classList.toggle('hidden',!freeSoloRun()||relicMode||masteryMode||team.giftRerolls!==1);
  choices.forEach(function(u,i){
   const d=document.createElement('div'),rarity=upRarity(u);
   d.className=relicMode?'card relic'+(u.tier==='mythic'?' mythic':''):'card '+rarity;
@@ -2921,10 +2986,12 @@ function renderLevelCards(){
   cardText(d,'div','cTier',relicMode?((u.tier==='mythic'?'МИФИЧЕСКАЯ · ':'РЕЛИКВИЯ · ')+u.tag):(RARITY[rarity]||RARITY.common).label);
   cardText(d,'div','cKey',i+1);d.onclick=function(){choose(u);};wrap.appendChild(d);
  });
+ renderBuildSummary('levelBuild');
  $('levelScreen').classList.remove('hidden');
 }
 function choose(u){
- if(state!=='levelup'||(onlineGuest&&onlineActive))return;
+ if(state!=='levelup'||choiceBusy||(onlineGuest&&onlineActive)||!u||!choices.some(function(c){return c.id===u.id;}))return;
+ choiceBusy=true;
  if(relicMode){applyRelic(u.id);relicQueue.shift();relicMode=false;relicSource='';}
  else{applyUp(u.id);AU.sRune();if(masteryMode){const w=masteryQueue.shift();showBanner('МАСТЕРСТВО ОСВОЕНО',WEAPNAME[w]+' · '+u.name);masteryMode=false;}else pending--;}
  $('levelScreen').classList.add('hidden');
@@ -4417,7 +4484,7 @@ function abandonRun(){
  backToTitle();
 }
 function pauseGame(on){
- if(on&&state==='playing'){state='paused';setPauseQuit(false,false);$('btnRestart').textContent=trainingActive?'ПОВТОРИТЬ ТРЕНИРОВКУ':'НАЧАТЬ ЗАНОВО';$('btnQuitRun').textContent=trainingActive?'К ОЧАГУ':'ПОКИНУТЬ САГУ';$('pauseQuitTitle').textContent=trainingActive?'ВЕРНУТЬСЯ К ОЧАГУ?':'ОБОРВАТЬ НИТЬ ЭТОЙ САГИ?';$('pauseQuitText').textContent=trainingActive?'Тренировку можно начать снова в любой момент.':'Незавершённый поход канет в тумане, а воин вернётся к главному очагу.';touchAttack=false;touchMove.x=0;touchMove.y=0;mouseDown=false;for(const key in keys)keys[key]=false;$('pauseScreen').classList.remove('hidden');AU.duck(0.1);syncGameMusicVolume();requestAnimationFrame(function(){$('btnResume').focus();});}
+ if(on&&state==='playing'){state='paused';setPauseQuit(false,false);$('btnRestart').textContent=trainingActive?'ПОВТОРИТЬ ТРЕНИРОВКУ':'НАЧАТЬ ЗАНОВО';$('btnQuitRun').textContent=trainingActive?'К ОЧАГУ':'ПОКИНУТЬ САГУ';$('pauseQuitTitle').textContent=trainingActive?'ВЕРНУТЬСЯ К ОЧАГУ?':'ОБОРВАТЬ НИТЬ ЭТОЙ САГИ?';$('pauseQuitText').textContent=trainingActive?'Тренировку можно начать снова в любой момент.':'Незавершённый поход канет в тумане, а воин вернётся к главному очагу.';touchAttack=false;touchMove.x=0;touchMove.y=0;mouseDown=false;for(const key in keys)keys[key]=false;renderBuildSummary('pauseBuild');$('pauseScreen').classList.remove('hidden');AU.duck(0.1);syncGameMusicVolume();requestAnimationFrame(function(){$('btnResume').focus();});}
  else if(!on&&state==='paused'){setPauseQuit(false,false);if(onlineGuest)onlinePhaseSignature='';state='playing';$('pauseScreen').classList.add('hidden');AU.duck(AU.vol);syncOrientationPause();syncGameMusicVolume();}
 }
 let lastDamageCause=null;
@@ -4691,6 +4758,7 @@ $('btnQuitRun').onclick=function(){AU.sClick();setPauseQuit(true);};
 $('btnQuitNo').onclick=function(){AU.sClick();setPauseQuit(false);};
 $('btnQuitYes').onclick=function(){if(trainingActive)exitTraining();else abandonRun();};
 $('btnMute').onclick=toggleMute;
+$('btnRerollGifts').onclick=rerollGifts;
 
 /* ============ loop ============ */
 let last=performance.now();
@@ -4705,7 +4773,10 @@ function loop(now){
 // Первый кадр запускается после подтверждения входа на стартовом экране.
 let gameLoopStarted=false;
 window.startValhem=function(){if(gameLoopStarted)return;gameLoopStarted=true;try{AU.init();playMenuMusic(true);}catch(error){}last=performance.now();requestAnimationFrame(loop);};
-window.finishBrandSplash=function(){menuMusicVolume(true);};
+window.finishBrandSplash=function(){
+ if(menuMusic&&menuMusic.paused){const playing=menuMusic.play();if(playing&&playing.catch)playing.catch(function(){});}
+ menuMusicVolume(true);
+};
 </script>
 <section id="startup" aria-label="Запуск VALHEM">
  <div class="startupCard">

@@ -116,7 +116,14 @@ async function main() {
       fs.writeFileSync(process.env.VALHEM_QA_SHOT, Buffer.from(shot.data, 'base64'));
     }
     await until(() => cdp.eval("document.getElementById('brandSplash').classList.contains('hidden')"), 8000);
-    await until(() => cdp.eval("!document.getElementById('menuMusic').paused && document.getElementById('menuMusic').volume>0"), 10000);
+    try {
+      await until(() => cdp.eval("!document.getElementById('menuMusic').paused && document.getElementById('menuMusic').volume>0"), 10000);
+    } catch (error) {
+      console.error('[QA] Menu music state:', await cdp.eval(`(() => {const a=document.getElementById('menuMusic');
+        return {paused:a.paused,readyState:a.readyState,networkState:a.networkState,volume:a.volume,
+          source:a.currentSrc,error:a.error&&{code:a.error.code,message:a.error.message},state,gameLoopStarted};})()`));
+      throw error;
+    }
     assert.equal(await cdp.eval("AU.musicOn===false && state==='title'"), true);
     const settingsMusic = await cdp.eval(`(() => {
       document.getElementById('btnSettings').click();
@@ -133,6 +140,7 @@ async function main() {
         {width,height:1080,deviceScaleFactor:1,mobile:false});
       await cdp.eval("startGame('solo')");
       await delay(850);
+      await until(() => cdp.eval('innerWidth<=ARENA.w||Math.abs(cam.x-(ARENA.w-innerWidth)/2)<3'), 5000);
       const layout = await cdp.eval(`(() => {
         const left=document.getElementById('hudTL').getBoundingClientRect();
         const wave=document.getElementById('hudTC').getBoundingClientRect();
@@ -195,6 +203,74 @@ async function main() {
     })()`);
     assert.deepEqual(trainingDesktop,{opened:true,hudHidden:true,paused:true,pauseRestart:true,combatActions:true,attack:true,dodge:true,parry:true,execute:true,
       repeated:true,exited:true,unchanged:true});
+    const buildAndReroll = await cdp.eval(`(() => {
+      startGame('solo');wave.num=1;wave.breakT=9;wave.queue=[];enemies=[];
+      applyUp('burn');applyUp('frost');applyUp('parryPow');applyUp('sword_guard');applyRelic('ygg');
+      pauseGame(true);
+      const summary=document.getElementById('pauseBuild').textContent;
+      const pauseBuild=['МЕЧ','Путь Стража','Пламя Муспеля','Стужа Скади','Семя Иггдрасиля','Термошок'].every(x=>summary.includes(x));
+      const countBefore=document.querySelector('#pauseBuild summary').textContent.includes('1/1');
+      pauseGame(false);
+      const checkpoint=saveSoloCheckpoint();
+      team.level=2;pending=1;openLevel();
+      const choiceBuild=document.getElementById('levelBuild').textContent.includes('Термошок');
+      const initial=choices.map(x=>x.id);
+      const buttonVisible=!document.getElementById('btnRerollGifts').classList.contains('hidden');
+      const rerolled=rerollGifts(),replacement=choices.map(x=>x.id);
+      renderLevelCards();
+      const stable=JSON.stringify(choices.map(x=>x.id))===JSON.stringify(replacement);
+      const distinct=new Set(replacement).size===3&&replacement.every(id=>!initial.includes(id));
+      const used=team.giftRerolls===0&&document.getElementById('btnRerollGifts').classList.contains('hidden');
+      const countAfter=document.querySelector('#levelBuild summary').textContent.includes('0/1');
+      const draftStored=giftRerollDraft()?.choices.join(',')===replacement.join(',');
+      resumeSoloCheckpoint();
+      const restored=team.giftRerolls===0;
+      team.level=2;pending=1;openLevel();
+      const sameAfterRestore=choices.map(x=>x.id).join(',')===replacement.join(',');
+      const selected=choices[0],before=players[0].upgOwned[selected.id]||0;
+      choose(selected);choose(selected);
+      const once=(players[0].upgOwned[selected.id]||0)===before+1;
+      const saved=readSoloCheckpoint()?.team.giftRerolls===0&&giftRerollDraft()===null;
+      masteryQueue.push('hammer');openLevel();
+      const noMasteryReroll=document.getElementById('btnRerollGifts').classList.contains('hidden')&&!rerollGifts();
+      backToTitle();startGame('solo');queueRelic('jarl');openLevel();
+      const noRelicReroll=document.getElementById('btnRerollGifts').classList.contains('hidden')&&!rerollGifts();
+      backToTitle();startGame('coop');pauseGame(true);
+      const coopSummary=document.getElementById('pauseBuild').textContent.includes('ВОИН 2');
+      pauseGame(false);pending=1;openLevel();
+      const noCoopReroll=document.getElementById('btnRerollGifts').classList.contains('hidden')&&!rerollGifts();
+      backToTitle();dailyMode=true;startGame('solo');pending=1;openLevel();
+      const noDailyReroll=document.getElementById('btnRerollGifts').classList.contains('hidden')&&!rerollGifts();
+      backToTitle();weeklyMode=true;startGame('solo');pending=1;openLevel();
+      const noWeeklyReroll=document.getElementById('btnRerollGifts').classList.contains('hidden')&&!rerollGifts();
+      backToTitle();discardSoloCheckpoint();
+      return {pauseBuild,countBefore,choiceBuild,checkpoint,buttonVisible,rerolled,stable,distinct,used,countAfter,draftStored,
+        restored,sameAfterRestore,once,saved,noMasteryReroll,noRelicReroll,coopSummary,noCoopReroll,noDailyReroll,noWeeklyReroll};
+    })()`);
+    assert.deepEqual(buildAndReroll,{pauseBuild:true,countBefore:true,choiceBuild:true,checkpoint:true,buttonVisible:true,rerolled:true,
+      stable:true,distinct:true,used:true,countAfter:true,draftStored:true,restored:true,sameAfterRestore:true,once:true,saved:true,
+      noMasteryReroll:true,noRelicReroll:true,coopSummary:true,noCoopReroll:true,noDailyReroll:true,noWeeklyReroll:true});
+    const draftBeforeReload = await cdp.eval(`(() => {
+      startGame('solo');wave.num=1;wave.breakT=9;wave.queue=[];enemies=[];
+      if(!saveSoloCheckpoint())throw new Error('Could not save reroll baseline');
+      team.level=2;pending=1;openLevel();if(!rerollGifts())throw new Error('Could not reroll gifts');
+      return choices.map(u=>u.id).join(',');
+    })()`);
+    await reload(cdp);
+    await until(() => cdp.eval("!document.getElementById('bootEnter').classList.contains('hidden')"));
+    const returnEnter = await cdp.eval(`(() => {const r=document.getElementById('bootEnter').getBoundingClientRect();
+      return {x:r.left+r.width/2,y:r.top+r.height/2};})()`);
+    await cdp.send('Input.dispatchMouseEvent', {type:'mousePressed',x:returnEnter.x,y:returnEnter.y,button:'left',clickCount:1});
+    await cdp.send('Input.dispatchMouseEvent', {type:'mouseReleased',x:returnEnter.x,y:returnEnter.y,button:'left',clickCount:1});
+    await until(() => cdp.eval("document.getElementById('brandSplash').classList.contains('hidden')"), 8000);
+    assert.equal(await cdp.eval(`(() => {
+      if(!resumeSoloCheckpoint())return false;
+      const spent=team.giftRerolls===0;
+      team.level=2;pending=1;openLevel();
+      const same=choices.map(u=>u.id).join(',')===${JSON.stringify(draftBeforeReload)};
+      backToTitle();discardSoloCheckpoint();return spent&&same;
+    })()`), true);
+    console.log('[QA] Build summary and one-use gift reroll passed');
     const deathLesson = await cdp.eval(`(() => {
       const originalName=save.net.name;save.net.name='ЭЙРИК';persist();
       startGame('solo');wave.num=2;wave.breakT=0;
@@ -404,6 +480,22 @@ async function main() {
       return {visible,resumed,cleared:readSoloCheckpoint()===null};
     })()`);
     assert.deepEqual(mobile, {visible:true,resumed:true,cleared:true});
+    const mobileBuild = await cdp.eval(`(() => {
+      startGame('solo');wave.num=1;wave.breakT=9;
+      pauseGame(true);
+      const pause=document.getElementById('pauseScreen');
+      const summary=document.getElementById('pauseBuild');
+      const pauseReadable=getComputedStyle(pause).overflowY==='auto'&&summary.open&&
+        document.getElementById('btnResume').getBoundingClientRect().height>=48;
+      pauseGame(false);pending=1;openLevel();
+      const button=document.getElementById('btnRerollGifts').getBoundingClientRect();
+      const cards=[...document.querySelectorAll('#cards .card')].map(el=>el.getBoundingClientRect());
+      const levelReachable=button.height>=44&&button.top>=0&&button.bottom<=innerHeight&&
+        cards.length===3&&cards.every(r=>r.left>=0&&r.right<=innerWidth);
+      backToTitle();return {pauseReadable,levelReachable};
+    })()`);
+    assert.deepEqual(mobileBuild,{pauseReadable:true,levelReachable:true});
+    console.log('[QA] Mobile build summary and reroll layout passed');
     if (process.env.VALHEM_QA_TRAINING_SHOT) {
       await cdp.eval('startTraining()');
       await delay(150);
