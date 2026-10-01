@@ -109,15 +109,19 @@ async function main() {
     assert.equal(await cdp.eval("!document.getElementById('brandSplash').classList.contains('hidden')"), true);
     await cdp.send('Input.dispatchMouseEvent', {type:'mouseReleased',x:enter.x,y:enter.y,button:'left',clickCount:1});
     assert.equal(await cdp.eval("!document.getElementById('brandSplash').classList.contains('hidden')"), true);
-    assert.equal(await cdp.eval("getComputedStyle(document.querySelector('#brandSplash img')).animationDuration"), '8s');
+    assert.equal(await cdp.eval("getComputedStyle(document.querySelector('#brandSplash img')).animationDuration"), '10s');
     assert.equal(await cdp.eval("document.querySelector('#brandSplash img').getAttribute('src')==='assets/divan/divan_logo.webp'"), true);
-    assert.equal(await cdp.eval("document.querySelectorAll('#brandEmbers span').length>=12"), true);
+    assert.equal(await cdp.eval("document.querySelectorAll('#brandEmbers span').length>=24"), true);
+    await cdp.send('Emulation.setDeviceMetricsOverride',{width:844,height:390,deviceScaleFactor:2,mobile:true});
+    const splashLandscape=await cdp.eval(`(() => {document.body.classList.add('touch');const r=document.querySelector('#brandSplash img').getBoundingClientRect();return {width:r.width,inViewport:r.right<=innerWidth&&r.left>=0};})()`);
+    assert.equal(splashLandscape.width<=310&&splashLandscape.inViewport,true);
+    await cdp.send('Emulation.clearDeviceMetricsOverride');await cdp.eval("document.body.classList.remove('touch')");
     if (process.env.VALHEM_QA_SHOT) {
-      await delay(4000);
+      await delay(5000);
       const shot = await cdp.send('Page.captureScreenshot', {format:'png'});
       fs.writeFileSync(process.env.VALHEM_QA_SHOT, Buffer.from(shot.data, 'base64'));
     }
-    await until(() => cdp.eval("document.getElementById('brandSplash').classList.contains('hidden')"), 12000);
+    await until(() => cdp.eval("document.getElementById('brandSplash').classList.contains('hidden')"), 14000);
     try {
       await until(() => cdp.eval("!document.getElementById('menuMusic').paused && document.getElementById('menuMusic').volume>0"), 10000);
     } catch (error) {
@@ -127,6 +131,34 @@ async function main() {
       throw error;
     }
     assert.equal(await cdp.eval("AU.musicOn===false && state==='title'"), true);
+    const mainMenuDesktop=await cdp.eval(`(() => {
+      const bg=getComputedStyle(document.getElementById('titleBackdrop')).backgroundImage;
+      const buttons=[...document.querySelectorAll('#titleScreen .titleChoice:not(.hidden)')];
+      const menu=document.querySelector('#titleScreen .mainMenuLayout').getBoundingClientRect();
+      return {horizontal:bg.includes('main_horizon.webp'),snow:document.querySelectorAll('#titleSnow span').length>=24,
+        buttons:buttons.length>=4,visible:menu.left>=0&&menu.top>=0&&menu.right<=innerWidth&&menu.bottom<=innerHeight+2};
+    })()`);
+    assert.deepEqual(mainMenuDesktop,{horizontal:true,snow:true,buttons:true,visible:true});
+    await cdp.send('Emulation.setDeviceMetricsOverride',{width:844,height:390,deviceScaleFactor:2,mobile:true});
+    const mainMenuLandscape=await cdp.eval(`(() => {
+      document.body.classList.add('touch');const intro=document.querySelector('.mainMenuIntro').getBoundingClientRect();
+      const actions=document.querySelector('.mainMenuActions').getBoundingClientRect(),footer=document.querySelector('.mainMenuFooter').getBoundingClientRect();
+      const buttons=[...document.querySelectorAll('#titleScreen .titleChoice:not(.hidden)')].map(el=>el.getBoundingClientRect());
+      return {sideBySide:intro.right<actions.left+8,inside:buttons.every(r=>r.left>=0&&r.right<=innerWidth&&r.top>=0&&r.bottom<=footer.top+1),
+        targets:buttons.every(r=>r.height>=48),horizontal:getComputedStyle(document.getElementById('titleBackdrop')).backgroundImage.includes('main_horizon.webp')};
+    })()`);
+    assert.deepEqual(mainMenuLandscape,{sideBySide:true,inside:true,targets:true,horizontal:true});
+    await cdp.send('Emulation.setDeviceMetricsOverride',{width:390,height:844,deviceScaleFactor:2,mobile:true});
+    const mainMenuPortrait=await cdp.eval(`(() => {
+      const actions=document.querySelector('.mainMenuActions').getBoundingClientRect(),footer=document.querySelector('.mainMenuFooter').getBoundingClientRect();
+      const buttons=[...document.querySelectorAll('#titleScreen .titleChoice:not(.hidden)')].map(el=>el.getBoundingClientRect());
+      return {vertical:getComputedStyle(document.getElementById('titleBackdrop')).backgroundImage.includes('main_vertical.webp'),
+        inside:actions.left>=0&&actions.right<=innerWidth&&buttons.every(r=>r.left>=0&&r.right<=innerWidth&&r.bottom<=footer.top+1),
+        targets:buttons.every(r=>r.height>=48)};
+    })()`);
+    assert.deepEqual(mainMenuPortrait,{vertical:true,inside:true,targets:true});
+    await cdp.send('Emulation.clearDeviceMetricsOverride');await cdp.eval("document.body.classList.remove('touch')");
+    console.log('[QA] Cinematic main menu passed on desktop, 844×390 landscape and 390×844 portrait');
     const settingsMusic = await cdp.eval(`(() => {
       document.getElementById('btnSettings').click();
       const open=!document.getElementById('settScreen').classList.contains('hidden');
@@ -200,7 +232,7 @@ async function main() {
     }
     await cdp.send('Emulation.clearDeviceMetricsOverride');
     console.log('[QA] Desktop HUD at 1920 and 2560 pixels passed');
-    console.log('[QA] Eight-second logo splash, ember layer and menu/settings music passed');
+    console.log('[QA] Ten-second logo splash, smaller landscape mark, drifting ash and menu/settings music passed');
     const trainingDesktop = await cdp.eval(`(() => {
       const stored=localStorage.getItem('valhem_save'),checkpoint=localStorage.getItem(SOLO_CHECKPOINT_KEY);
       document.getElementById('btnTraining').click();
@@ -300,7 +332,7 @@ async function main() {
       return {x:r.left+r.width/2,y:r.top+r.height/2};})()`);
     await cdp.send('Input.dispatchMouseEvent', {type:'mousePressed',x:returnEnter.x,y:returnEnter.y,button:'left',clickCount:1});
     await cdp.send('Input.dispatchMouseEvent', {type:'mouseReleased',x:returnEnter.x,y:returnEnter.y,button:'left',clickCount:1});
-    await until(() => cdp.eval("document.getElementById('brandSplash').classList.contains('hidden')"), 12000);
+    await until(() => cdp.eval("document.getElementById('brandSplash').classList.contains('hidden')"), 14000);
     assert.equal(await cdp.eval(`(() => {
       if(!resumeSoloCheckpoint())return false;
       const spent=team.giftRerolls===0;
@@ -332,7 +364,7 @@ async function main() {
       return {x:r.left+r.width/2,y:r.top+r.height/2};})()`);
     await cdp.send('Input.dispatchMouseEvent',{type:'mousePressed',x:waveEnter.x,y:waveEnter.y,button:'left',clickCount:1});
     await cdp.send('Input.dispatchMouseEvent',{type:'mouseReleased',x:waveEnter.x,y:waveEnter.y,button:'left',clickCount:1});
-    await until(() => cdp.eval("document.getElementById('brandSplash').classList.contains('hidden')"),12000);
+    await until(() => cdp.eval("document.getElementById('brandSplash').classList.contains('hidden')"),14000);
     const firstWaveResume=await cdp.eval(`(() => {
       const visible=!document.getElementById('btnContinueSolo').classList.contains('hidden');
       document.getElementById('btnContinueSolo').click();
@@ -630,7 +662,7 @@ async function main() {
       return {x:r.left+r.width/2,y:r.top+r.height/2};})()`);
     await cdp.send('Input.dispatchMouseEvent', {type:'mousePressed',x:offlineEnter.x,y:offlineEnter.y,button:'left',clickCount:1});
     await cdp.send('Input.dispatchMouseEvent', {type:'mouseReleased',x:offlineEnter.x,y:offlineEnter.y,button:'left',clickCount:1});
-    await until(() => cdp.eval("document.getElementById('brandSplash').classList.contains('hidden')"), 12000);
+    await until(() => cdp.eval("document.getElementById('brandSplash').classList.contains('hidden')"), 14000);
     await until(() => cdp.eval("!document.getElementById('menuMusic').paused && document.getElementById('menuMusic').readyState>=2"), 10000);
     assert.equal(await cdp.eval(`document.querySelector('#brandSplash img').naturalWidth>0 &&
       document.getElementById('menuMusic').currentSrc.endsWith('.opus')`), true);
@@ -682,7 +714,7 @@ async function main() {
       return {x:r.left+r.width/2,y:r.top+r.height/2};})()`);
     await cdp.send('Input.dispatchMouseEvent',{type:'mousePressed',x:offlineWaveEnter.x,y:offlineWaveEnter.y,button:'left',clickCount:1});
     await cdp.send('Input.dispatchMouseEvent',{type:'mouseReleased',x:offlineWaveEnter.x,y:offlineWaveEnter.y,button:'left',clickCount:1});
-    await until(() => cdp.eval("document.getElementById('brandSplash').classList.contains('hidden')"),12000);
+    await until(() => cdp.eval("document.getElementById('brandSplash').classList.contains('hidden')"),14000);
     assert.deepEqual(await cdp.eval(`(() => {
       const offline=!navigator.onLine;
       const visible=!document.getElementById('btnContinueSolo').classList.contains('hidden');
@@ -705,7 +737,7 @@ async function main() {
       return {x:r.left+r.width/2,y:r.top+r.height/2};})()`);
     await cdp.send('Input.dispatchMouseEvent',{type:'mousePressed',x:eventEnter.x,y:eventEnter.y,button:'left',clickCount:1});
     await cdp.send('Input.dispatchMouseEvent',{type:'mouseReleased',x:eventEnter.x,y:eventEnter.y,button:'left',clickCount:1});
-    await until(() => cdp.eval("document.getElementById('brandSplash').classList.contains('hidden')"),12000);
+    await until(() => cdp.eval("document.getElementById('brandSplash').classList.contains('hidden')"),14000);
     assert.deepEqual(await cdp.eval(`(() => ({offline:!navigator.onLine,resumed:resumeSoloCheckpoint(),
       outcome:routeHistory[0]?.outcome,count:routeHistory.length}))()`),
       {offline:true,resumed:true,outcome:offlineEvent.outcome,count:1});
@@ -977,7 +1009,7 @@ async function main() {
     assert.equal(await cdp.eval("!document.getElementById('brandSplash').classList.contains('hidden')"), true);
     await cdp.send('Input.dispatchTouchEvent', {type:'touchEnd',touchPoints:[]});
     console.log('[QA] First mobile tap and touch zoom guards passed');
-    await until(() => cdp.eval("document.getElementById('brandSplash').classList.contains('hidden')"),12000);
+    await until(() => cdp.eval("document.getElementById('brandSplash').classList.contains('hidden')"),14000);
     await cdp.eval(`(() => {
       save.hero='viking';save.oaths={iron:false,fury:false,horde:false,blood:false};
       save.chal={spear:false,noheal:false,noshop:false,endless:false};

@@ -14,6 +14,8 @@
 <meta property="og:type" content="website">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='80' font-size='80' fill='%23d8a93c'>ᚡ</text></svg>">
 <link rel="preload" as="image" href="assets/divan/divan_logo.webp">
+<link rel="preload" as="image" href="assets/images/main_menu/main_horizon.webp" media="(orientation: landscape)">
+<link rel="preload" as="image" href="assets/images/main_menu/main_vertical.webp" media="(orientation: portrait)">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Forum&family=Alegreya:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
@@ -686,6 +688,120 @@ body.touch .netInput{width:100%;max-width:none;font-size:16px;min-height:48px}
 
 button,a,[role="button"],.titleChoice,.hubChoice,.sbtn{touch-action:manipulation;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
 
+/* ===== CINEMATIC MAIN MENU ===== */
+#titleScreen{padding:0;align-items:stretch;justify-content:stretch;background:#030609;isolation:isolate;overflow:hidden}
+#titleBackdrop{position:absolute;z-index:0;inset:-5%;background-image:url('assets/images/main_menu/main_horizon.webp');background-size:cover;background-position:center center;will-change:transform;animation:titleBackdropDrift 20s var(--ease-in-out) infinite alternate}
+.titleVeil{position:absolute;z-index:1;inset:0;pointer-events:none;background:
+ linear-gradient(90deg,rgba(2,4,7,.64) 0%,rgba(2,4,7,.28) 34%,rgba(2,4,7,.16) 53%,rgba(2,4,7,.74) 100%),
+ linear-gradient(180deg,rgba(2,4,7,.08) 0%,rgba(2,4,7,.08) 62%,rgba(2,4,7,.84) 100%)}
+#titleSnow{position:absolute;z-index:2;inset:0;overflow:hidden;pointer-events:none}
+#titleSnow span{position:absolute;left:var(--x);top:-7vh;width:var(--s);height:var(--s);border-radius:50%;background:rgba(238,244,248,.9);box-shadow:0 0 4px rgba(255,255,255,.32);opacity:0;will-change:transform,opacity;animation:titleSnowFall var(--d) linear var(--delay) infinite}
+#titleSnow span:nth-child(3n){opacity:.35;filter:blur(.4px)}
+#titleSnow span:nth-child(4n){background:rgba(210,222,231,.72)}
+@keyframes titleBackdropDrift{
+ 0%{transform:translate3d(-.8%,.15%,0) scale(1.035)}
+ 50%{transform:translate3d(.55%,-.35%,0) scale(1.065)}
+ 100%{transform:translate3d(1.1%,.15%,0) scale(1.045)}
+}
+@keyframes titleSnowFall{
+ 0%{opacity:0;transform:translate3d(0,-8vh,0) rotate(0deg)}
+ 12%{opacity:.72}
+ 35%{transform:translate3d(10px,34vh,0) rotate(75deg)}
+ 62%{transform:translate3d(-8px,67vh,0) rotate(145deg)}
+ 86%{opacity:.62}
+ 100%{opacity:0;transform:translate3d(var(--drift),112vh,0) rotate(230deg)}
+}
+#titleScreen .mainMenuLayout{position:relative;z-index:3;width:100%;max-width:none;min-height:100%;margin:0;padding:clamp(42px,6vh,74px) clamp(32px,5.2vw,92px) 72px;display:grid;grid-template-columns:minmax(300px,.82fr) minmax(520px,1.18fr);gap:clamp(28px,5vw,90px);align-items:center;animation:scIn .26s var(--ease-out)}
+#titleScreen .mainMenuIntro{min-width:0;text-align:center;align-self:center}
+#titleScreen .mainMenuIntro .runeRow{font-size:clamp(12px,1.35vw,18px);letter-spacing:.72em;margin-bottom:6px}
+#titleScreen .mainMenuIntro h1{font-size:clamp(72px,8.1vw,138px);white-space:nowrap}
+#titleScreen .mainMenuIntro .packBadge{font-size:clamp(8px,.72vw,11px);margin-top:10px;padding:5px 18px}
+#titleScreen .mainMenuIntro .tag{max-width:560px;font-size:clamp(13px,1.08vw,17px);line-height:1.45;text-shadow:0 2px 10px rgba(0,0,0,.9)}
+#titleScreen .mainMenuIntro .orn{margin:14px auto 8px;width:min(410px,78%)}
+.mainLoreLine{font:clamp(9px,.76vw,12px) 'Forum';letter-spacing:.34em;color:#9d9a91;text-shadow:0 2px 8px #000}
+#titleScreen .mainMenuActions{width:100%;align-self:center}
+#titleScreen .titleMenu{width:min(100%,780px);gap:10px;margin:0 auto}
+#titleScreen .titleChoice{min-height:88px;padding:14px 24px;border-color:rgba(160,129,67,.72);background:linear-gradient(145deg,rgba(36,31,22,.94),rgba(8,10,12,.93));box-shadow:inset 0 0 0 1px rgba(255,226,154,.025),0 12px 30px rgba(0,0,0,.18)}
+#titleScreen .titleChoice.primary{min-height:96px;background:linear-gradient(145deg,rgba(67,48,21,.95),rgba(17,15,12,.96));border-color:#b18a39}
+#titleScreen .titleChoice.resume{min-height:88px;background:linear-gradient(145deg,rgba(81,56,23,.96),rgba(22,16,10,.97));border-color:#d1a14a}
+#titleScreen .titleChoice.resumeDiscard{min-height:44px;padding:9px 18px}
+#titleScreen .titleChoice.compact{min-height:78px;background:linear-gradient(145deg,rgba(23,24,23,.94),rgba(7,9,10,.96));border-color:#5b574a}
+#titleScreen .titleChoice strong{font-size:clamp(17px,1.55vw,24px);text-shadow:0 1px 8px rgba(0,0,0,.85)}
+#titleScreen .titleChoice small{font-size:clamp(11px,.88vw,14px);color:#b6aa8f}
+#titleScreen .mainMenuFooter{position:absolute;z-index:4;left:0;right:0;bottom:0;min-height:50px;padding:9px max(18px,var(--safe-right)) max(9px,var(--safe-bottom)) max(18px,var(--safe-left));display:grid;grid-template-columns:1fr auto;align-items:center;border-top:1px solid rgba(180,146,75,.38);background:linear-gradient(180deg,rgba(3,6,9,.25),rgba(3,6,9,.9));pointer-events:none}
+#titleScreen #titleStats{margin:0;justify-self:center;padding-left:110px;color:#b2b5b8;text-shadow:0 2px 7px #000}
+#titleScreen .credit{margin:0;justify-self:end;color:#777d84;text-align:right;text-shadow:0 2px 7px #000}
+
+@media(max-height:700px) and (orientation:landscape){
+ #titleScreen .mainMenuLayout{padding-top:24px;padding-bottom:58px;gap:34px;grid-template-columns:minmax(260px,.78fr) minmax(480px,1.22fr)}
+ #titleScreen .mainMenuIntro h1{font-size:clamp(58px,7.4vw,100px)}
+ #titleScreen .mainMenuIntro .tag{font-size:13px;line-height:1.35;margin-top:9px}
+ #titleScreen .mainMenuIntro .orn{margin:9px auto 6px}
+ #titleScreen .titleMenu{gap:7px}
+ #titleScreen .titleChoice,#titleScreen .titleChoice.primary{min-height:72px;padding:10px 19px}
+ #titleScreen .titleChoice.compact{min-height:62px}
+ #titleScreen .titleChoice.resume{min-height:66px}
+ #titleScreen .titleChoice.resumeDiscard{min-height:38px;padding:6px 15px}
+ #titleScreen .titleChoice strong{font-size:clamp(15px,1.5vw,20px)}
+ #titleScreen .titleChoice small{font-size:11px;margin-top:3px}
+ #titleScreen .mainMenuFooter{min-height:42px;padding-top:6px;padding-bottom:max(6px,var(--safe-bottom))}
+ #titleScreen #titleStats{font-size:11px}
+ #titleScreen .credit{font-size:9px}
+}
+@media(max-height:560px) and (orientation:landscape){
+ body.touch #titleScreen .mainMenuLayout{padding:12px max(14px,var(--safe-right)) 44px max(14px,var(--safe-left));grid-template-columns:minmax(230px,.77fr) minmax(430px,1.23fr);gap:22px}
+ body.touch #titleScreen .mainMenuIntro .runeRow{font-size:9px;letter-spacing:.45em;margin-bottom:2px}
+ body.touch #titleScreen .mainMenuIntro h1{font-size:clamp(44px,7vw,66px);line-height:.9}
+ body.touch #titleScreen .mainMenuIntro .packBadge{font-size:6.5px;letter-spacing:.22em;padding:3px 11px;margin-top:5px}
+ body.touch #titleScreen .mainMenuIntro .tag{font-size:10px;line-height:1.25;margin-top:7px;max-width:300px}
+ body.touch #titleScreen .mainMenuIntro .orn{margin:6px auto 3px;width:65%}
+ body.touch #titleScreen .mainLoreLine{font-size:7.5px;letter-spacing:.23em}
+ body.touch #titleScreen .titleMenu{grid-template-columns:repeat(2,minmax(0,1fr));gap:5px;width:100%}
+ body.touch #titleScreen .titleChoice,body.touch #titleScreen .titleChoice.primary{min-height:58px;padding:7px 14px}
+ body.touch #titleScreen .titleChoice.compact{min-height:50px}
+ body.touch #titleScreen .titleChoice.resume{grid-column:1/-1;min-height:57px}
+ body.touch #titleScreen .titleChoice.resumeDiscard{grid-column:1/-1;min-height:30px;padding:4px 12px;font-size:8.5px}
+ body.touch #titleScreen .titleChoice strong,body.touch #titleScreen .titleChoice.primary strong,body.touch #titleScreen .titleChoice.compact strong{font-size:clamp(12px,2.1vw,16px);letter-spacing:.11em}
+ body.touch #titleScreen .titleChoice small{font-size:8.5px;line-height:1.1;margin-top:2px}
+ body.touch #titleScreen .titleChoice::after{right:10px;font-size:18px}
+ body.touch #titleScreen .mainMenuFooter{min-height:36px;padding:4px max(10px,var(--safe-right)) max(4px,var(--safe-bottom)) max(10px,var(--safe-left));grid-template-columns:1fr auto}
+ body.touch #titleScreen #titleStats{padding-left:60px;font-size:8.5px;letter-spacing:.08em}
+ body.touch #titleScreen .credit{font-size:7px;letter-spacing:.12em}
+}
+@media(orientation:portrait){
+ #titleBackdrop{background-image:url('assets/images/main_menu/main_vertical.webp');inset:-4%;background-position:center center;animation-duration:24s}
+ .titleVeil{background:linear-gradient(180deg,rgba(2,4,7,.12) 0%,rgba(2,4,7,.12) 38%,rgba(2,4,7,.68) 63%,rgba(2,4,7,.92) 100%)}
+ #titleScreen .mainMenuLayout{display:flex;flex-direction:column;justify-content:flex-end;min-height:100%;padding:max(36px,var(--safe-top)) max(14px,var(--safe-right)) calc(64px + var(--safe-bottom)) max(14px,var(--safe-left));gap:14px}
+ #titleScreen .mainMenuIntro{width:min(100%,470px);margin:0 auto}
+ #titleScreen .mainMenuIntro .runeRow{font-size:11px;letter-spacing:.5em;margin-bottom:2px}
+ #titleScreen .mainMenuIntro h1{font-size:clamp(54px,17vw,84px);line-height:.9}
+ #titleScreen .mainMenuIntro .packBadge{font-size:7px;letter-spacing:.2em;padding:4px 12px;margin-top:6px}
+ #titleScreen .mainMenuIntro .tag{max-width:360px;font-size:11.5px;line-height:1.3;margin-top:8px}
+ #titleScreen .mainMenuIntro .orn{margin:7px auto 4px;width:55%}
+ #titleScreen .mainLoreLine{font-size:8px;letter-spacing:.24em}
+ #titleScreen .mainMenuActions{width:min(100%,470px);margin:0 auto}
+ #titleScreen .titleMenu{grid-template-columns:repeat(2,minmax(0,1fr));gap:7px;width:100%}
+ #titleScreen .titleChoice,#titleScreen .titleChoice.primary,#titleScreen .titleChoice.compact{min-height:62px;padding:9px 12px}
+ #titleScreen .titleChoice.resume{grid-column:1/-1;min-height:66px}
+ #titleScreen .titleChoice.resumeDiscard{grid-column:1/-1;min-height:36px;padding:6px 10px}
+ #titleScreen .titleChoice strong,#titleScreen .titleChoice.primary strong,#titleScreen .titleChoice.compact strong{font-size:clamp(13px,4vw,18px);letter-spacing:.1em}
+ #titleScreen .titleChoice small{font-size:9px;line-height:1.15;margin-top:3px}
+ #titleScreen .titleChoice::after{right:8px;font-size:18px}
+ #titleScreen .mainMenuFooter{min-height:48px;grid-template-columns:1fr;justify-items:center;padding:6px max(10px,var(--safe-right)) max(6px,var(--safe-bottom)) max(10px,var(--safe-left))}
+ #titleScreen #titleStats{padding-left:0;font-size:9px;letter-spacing:.08em}
+ #titleScreen .credit{display:none}
+}
+@media(max-width:380px) and (orientation:portrait){
+ #titleScreen .mainMenuIntro .tag{display:none}
+ #titleScreen .mainMenuIntro .orn{margin-top:5px}
+ #titleScreen .mainMenuLayout{gap:9px}
+ #titleScreen .titleChoice,#titleScreen .titleChoice.primary,#titleScreen .titleChoice.compact{min-height:58px}
+}
+@media(prefers-reduced-motion:reduce){
+ #titleBackdrop{animation:none;transform:scale(1.04)}
+ #titleSnow{display:none}
+}
+
 @media(prefers-reduced-motion:reduce){
  .scInner{animation:scFade .16s ease}
  .btn,.sbtn,.titleChoice,.hubChoice,#hud,#hudTC{transition-duration:.01ms}
@@ -703,24 +819,39 @@ button,a,[role="button"],.titleChoice,.hubChoice,.sbtn{touch-action:manipulation
 #brandSplash::before{content:"";position:absolute;z-index:0;left:-10%;right:-10%;bottom:-24%;height:58%;background:radial-gradient(ellipse at center,rgba(255,38,16,.2),rgba(140,8,4,.1) 36%,transparent 70%);filter:blur(10px);pointer-events:none}
 #brandSplash .brandLogoWrap{position:absolute;inset:0;z-index:2;display:grid;place-items:center;padding:clamp(24px,6vw,90px);pointer-events:none}
 #brandSplash img{display:block;width:min(72vw,960px);max-width:92vw;height:auto;max-height:58vh;object-fit:contain;opacity:0;filter:drop-shadow(0 0 24px rgba(190,25,12,.2));will-change:transform,opacity}
-#brandSplash.playing img{animation:brandReveal 8s linear both}
+#brandSplash.playing img{animation:brandReveal 10s linear both}
 #brandEmbers{position:absolute;inset:0;z-index:1;overflow:hidden;pointer-events:none}
-#brandEmbers span{position:absolute;left:var(--x);bottom:-8vh;width:var(--s);height:var(--s);border-radius:50%;background:rgba(255,58,30,.95);box-shadow:0 0 6px rgba(255,42,20,.9),0 0 14px rgba(180,12,4,.55);opacity:0;will-change:transform,opacity}
+#brandEmbers span{position:absolute;left:var(--x);bottom:-8vh;width:var(--s);height:var(--s);border-radius:50%;background:rgba(255,72,44,.9);box-shadow:0 0 5px rgba(255,50,24,.72),0 0 12px rgba(150,10,4,.45);opacity:0;will-change:transform,opacity}
+#brandEmbers span:nth-child(3n){background:rgba(184,169,161,.72);box-shadow:0 0 5px rgba(135,111,101,.32)}
+#brandEmbers span:nth-child(even){animation-name:brandEmberAlt!important}
 #brandSplash.playing #brandEmbers span{animation:brandEmber var(--d) linear var(--delay) infinite}
 @keyframes brandReveal{
   0%{opacity:0;transform:scale(.97)}
-  13%{opacity:1;transform:scale(1)}
-  78%{opacity:1;transform:scale(1.025)}
+  11%{opacity:1;transform:scale(1)}
+  82%{opacity:1;transform:scale(1.025)}
   100%{opacity:0;transform:scale(1.045)}
 }
 @keyframes brandEmber{
-  0%{opacity:0;transform:translate3d(0,10vh,0) scale(.65)}
-  14%{opacity:.95}
-  72%{opacity:.7}
-  100%{opacity:0;transform:translate3d(var(--drift),-112vh,0) scale(.18)}
+  0%{opacity:0;transform:translate3d(0,10vh,0) scale(.7)}
+  12%{opacity:.9}
+  27%{transform:translate3d(14px,-24vh,0) scale(.62)}
+  48%{transform:translate3d(-9px,-49vh,0) scale(.5)}
+  69%{opacity:.68;transform:translate3d(19px,-75vh,0) scale(.38)}
+  86%{transform:translate3d(-6px,-98vh,0) scale(.28)}
+  100%{opacity:0;transform:translate3d(var(--drift),-122vh,0) scale(.15)}
 }
+@keyframes brandEmberAlt{
+  0%{opacity:0;transform:translate3d(0,10vh,0) scale(.68)}
+  12%{opacity:.82}
+  27%{transform:translate3d(-16px,-22vh,0) scale(.6)}
+  48%{transform:translate3d(11px,-48vh,0) scale(.49)}
+  69%{opacity:.62;transform:translate3d(-21px,-74vh,0) scale(.36)}
+  86%{transform:translate3d(8px,-97vh,0) scale(.25)}
+  100%{opacity:0;transform:translate3d(var(--drift),-122vh,0) scale(.14)}
+}
+@media(max-height:560px) and (orientation:landscape){body.touch #brandSplash img{width:min(36vw,480px);max-height:42vh}}
 @media(prefers-reduced-motion:reduce){#brandSplash.playing img{animation-name:brandRevealStill}#brandEmbers{display:none}
- @keyframes brandRevealStill{0%{opacity:0}13%,78%{opacity:1}100%{opacity:0}}}
+ @keyframes brandRevealStill{0%{opacity:0}11%,82%{opacity:1}100%{opacity:0}}}
 .startupCard{width:min(620px,100%);text-align:center;padding:28px 24px}
 .startupRunes{font-family:'Forum',serif;color:var(--gold);letter-spacing:1.1em;font-size:15px;opacity:.72;margin:0 0 12px;padding-left:1.1em}
 #startup h1{font-size:clamp(58px,12vw,92px);letter-spacing:.16em;margin:0;color:#f0e7cf;text-shadow:0 0 26px rgba(216,169,60,.28),0 3px 0 #000}
@@ -878,22 +1009,57 @@ body.touch .trainingActions{margin-top:3px}
   </div>
 
   <section id="titleScreen" class="screen">
-    <div class="scInner">
-      <div class="runeRow">ᚠ ᚢ ᚦ ᚨ ᚱ ᚲ ᚷ ᚹ</div>
-      <h1>VALHEM</h1>
-      <div><span class="packBadge">VALHEM v2.7.0 «ПЕРВАЯ САГА»</span></div>
-      <p class="tag">Пройди шесть земель до Врат Асгарда, собери оружейную сборку и заверши первую сагу на волне XXX. После победы выбирай: вернуться к очагу или идти дальше.</p>
-      <div class="orn">ᛟ</div>
-      <div class="titleMenu" aria-label="Главные пути">
-        <button id="btnContinueSolo" class="titleChoice resume hidden"><strong>ПРОДОЛЖИТЬ ПОХОД</strong><small id="continueSoloDetails"></small></button>
-        <button id="btnDiscardSolo" class="titleChoice resumeDiscard hidden">ОТКАЗАТЬСЯ ОТ СОХРАНЁННОГО ПОХОДА</button>
-        <button id="btnOfflineHub" class="titleChoice primary"><strong>В ПОХОД</strong><small>Один против шести земель</small></button>
-        <button id="btnOnline" class="titleChoice primary"><strong>В ПОХОД С ДРУГОМ</strong><small>Открой мир или войди по руне</small></button>
-        <button id="btnLoreHub" class="titleChoice compact"><strong>СВИТКИ СКАЛЬДА</strong><small>Слава, подвиги и твари</small></button>
-        <button id="btnSettings" class="titleChoice compact"><strong>РУНЫ ОЧАГА</strong><small>Звук, экран и управление</small></button>
+    <div id="titleBackdrop" aria-hidden="true"></div>
+    <div class="titleVeil" aria-hidden="true"></div>
+    <div id="titleSnow" aria-hidden="true">
+      <span style="--x:3%;--s:2px;--d:9.8s;--delay:-1.2s;--drift:18px"></span>
+      <span style="--x:9%;--s:3px;--d:12.6s;--delay:-8.1s;--drift:-12px"></span>
+      <span style="--x:15%;--s:2px;--d:11.2s;--delay:-4.7s;--drift:22px"></span>
+      <span style="--x:21%;--s:4px;--d:13.4s;--delay:-10.3s;--drift:-17px"></span>
+      <span style="--x:27%;--s:2px;--d:10.7s;--delay:-2.6s;--drift:14px"></span>
+      <span style="--x:33%;--s:3px;--d:12.1s;--delay:-6.9s;--drift:-20px"></span>
+      <span style="--x:39%;--s:2px;--d:9.4s;--delay:-5.2s;--drift:16px"></span>
+      <span style="--x:45%;--s:4px;--d:14.2s;--delay:-11.7s;--drift:-24px"></span>
+      <span style="--x:51%;--s:2px;--d:10.3s;--delay:-3.5s;--drift:12px"></span>
+      <span style="--x:57%;--s:3px;--d:11.8s;--delay:-7.4s;--drift:-15px"></span>
+      <span style="--x:63%;--s:2px;--d:13.1s;--delay:-9.2s;--drift:19px"></span>
+      <span style="--x:69%;--s:4px;--d:10.9s;--delay:-1.9s;--drift:-21px"></span>
+      <span style="--x:75%;--s:2px;--d:12.8s;--delay:-8.8s;--drift:13px"></span>
+      <span style="--x:81%;--s:3px;--d:9.9s;--delay:-4.1s;--drift:-18px"></span>
+      <span style="--x:87%;--s:2px;--d:13.7s;--delay:-12.4s;--drift:23px"></span>
+      <span style="--x:93%;--s:3px;--d:11.5s;--delay:-6.1s;--drift:-14px"></span>
+      <span style="--x:6%;--s:2px;--d:14.6s;--delay:-13.2s;--drift:16px"></span>
+      <span style="--x:18%;--s:3px;--d:10.1s;--delay:-7.8s;--drift:-11px"></span>
+      <span style="--x:30%;--s:2px;--d:12.4s;--delay:-2.1s;--drift:20px"></span>
+      <span style="--x:42%;--s:3px;--d:13.9s;--delay:-9.7s;--drift:-16px"></span>
+      <span style="--x:54%;--s:2px;--d:10.5s;--delay:-5.6s;--drift:15px"></span>
+      <span style="--x:66%;--s:3px;--d:12.9s;--delay:-11.1s;--drift:-22px"></span>
+      <span style="--x:78%;--s:2px;--d:11.1s;--delay:-3.2s;--drift:17px"></span>
+      <span style="--x:90%;--s:3px;--d:14.1s;--delay:-8.4s;--drift:-13px"></span>
+    </div>
+    <div class="scInner mainMenuLayout">
+      <div class="mainMenuIntro">
+        <div class="runeRow">ᚠ ᚢ ᚦ ᚨ ᚱ ᚲ ᚷ ᚹ</div>
+        <h1>VALHEM</h1>
+        <div><span class="packBadge">VALHEM v2.7.0 «ПЕРВАЯ САГА»</span></div>
+        <p class="tag">Пройди шесть земель до Врат Асгарда, собери оружейную сборку и заверши первую сагу на волне XXX. После победы выбирай: вернуться к очагу или идти дальше.</p>
+        <div class="orn">ᛟ</div>
+        <div class="mainLoreLine">СЛАВА · ПОДВИГИ · ТВАРИ</div>
       </div>
+      <div class="mainMenuActions">
+        <div class="titleMenu" aria-label="Главные пути">
+          <button id="btnContinueSolo" class="titleChoice resume hidden"><strong>ПРОДОЛЖИТЬ ПОХОД</strong><small id="continueSoloDetails"></small></button>
+          <button id="btnDiscardSolo" class="titleChoice resumeDiscard hidden">ОТКАЗАТЬСЯ ОТ СОХРАНЁННОГО ПОХОДА</button>
+          <button id="btnOfflineHub" class="titleChoice primary"><strong>В ПОХОД</strong><small>Один против шести земель</small></button>
+          <button id="btnOnline" class="titleChoice primary"><strong>В ПОХОД С ДРУГОМ</strong><small>Открой мир или войди по руне</small></button>
+          <button id="btnLoreHub" class="titleChoice compact"><strong>СВИТКИ СКАЛЬДА</strong><small>Слава, подвиги и твари</small></button>
+          <button id="btnSettings" class="titleChoice compact"><strong>РУНЫ ОЧАГА</strong><small>Звук, экран и управление</small></button>
+        </div>
+      </div>
+    </div>
+    <div class="mainMenuFooter">
       <div id="titleStats"></div>
-      <div class="credit">VALHEM v2.7.0 «ПЕРВАЯ САГА» · MOBILE FIRST</div>
+      <div class="credit">VALHEM v2.7.0 · MOBILE FIRST</div>
     </div>
   </section>
 
@@ -1293,6 +1459,18 @@ body.touch .trainingActions{margin-top:3px}
   <span style="--x:24%;--s:2px;--d:4.8s;--delay:-1.6s;--drift:12px"></span>
   <span style="--x:59%;--s:3px;--d:5.9s;--delay:-3.1s;--drift:-22px"></span>
   <span style="--x:74%;--s:2px;--d:5.2s;--delay:-.3s;--drift:15px"></span>
+  <span style="--x:4%;--s:2px;--d:7.1s;--delay:-5.9s;--drift:-12px"></span>
+  <span style="--x:10%;--s:3px;--d:5.5s;--delay:-2.7s;--drift:20px"></span>
+  <span style="--x:17%;--s:2px;--d:6.9s;--delay:-4.4s;--drift:-25px"></span>
+  <span style="--x:31%;--s:3px;--d:5.3s;--delay:-1.1s;--drift:14px"></span>
+  <span style="--x:39%;--s:2px;--d:7.4s;--delay:-6.3s;--drift:-18px"></span>
+  <span style="--x:46%;--s:3px;--d:5.9s;--delay:-3.8s;--drift:28px"></span>
+  <span style="--x:53%;--s:2px;--d:6.5s;--delay:-.5s;--drift:-15px"></span>
+  <span style="--x:66%;--s:3px;--d:5.6s;--delay:-4.9s;--drift:23px"></span>
+  <span style="--x:72%;--s:2px;--d:7.2s;--delay:-2.2s;--drift:-29px"></span>
+  <span style="--x:81%;--s:3px;--d:6s;--delay:-5.1s;--drift:17px"></span>
+  <span style="--x:88%;--s:2px;--d:5s;--delay:-1.4s;--drift:-21px"></span>
+  <span style="--x:96%;--s:3px;--d:6.7s;--delay:-3.3s;--drift:24px"></span>
  </div>
  <div class="brandLogoWrap"><img src="assets/divan/divan_logo.webp" alt="DIVAN GAMES" decoding="async"></div>
 </div>
@@ -5188,7 +5366,7 @@ window.finishBrandSplash=function(){
     setTimeout(function(){
      if(splash){splash.classList.add('hidden');splash.classList.remove('playing');}
      if(typeof window.finishBrandSplash==='function')window.finishBrandSplash();
-    },8000);
+    },10000);
     };
     enter.addEventListener('pointerdown',enterGame,{passive:false});
     enter.addEventListener('click',enterGame);

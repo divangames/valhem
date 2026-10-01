@@ -1,5 +1,5 @@
-const CACHE='valhem-v23-brand-intro';
-const APP_SHELL=['./','./index.html','./icon.svg','./icon-192.png','./icon-512.png','./manifest.webmanifest','./startup.css','./startup.js','./assets/divan/divan_logo.webp','./assets/music/VALHEM - Viking Trail.opus','./assets/music/Death.m4a','./assets/music/bioms/01 VALHEM - Crypt Battle Charge.m4a'];
+const CACHE='valhem-v24-main-menu';
+const APP_SHELL=['./','./index.html','./icon.svg','./icon-192.png','./icon-512.png','./manifest.webmanifest','./startup.css','./startup.js','./assets/divan/divan_logo.webp','./assets/images/main_menu/main_horizon.webp','./assets/images/main_menu/main_vertical.webp','./assets/music/VALHEM - Viking Trail.opus','./assets/music/Death.m4a','./assets/music/bioms/01 VALHEM - Crypt Battle Charge.m4a'];
 self.addEventListener('install',e=>{e.waitUntil(caches.open(CACHE).then(c=>c.addAll(APP_SHELL)).then(()=>self.skipWaiting()));});
 self.addEventListener('activate',e=>{e.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(key=>key!==CACHE).map(key=>caches.delete(key)))).then(()=>self.clients.claim()));});
 self.addEventListener('fetch',e=>{

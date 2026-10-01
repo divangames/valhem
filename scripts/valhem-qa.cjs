@@ -8,7 +8,8 @@ const root = join(__dirname, '..');
 const assets = [
   'index.html', 'startup.js', 'startup.css', 'sw.js',
   'manifest.webmanifest', 'icon.svg', 'icon-192.png', 'icon-512.png',
-  'assets/divan/divan_logo.webp', 'assets/music/VALHEM - Viking Trail.wav',
+  'assets/divan/divan_logo.webp', 'assets/images/main_menu/main_horizon.webp',
+  'assets/images/main_menu/main_vertical.webp', 'assets/music/VALHEM - Viking Trail.wav',
   'assets/music/VALHEM - Viking Trail.opus', 'assets/music/Death.m4a',
   'assets/music/bioms/01 VALHEM - Crypt Battle Charge.m4a',
   'assets/music/bioms/02 VALHEM - Clash in the Woods.m4a',
