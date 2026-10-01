@@ -886,6 +886,23 @@ async function main() {
     })()`);
     assert.deepEqual(trainingMobile,{visible:true,hudHidden:true,panelClear:true,paused:true,combatActions:true,attack:true,dodge:true,parry:true,execute:true,unchanged:true});
     console.log('[QA] Mobile touch training passed');
+    const inputRelease = await cdp.eval(`(() => {
+      const atk=document.getElementById('tbAtk'),zone=document.getElementById('joyZone'),base=document.getElementById('joyBase');
+      const pointer=(type,id,target,extra={})=>target.dispatchEvent(new PointerEvent(type,{pointerId:id,button:0,bubbles:true,...extra}));
+      pointer('pointerdown',201,atk);const held=touchAttack&&atk.classList.contains('on');
+      pointer('lostpointercapture',201,atk);const lostCaptureRelease=!touchAttack&&!atk.classList.contains('on');
+      pointer('pointerdown',202,atk);const repress=touchAttack&&atk.classList.contains('on');
+      dispatchEvent(new PointerEvent('pointerup',{pointerId:202,button:0,bubbles:true}));
+      const globalRelease=!touchAttack&&!atk.classList.contains('on');
+      pointer('pointerdown',203,atk);keys.KeyW=true;mouseDown=true;dispatchEvent(new Event('blur'));
+      const blurRelease=!touchAttack&&!atk.classList.contains('on')&&!keys.KeyW&&!mouseDown;
+      pointer('pointerdown',204,zone,{clientX:80,clientY:120});pointer('pointermove',204,zone,{clientX:115,clientY:145});
+      pointer('lostpointercapture',204,zone);
+      const joyRelease=touchMove.x===0&&touchMove.y===0&&base.style.display==='none';
+      return {held,lostCaptureRelease,repress,globalRelease,blurRelease,joyRelease};
+    })()`);
+    assert.deepEqual(inputRelease,{held:true,lostCaptureRelease:true,repress:true,globalRelease:true,blurRelease:true,joyRelease:true});
+    console.log('[QA] HUD controls release after capture loss, outside release and focus loss');
     const backgroundMusic = await cdp.eval(`(async () => {
       const settle=()=>new Promise(resolve=>setTimeout(resolve,120));
       const tracks=[menuMusic,biomeMusic,deathMusic];
