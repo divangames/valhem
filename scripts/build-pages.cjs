@@ -60,7 +60,7 @@ function verify(destination) {
       throw new Error('Missing referenced Pages asset: ' + file);
     }
   }
-  for (const file of ['assets/divan/divan.webp', 'assets/music/Death.m4a', wavFallback]) {
+  for (const file of ['assets/divan/divan_logo.webp', 'assets/music/Death.m4a', wavFallback]) {
     if (!references.has(file)) throw new Error('Asset is not wired into game: ' + file);
   }
   if ([...references].filter(file => file.startsWith('assets/music/bioms/')).length !== 6) {

@@ -13,7 +13,7 @@
 <meta property="og:description" content="Бесконечная сага павшего воина: шесть земель, стойкость, добивания, фазовые боссы, кооп и чертог славы.">
 <meta property="og:type" content="website">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='80' font-size='80' fill='%23d8a93c'>ᚡ</text></svg>">
-<link rel="preload" as="image" href="assets/divan/divan.webp">
+<link rel="preload" as="image" href="assets/divan/divan_logo.webp">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Forum&family=Alegreya:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
@@ -699,17 +699,28 @@ button,a,[role="button"],.titleChoice,.hubChoice,.sbtn{touch-action:manipulation
  transition:opacity .28s ease,transform .28s ease}
 #startup.startupExit{opacity:0;transform:scale(1.015);pointer-events:none}
 #onlineLinkStatus{position:fixed;z-index:90;top:max(12px,env(safe-area-inset-top));left:50%;transform:translateX(-50%);max-width:min(92vw,620px);padding:10px 16px;border:1px solid #d8a93c;background:rgba(16,19,24,.96);color:#f0e7cf;text-align:center;font-size:15px;pointer-events:none}
-#brandSplash{position:fixed;inset:0;z-index:1100;background:#000;overflow:hidden;pointer-events:auto;touch-action:manipulation}
-#brandSplash img{display:block;width:100%;height:100%;object-fit:cover;opacity:0}
-#brandSplash.playing img{animation:brandReveal 5s linear both}
+#brandSplash{position:fixed;inset:0;z-index:1100;background:radial-gradient(ellipse at 50% 115%,rgba(120,8,4,.28) 0%,rgba(45,4,2,.12) 36%,transparent 66%),#000;overflow:hidden;pointer-events:auto;touch-action:manipulation}
+#brandSplash::before{content:"";position:absolute;z-index:0;left:-10%;right:-10%;bottom:-24%;height:58%;background:radial-gradient(ellipse at center,rgba(255,38,16,.2),rgba(140,8,4,.1) 36%,transparent 70%);filter:blur(10px);pointer-events:none}
+#brandSplash .brandLogoWrap{position:absolute;inset:0;z-index:2;display:grid;place-items:center;padding:clamp(24px,6vw,90px);pointer-events:none}
+#brandSplash img{display:block;width:min(72vw,960px);max-width:92vw;height:auto;max-height:58vh;object-fit:contain;opacity:0;filter:drop-shadow(0 0 24px rgba(190,25,12,.2));will-change:transform,opacity}
+#brandSplash.playing img{animation:brandReveal 8s linear both}
+#brandEmbers{position:absolute;inset:0;z-index:1;overflow:hidden;pointer-events:none}
+#brandEmbers span{position:absolute;left:var(--x);bottom:-8vh;width:var(--s);height:var(--s);border-radius:50%;background:rgba(255,58,30,.95);box-shadow:0 0 6px rgba(255,42,20,.9),0 0 14px rgba(180,12,4,.55);opacity:0;will-change:transform,opacity}
+#brandSplash.playing #brandEmbers span{animation:brandEmber var(--d) linear var(--delay) infinite}
 @keyframes brandReveal{
-  0%{opacity:0;transform:scale(1)}
-  18%{opacity:1;transform:scale(1.012)}
-  78%{opacity:1;transform:scale(1.052)}
-  100%{opacity:0;transform:scale(1.07)}
+  0%{opacity:0;transform:scale(.97)}
+  13%{opacity:1;transform:scale(1)}
+  78%{opacity:1;transform:scale(1.025)}
+  100%{opacity:0;transform:scale(1.045)}
 }
-@media(prefers-reduced-motion:reduce){#brandSplash.playing img{animation-name:brandRevealStill}
- @keyframes brandRevealStill{0%{opacity:0}18%,78%{opacity:1}100%{opacity:0}}}
+@keyframes brandEmber{
+  0%{opacity:0;transform:translate3d(0,10vh,0) scale(.65)}
+  14%{opacity:.95}
+  72%{opacity:.7}
+  100%{opacity:0;transform:translate3d(var(--drift),-112vh,0) scale(.18)}
+}
+@media(prefers-reduced-motion:reduce){#brandSplash.playing img{animation-name:brandRevealStill}#brandEmbers{display:none}
+ @keyframes brandRevealStill{0%{opacity:0}13%,78%{opacity:1}100%{opacity:0}}}
 .startupCard{width:min(620px,100%);text-align:center;padding:28px 24px}
 .startupRunes{font-family:'Forum',serif;color:var(--gold);letter-spacing:1.1em;font-size:15px;opacity:.72;margin:0 0 12px;padding-left:1.1em}
 #startup h1{font-size:clamp(58px,12vw,92px);letter-spacing:.16em;margin:0;color:#f0e7cf;text-shadow:0 0 26px rgba(216,169,60,.28),0 3px 0 #000}
@@ -1265,7 +1276,25 @@ body.touch .trainingActions{margin-top:3px}
   </section>
 </div>
 <div id="brandSplash" class="hidden" role="img" aria-label="DIVAN GAMES">
- <img src="assets/divan/divan.webp" alt="DIVAN GAMES" decoding="async">
+ <div id="brandEmbers" aria-hidden="true">
+  <span style="--x:7%;--s:3px;--d:5.8s;--delay:-1.2s;--drift:22px"></span>
+  <span style="--x:13%;--s:2px;--d:4.7s;--delay:-3.4s;--drift:-16px"></span>
+  <span style="--x:20%;--s:4px;--d:6.4s;--delay:-2.1s;--drift:31px"></span>
+  <span style="--x:28%;--s:2px;--d:5.1s;--delay:-.7s;--drift:-24px"></span>
+  <span style="--x:35%;--s:3px;--d:6.8s;--delay:-4.6s;--drift:18px"></span>
+  <span style="--x:42%;--s:2px;--d:4.4s;--delay:-2.8s;--drift:-13px"></span>
+  <span style="--x:49%;--s:4px;--d:6.1s;--delay:-5.2s;--drift:27px"></span>
+  <span style="--x:56%;--s:2px;--d:5.4s;--delay:-1.9s;--drift:-20px"></span>
+  <span style="--x:63%;--s:3px;--d:4.9s;--delay:-3.7s;--drift:24px"></span>
+  <span style="--x:70%;--s:2px;--d:6.6s;--delay:-.9s;--drift:-28px"></span>
+  <span style="--x:77%;--s:4px;--d:5.7s;--delay:-4.1s;--drift:19px"></span>
+  <span style="--x:84%;--s:2px;--d:4.6s;--delay:-2.4s;--drift:-17px"></span>
+  <span style="--x:91%;--s:3px;--d:6.2s;--delay:-5.5s;--drift:26px"></span>
+  <span style="--x:24%;--s:2px;--d:4.8s;--delay:-1.6s;--drift:12px"></span>
+  <span style="--x:59%;--s:3px;--d:5.9s;--delay:-3.1s;--drift:-22px"></span>
+  <span style="--x:74%;--s:2px;--d:5.2s;--delay:-.3s;--drift:15px"></span>
+ </div>
+ <div class="brandLogoWrap"><img src="assets/divan/divan_logo.webp" alt="DIVAN GAMES" decoding="async"></div>
 </div>
 <audio id="menuMusic" preload="none" loop>
  <source src="assets/music/VALHEM%20-%20Viking%20Trail.opus" type="audio/ogg; codecs=opus">
@@ -5159,7 +5188,7 @@ window.finishBrandSplash=function(){
     setTimeout(function(){
      if(splash){splash.classList.add('hidden');splash.classList.remove('playing');}
      if(typeof window.finishBrandSplash==='function')window.finishBrandSplash();
-    },5000);
+    },8000);
     };
     enter.addEventListener('pointerdown',enterGame,{passive:false});
     enter.addEventListener('click',enterGame);

@@ -109,13 +109,15 @@ async function main() {
     assert.equal(await cdp.eval("!document.getElementById('brandSplash').classList.contains('hidden')"), true);
     await cdp.send('Input.dispatchMouseEvent', {type:'mouseReleased',x:enter.x,y:enter.y,button:'left',clickCount:1});
     assert.equal(await cdp.eval("!document.getElementById('brandSplash').classList.contains('hidden')"), true);
-    assert.equal(await cdp.eval("getComputedStyle(document.querySelector('#brandSplash img')).animationDuration"), '5s');
+    assert.equal(await cdp.eval("getComputedStyle(document.querySelector('#brandSplash img')).animationDuration"), '8s');
+    assert.equal(await cdp.eval("document.querySelector('#brandSplash img').getAttribute('src')==='assets/divan/divan_logo.webp'"), true);
+    assert.equal(await cdp.eval("document.querySelectorAll('#brandEmbers span').length>=12"), true);
     if (process.env.VALHEM_QA_SHOT) {
-      await delay(2500);
+      await delay(4000);
       const shot = await cdp.send('Page.captureScreenshot', {format:'png'});
       fs.writeFileSync(process.env.VALHEM_QA_SHOT, Buffer.from(shot.data, 'base64'));
     }
-    await until(() => cdp.eval("document.getElementById('brandSplash').classList.contains('hidden')"), 8000);
+    await until(() => cdp.eval("document.getElementById('brandSplash').classList.contains('hidden')"), 12000);
     try {
       await until(() => cdp.eval("!document.getElementById('menuMusic').paused && document.getElementById('menuMusic').volume>0"), 10000);
     } catch (error) {
@@ -198,7 +200,7 @@ async function main() {
     }
     await cdp.send('Emulation.clearDeviceMetricsOverride');
     console.log('[QA] Desktop HUD at 1920 and 2560 pixels passed');
-    console.log('[QA] Five-second splash and menu/settings music passed');
+    console.log('[QA] Eight-second logo splash, ember layer and menu/settings music passed');
     const trainingDesktop = await cdp.eval(`(() => {
       const stored=localStorage.getItem('valhem_save'),checkpoint=localStorage.getItem(SOLO_CHECKPOINT_KEY);
       document.getElementById('btnTraining').click();
@@ -298,7 +300,7 @@ async function main() {
       return {x:r.left+r.width/2,y:r.top+r.height/2};})()`);
     await cdp.send('Input.dispatchMouseEvent', {type:'mousePressed',x:returnEnter.x,y:returnEnter.y,button:'left',clickCount:1});
     await cdp.send('Input.dispatchMouseEvent', {type:'mouseReleased',x:returnEnter.x,y:returnEnter.y,button:'left',clickCount:1});
-    await until(() => cdp.eval("document.getElementById('brandSplash').classList.contains('hidden')"), 8000);
+    await until(() => cdp.eval("document.getElementById('brandSplash').classList.contains('hidden')"), 12000);
     assert.equal(await cdp.eval(`(() => {
       if(!resumeSoloCheckpoint())return false;
       const spent=team.giftRerolls===0;
@@ -330,7 +332,7 @@ async function main() {
       return {x:r.left+r.width/2,y:r.top+r.height/2};})()`);
     await cdp.send('Input.dispatchMouseEvent',{type:'mousePressed',x:waveEnter.x,y:waveEnter.y,button:'left',clickCount:1});
     await cdp.send('Input.dispatchMouseEvent',{type:'mouseReleased',x:waveEnter.x,y:waveEnter.y,button:'left',clickCount:1});
-    await until(() => cdp.eval("document.getElementById('brandSplash').classList.contains('hidden')"),8000);
+    await until(() => cdp.eval("document.getElementById('brandSplash').classList.contains('hidden')"),12000);
     const firstWaveResume=await cdp.eval(`(() => {
       const visible=!document.getElementById('btnContinueSolo').classList.contains('hidden');
       document.getElementById('btnContinueSolo').click();
@@ -628,7 +630,7 @@ async function main() {
       return {x:r.left+r.width/2,y:r.top+r.height/2};})()`);
     await cdp.send('Input.dispatchMouseEvent', {type:'mousePressed',x:offlineEnter.x,y:offlineEnter.y,button:'left',clickCount:1});
     await cdp.send('Input.dispatchMouseEvent', {type:'mouseReleased',x:offlineEnter.x,y:offlineEnter.y,button:'left',clickCount:1});
-    await until(() => cdp.eval("document.getElementById('brandSplash').classList.contains('hidden')"), 8000);
+    await until(() => cdp.eval("document.getElementById('brandSplash').classList.contains('hidden')"), 12000);
     await until(() => cdp.eval("!document.getElementById('menuMusic').paused && document.getElementById('menuMusic').readyState>=2"), 10000);
     assert.equal(await cdp.eval(`document.querySelector('#brandSplash img').naturalWidth>0 &&
       document.getElementById('menuMusic').currentSrc.endsWith('.opus')`), true);
@@ -680,7 +682,7 @@ async function main() {
       return {x:r.left+r.width/2,y:r.top+r.height/2};})()`);
     await cdp.send('Input.dispatchMouseEvent',{type:'mousePressed',x:offlineWaveEnter.x,y:offlineWaveEnter.y,button:'left',clickCount:1});
     await cdp.send('Input.dispatchMouseEvent',{type:'mouseReleased',x:offlineWaveEnter.x,y:offlineWaveEnter.y,button:'left',clickCount:1});
-    await until(() => cdp.eval("document.getElementById('brandSplash').classList.contains('hidden')"),8000);
+    await until(() => cdp.eval("document.getElementById('brandSplash').classList.contains('hidden')"),12000);
     assert.deepEqual(await cdp.eval(`(() => {
       const offline=!navigator.onLine;
       const visible=!document.getElementById('btnContinueSolo').classList.contains('hidden');
@@ -703,7 +705,7 @@ async function main() {
       return {x:r.left+r.width/2,y:r.top+r.height/2};})()`);
     await cdp.send('Input.dispatchMouseEvent',{type:'mousePressed',x:eventEnter.x,y:eventEnter.y,button:'left',clickCount:1});
     await cdp.send('Input.dispatchMouseEvent',{type:'mouseReleased',x:eventEnter.x,y:eventEnter.y,button:'left',clickCount:1});
-    await until(() => cdp.eval("document.getElementById('brandSplash').classList.contains('hidden')"),8000);
+    await until(() => cdp.eval("document.getElementById('brandSplash').classList.contains('hidden')"),12000);
     assert.deepEqual(await cdp.eval(`(() => ({offline:!navigator.onLine,resumed:resumeSoloCheckpoint(),
       outcome:routeHistory[0]?.outcome,count:routeHistory.length}))()`),
       {offline:true,resumed:true,outcome:offlineEvent.outcome,count:1});
@@ -975,7 +977,7 @@ async function main() {
     assert.equal(await cdp.eval("!document.getElementById('brandSplash').classList.contains('hidden')"), true);
     await cdp.send('Input.dispatchTouchEvent', {type:'touchEnd',touchPoints:[]});
     console.log('[QA] First mobile tap and touch zoom guards passed');
-    await until(() => cdp.eval("document.getElementById('brandSplash').classList.contains('hidden')"),8000);
+    await until(() => cdp.eval("document.getElementById('brandSplash').classList.contains('hidden')"),12000);
     await cdp.eval(`(() => {
       save.hero='viking';save.oaths={iron:false,fury:false,horde:false,blood:false};
       save.chal={spear:false,noheal:false,noshop:false,endless:false};
