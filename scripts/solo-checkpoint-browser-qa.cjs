@@ -406,6 +406,19 @@ async function main() {
         deathAudio,recordName,stopped:deathMusic.paused};
     })()`);
     assert.deepEqual(deathLesson,{cause:'укус волка',build:true,advice:true,deathAudio:true,recordName:true,stopped:true});
+    const queuedScore = await cdp.eval(`(async()=>{
+      const originalCall=netCall;let reachable=false;const scores=[];
+      netCall=async function(path,opt){if(!reachable)throw Error('offline');if(path==='/score'){scores.push(JSON.parse(opt.body));return {ok:true};}if(path.startsWith('/leaderboard'))return {items:scores};return {ok:true};};
+      try{
+        save.pendingScores=[];startGame('solo');wave.num=5;kills=19;
+        await netSubmitScore();
+        const retained=save.pendingScores.length===1;
+        reachable=true;await renderGlobalBoard();
+        return {retained,sent:scores.length===1,cleared:save.pendingScores.length===0,shown:document.querySelectorAll('#globalBoardRows .boardRow').length===1};
+      }finally{netCall=originalCall;save.pendingScores=[];persist();backToTitle();}
+    })()`);
+    assert.deepEqual(queuedScore,{retained:true,sent:true,cleared:true,shown:true});
+    console.log('[QA] Offline solo score retries and appears on the shared board');
     const noFieldCoach = await cdp.eval(`(() => {
       startGame('solo');firstEnemyCoach();defenseCoach();
       const solo=coachQueue.length===0&&!document.getElementById('coach').classList.contains('show')&&

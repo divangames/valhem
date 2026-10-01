@@ -102,6 +102,13 @@ async function main() {
     const api = 'http://127.0.0.1:' + server.address().port;
     const host = await browser(url,api,profiles,children); browsers.push(host);
     const guest = await browser(url,api,profiles,children); browsers.push(guest);
+    await host.eval(`(async()=>{await netCall('/score',{method:'POST',body:JSON.stringify({clientId:ensureNetId(),name:'Эйрик',mode:'normal',period:'all',wave:3,kills:22})});return true})()`);
+    await guest.eval(`(async()=>{await netCall('/score',{method:'POST',body:JSON.stringify({clientId:ensureNetId(),name:'Астрид',mode:'normal',period:'all',wave:4,kills:30})});return true})()`);
+    for(const client of [host,guest]){
+      const rows = await client.eval(`(async()=>{renderChronicle();await renderGlobalBoard();return [...document.querySelectorAll('#globalBoardRows .bh')].map(el=>el.textContent)})()`);
+      assert.deepEqual(rows,['Астрид','Эйрик']);
+    }
+    console.log('[QA] Two independent browsers share the same Chronicle leaderboard');
     await host.eval("document.getElementById('onlineName').value='Хозяин';createRoom()");
     const code = await until(() => host.eval("onlineRoom&&onlineRoom.code"));
     await guest.eval("document.getElementById('onlineName').value='Гость';joinRoom(" + JSON.stringify(code) + ")");

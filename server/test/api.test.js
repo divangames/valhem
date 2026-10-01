@@ -33,6 +33,18 @@ test('protects an online world and keeps player ids out of room responses', asyn
   const fakeOnlineScore = await call('/score', {clientId, roomCode: created.data.room.code, mode: 'online', wave: 9999, kills: 999999});
   assert.equal(fakeOnlineScore.response.status, 409);
 
+  const first = await call('/score', {clientId, name: 'Эйрик', mode: 'normal', period: 'all', wave: 3, kills: 22});
+  const second = await call('/score', {clientId: 'player_other_456', name: 'Астрид', mode: 'normal', period: 'all', wave: 4, kills: 30, sagaComplete: true});
+  assert.equal(first.response.status, 200);
+  assert.equal(second.response.status, 200);
+  let board = await (await fetch(base + '/leaderboard?mode=normal&period=all')).json();
+  assert.deepEqual(board.items.map((item) => item.name), ['Астрид', 'Эйрик']);
+  assert.equal(board.items[0].sagaComplete, false);
+  assert.equal('clientId' in board.items[0], false);
+  await call('/score', {clientId: 'player_other_456', name: 'Астрид', mode: 'normal', period: 'all', wave: 30, kills: 30, sagaComplete: true});
+  board = await (await fetch(base + '/leaderboard?mode=normal&period=all')).json();
+  assert.equal(board.items[0].sagaComplete, true);
+
   const saved = await call('/world/save', {clientId, token, name: 'Хозяин', worldName: 'Мидгард', version: 'test', checkpoint: {schema: 1, wave: 3}});
   assert.equal(saved.response.status, 200);
 

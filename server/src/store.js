@@ -65,7 +65,8 @@ export class JsonStore {
     const previous = this.data.scores.findIndex((item) => `${item.clientId}:${item.mode}:${item.period}` === key);
     if (previous >= 0) {
       const old = this.data.scores[previous];
-      if (old.wave > score.wave || (old.wave === score.wave && old.kills >= score.kills)) return old;
+      if (old.wave > score.wave || (old.wave === score.wave && old.kills > score.kills) ||
+        (old.wave === score.wave && old.kills === score.kills && (!score.sagaComplete || old.sagaComplete))) return old;
       this.data.scores.splice(previous, 1);
     }
     this.data.scores.push(score);

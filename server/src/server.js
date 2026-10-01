@@ -160,6 +160,8 @@ async function route(req, res) {
       level: verified?.level ?? number(input.level, 1, 10_000),
       time: verified?.time ?? number(input.time, 0, 100_000_000),
       hero: cleanText(input.hero, 24, 'viking'),
+      party: input.party === 'coop' ? 'coop' : 'solo',
+      sagaComplete: Boolean(input.sagaComplete) && (verified?.wave ?? number(input.wave, 0, 10_000)) >= 30,
       version: cleanText(input.version, 24),
       createdAt: Date.now()
     };
