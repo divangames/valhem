@@ -132,6 +132,20 @@ async function main() {
     await until(() => guest.eval("state==='playing'&&document.getElementById('levelScreen').classList.contains('hidden')"));
     console.log('[QA] Host choice appeared for guest; guest could not choose');
 
+    await host.eval("openPath();routeChoices=[ROUTE_NODES.event];renderRouteCards()");
+    await until(() => guest.eval("state==='path'&&routeChoices.length===1&&routeChoices[0].id==='event'"));
+    await host.eval('choosePath(routeChoices[0])');
+    await until(() => guest.eval("state==='path'&&routeEvent&&routeChoices.length===2&&document.getElementById('pathTitle').textContent===roadEvent(routeEvent.id).name"));
+    assert.equal(await guest.eval("(()=>{choosePath(routeChoices[0]);return !routeEvent.outcome&&routeHistory.length===0})()"),true);
+    await host.eval("choosePath(routeChoices.find(c=>!c.cost||c.cost<=team.gold))");
+    await until(() => guest.eval("state==='path'&&routeEvent&&!!routeEvent.outcome&&routeHistory.length===1&&!document.getElementById('pathOutcome').classList.contains('hidden')"));
+    assert.equal(await guest.eval("document.getElementById('btnPathContinue').classList.contains('hidden')"),true);
+    assert.equal(await guest.eval('routeHistory[0].outcome'),await host.eval('routeHistory[0].outcome'));
+    await host.eval('continueRoadEvent()');
+    await until(() => guest.eval("state==='playing'&&routeHistory.length===1&&routeEvent===null"));
+    assert.equal(await guest.eval('team.gold'),await host.eval('team.gold'));
+    console.log('[QA] Guest saw event choices, host decision and outcome once');
+
     await host.eval('openPath()');
     await until(() => guest.eval("state==='path'&&!document.getElementById('pathScreen').classList.contains('hidden')&&routeChoices.length===3"));
     const route = await host.eval('routeChoices[0].id');

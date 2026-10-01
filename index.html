@@ -420,6 +420,15 @@ body.touch .relicChip{width:20px;height:17px;font-size:12px}
 .routeCard.utility{border-color:#315d6a}.routeCard.utility .cRune{color:#8fd8e8}.routeCard.mystery{border-color:#5b3b76}.routeCard.mystery .cRune{color:#d49bff}
 .routeCard.boss{border-color:#8a2e24;box-shadow:0 0 26px rgba(194,58,46,.12)}.routeCard.boss .cRune{color:#ff775f;text-shadow:0 0 20px rgba(255,80,55,.45)}
 .routeCard .routeEffect{margin-top:10px;padding-top:8px;border-top:1px dashed #303744;color:#c8b98f;font-size:11.5px;line-height:1.35}
+#pathCards.eventChoices{max-width:600px;margin-left:auto;margin-right:auto}
+#pathCards.eventChoices .routeCard{width:280px;min-height:168px}
+#pathCards.eventChoices .cDesc{display:none}
+#pathCards.eventChoices .routeEffect{font-size:15px;color:#e3d3ae}
+.routeCard.disabled{opacity:.48;cursor:not-allowed}
+.pathOutcome{max-width:560px;margin:18px auto 0;padding:22px 24px;border:1px solid #8b7138;background:rgba(10,13,18,.94);text-align:center}
+.pathOutcome b{display:block;color:var(--gold-hi);font:22px Forum;letter-spacing:.08em}
+.pathOutcome p{color:#d4c9ad;font:16px/1.4 Alegreya;margin:10px 0 18px}
+.pathOutcome .btn{min-height:48px}
 @media(max-width:760px){body.touch .routeMap{margin-top:10px;padding:10px}body.touch .routeCard{width:min(100%,330px);min-height:0}body.touch #pathCards.routeCards{gap:10px}}
 
 .bestGrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px;margin:20px 0;max-width:980px}
@@ -560,6 +569,10 @@ body.touch .srow select{min-height:44px}
  body.touch #levelScreen h2,body.touch #pathScreen h2{font-size:clamp(21px,4.2vw,28px);letter-spacing:.1em;line-height:1;margin:0}
  body.touch #levelScreen .sub,body.touch #pathScreen .sub{font-size:11.5px;line-height:1.25;margin-top:5px}
  body.touch #cards,body.touch #pathCards.routeCards{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;width:100%;margin:9px auto 0;align-items:stretch}
+ body.touch #pathCards.eventChoices{grid-template-columns:repeat(2,minmax(0,1fr));max-width:600px}
+ body.touch #pathCards.eventChoices .routeCard{width:auto;min-height:0}
+ body.touch #pathCards.eventChoices .routeEffect{font-size:12.5px;line-height:1.25}
+ body.touch .pathOutcome{padding:12px;margin-top:9px}.pathOutcome b{font-size:18px}.pathOutcome p{font-size:13px;margin:6px 0 10px}
  body.touch #cards .card,body.touch #pathCards .routeCard{width:auto;min-width:0;min-height:0;margin:0;padding:12px 9px 10px}
  body.touch #cards .cRune,body.touch #pathCards .cRune{font-size:29px;line-height:1;margin-bottom:5px}
  body.touch #cards .cName,body.touch #pathCards .cName{font-size:13.5px;line-height:1.08;letter-spacing:.035em;overflow-wrap:anywhere}
@@ -600,6 +613,7 @@ body.touch .srow select{min-height:44px}
 @media (max-width:640px) and (orientation:portrait){
  body.touch #levelScreen,body.touch #pathScreen{align-items:flex-start}
  body.touch #cards,body.touch #pathCards.routeCards{display:grid;grid-template-columns:minmax(0,1fr);gap:10px;width:min(100%,390px);margin:14px auto 0}
+ body.touch #pathCards.eventChoices{grid-template-columns:minmax(0,1fr);max-width:390px}
  body.touch #cards .card,body.touch #pathCards .routeCard{width:100%;min-height:0;padding:16px 14px}
  body.touch #cards .cRune,body.touch #pathCards .cRune{font-size:34px;margin-bottom:6px}
  body.touch #cards .cDesc,body.touch #pathCards .cDesc{min-height:0}
@@ -1158,7 +1172,7 @@ body.touch .trainingActions{margin-top:3px}
   <section id="pathScreen" class="screen hidden">
     <div class="scInner">
       <div class="runeRow">ᛈ ᚢ ᛏ ᛁ</div>
-      <h2>КАРТА САГИ</h2>
+      <h2 id="pathTitle">КАРТА САГИ</h2>
       <p class="sub" id="pathSub">Волна зачищена. Выбери, какой ценой продолжить путь.</p>
       <div id="routeMap" class="routeMap">
         <div class="routeTop"><span>ТЕКУЩАЯ ВОЛНА <b class="routeWave" id="routeFrom">—</b></span><span class="routeArrow">→</span><span>СЛЕДУЮЩАЯ <b class="routeWave" id="routeTo">—</b></span><span id="routeBossMark" class="routeBossMark hidden">· ВРАТА ЁТУНА</span></div>
@@ -1166,6 +1180,7 @@ body.touch .trainingActions{margin-top:3px}
         <div class="routeFork" aria-hidden="true"></div>
       </div>
       <div id="pathCards" class="routeCards"></div>
+      <div id="pathOutcome" class="pathOutcome hidden" role="status" aria-live="polite"><b id="pathOutcomeTitle"></b><p id="pathOutcomeText"></p><button id="btnPathContinue" class="btn">ПРОДОЛЖИТЬ ПОХОД</button></div>
     </div>
   </section>
 
@@ -1381,7 +1396,7 @@ function applyGuestAction(action){const pl=players[1];if(!pl||!onlineHost)return
 function applyGuestCommand(command,offerId){if(!onlineHost)return;if(command==='horn')horn();else if(command==='buy'){const offer=shop.offers.find(function(item){return item.id===offerId;});if(offer)buy(offer);}}
 function sendGuestAction(action){if(!onlineGuest||!onlineSocket||onlineSocket.readyState!==WebSocket.OPEN)return;if(action==='context'){const pl=players[1];sendOnline(executionTarget(pl)?{type:'action',action:'execute'}:{type:'command',command:'horn'});return;}sendOnline({type:'action',action:action});}
 function netPlain(value,depth){if(value===null||value===undefined||typeof value==='string'||typeof value==='number'||typeof value==='boolean')return value;if(depth>4)return undefined;if(Array.isArray(value))return value.slice(-180).map(function(v){return netPlain(v,depth+1);});if(typeof value!=='object'||value instanceof Set)return undefined;const out={};for(const k in value){if(['own','ownE','srcE','source','hit'].indexOf(k)>=0)continue;const v=netPlain(value[k],depth+1);if(v!==undefined)out[k]=v;}return out;}
-function makeOnlineSnapshot(){return {players:netPlain(players,0),enemies:netPlain(enemies,0),projs:netPlain(projs,0),pickups:netPlain(pickups,0),parts:netPlain(parts.slice(-120),0),texts:netPlain(texts,0),trails:netPlain(trails,0),telegraphs:netPlain(telegraphs,0),portals:netPlain(portals,0),zones:netPlain(zones,0),barrels:netPlain(barrels,0),altars:netPlain(altars,0),pillars:netPlain(PILLARS,0),team:netPlain(team,0),wave:netPlain(wave,0),merchant:netPlain(merchant,0),shop:netPlain(shop,0),curEvent:netPlain(curEvent,0),biome:curBiome.id,kills:kills,runTime:runTime,lastDamageCause:lastDamageCause,deathBuild:deathBuildSummary(),gameState:state,levelChoices:state==='levelup'?netPlain(choices,0):[],levelMode:relicMode?'relic':(masteryMode?'mastery':'upgrade'),levelTitle:$('levelTitle').textContent,levelSub:$('levelSub').textContent,routeChoices:state==='path'?netPlain(routeChoices,0):[],routeHistory:netPlain(routeHistory.slice(-40),0)};}
+function makeOnlineSnapshot(){return {players:netPlain(players,0),enemies:netPlain(enemies,0),projs:netPlain(projs,0),pickups:netPlain(pickups,0),parts:netPlain(parts.slice(-120),0),texts:netPlain(texts,0),trails:netPlain(trails,0),telegraphs:netPlain(telegraphs,0),portals:netPlain(portals,0),zones:netPlain(zones,0),barrels:netPlain(barrels,0),altars:netPlain(altars,0),pillars:netPlain(PILLARS,0),team:netPlain(team,0),wave:netPlain(wave,0),merchant:netPlain(merchant,0),shop:netPlain(shop,0),curEvent:netPlain(curEvent,0),biome:curBiome.id,kills:kills,runTime:runTime,lastDamageCause:lastDamageCause,deathBuild:deathBuildSummary(),gameState:state,levelChoices:state==='levelup'?netPlain(choices,0):[],levelMode:relicMode?'relic':(masteryMode?'mastery':'upgrade'),levelTitle:$('levelTitle').textContent,levelSub:$('levelSub').textContent,routeChoices:state==='path'?netPlain(routeChoices,0):[],routeEvent:state==='path'?netPlain(routeEvent,0):null,routeHistory:netPlain(routeHistory.slice(-40),0)};}
 function sendOnlineSnapshot(now){if(!onlineHost||!onlineActive||now-onlineLastSnapshot<83)return;onlineLastSnapshot=now;sendOnline({type:'snapshot',world:makeOnlineSnapshot()});}
 function applyOnlinePhase(world){
  if(!onlineGuest||!onlineActive||state==='paused')return;
@@ -1389,10 +1404,11 @@ function applyOnlinePhase(world){
  if(!['playing','levelup','path','dying','dead'].includes(phase))return;
  const signature=JSON.stringify([phase,world.wave&&world.wave.num,
   (world.levelChoices||[]).map(function(x){return x.id;}),
-  (world.routeChoices||[]).map(function(x){return x.id;})]);
+  (world.routeChoices||[]).map(function(x){return x.id;}),world.routeEvent&&world.routeEvent.id,world.routeEvent&&world.routeEvent.outcome]);
  if(signature===onlinePhaseSignature)return;
  onlinePhaseSignature=signature;
  state=phase;
+ if(phase!=='path')routeEvent=null;
  $('levelScreen').classList.add('hidden');
  $('pathScreen').classList.add('hidden');
  $('deathScreen').classList.add('hidden');
@@ -1404,9 +1420,12 @@ function applyOnlinePhase(world){
   renderLevelCards();
  }else if(phase==='path'){
   routeChoices=Array.isArray(world.routeChoices)?world.routeChoices:[];
+  routeEvent=world.routeEvent||null;
   routeHistory=Array.isArray(world.routeHistory)?world.routeHistory:[];
   renderRouteTrail((world.wave&&world.wave.num||0)+1);
-  $('pathSub').textContent='Хозяин мира выбирает следующую дорогу.';
+  const event=routeEvent&&roadEvent(routeEvent.id);
+  $('pathTitle').textContent=event?event.name:'КАРТА САГИ';
+  $('pathSub').textContent=routeEvent?(routeEvent.outcome?'Решение принято. Хозяин мира продолжит поход.':event.desc+' Решение принимает хозяин мира.'):'Хозяин мира выбирает следующую дорогу.';
   renderRouteCards();
  }else if(phase==='dead'){
   $('stWave').textContent=roman(world.wave&&world.wave.num||0);
@@ -1983,7 +2002,7 @@ let wave={num:0,queue:[],t:0,breakT:0},kills=0,runTime=0;
 let shake=0,freeze=0,slowmo=0,dieT=0,ambT=0,pending=0,choices=[],choiceBusy=false,ragePing=[false,false],masteryQueue=[],masteryMode=false,relicQueue=[],relicMode=false,relicSource='',impactFx={a:0,col:'255,255,255'},bossMusic=0;
 let curEvent=null,zoneT=2;
 let dailyMode=false,weeklyMode=false;
-let routeChoices=[],routeHistory=[];
+let routeChoices=[],routeHistory=[],routeEvent=null;
 const ROUTE_NEUTRAL={id:'road',name:'Обычный путь',eliteBoost:0,extra:0,goldMul:1,buff:null,boss:false};
 let routePending=Object.assign({},ROUTE_NEUTRAL),routeActive=Object.assign({},ROUTE_NEUTRAL);
 const cam={x:0,y:0};
@@ -2354,7 +2373,7 @@ function initRun(m){
  barrels=[];altars=[];
  kills=0;runTime=0;shake=0;freeze=0;slowmo=0;pending=0;choiceBusy=false;ragePing=[false,false];masteryQueue=[];masteryMode=false;relicQueue=[];relicMode=false;relicSource='';impactFx={a:0,col:'255,255,255'};bossMusic=0;
  curEvent=null;zoneT=2;
- routeChoices=[];routeHistory=[];routePending=Object.assign({},ROUTE_NEUTRAL);routeActive=Object.assign({},ROUTE_NEUTRAL);
+ routeChoices=[];routeHistory=[];routeEvent=null;routePending=Object.assign({},ROUTE_NEUTRAL);routeActive=Object.assign({},ROUTE_NEUTRAL);
  wave={num:0,queue:[],t:0,breakT:1.5};
  merchant.active=false;closeShop();
  if(curBiome!==BIOMES[0])curBiome=BIOMES[0];
@@ -3034,9 +3053,38 @@ const ROUTE_NODES={
  elite:{id:'elite',rune:'ᛉ',name:'Охота на элиту',kind:'ЭЛИТА',tone:'risk',desc:'Следы ведут к отборной дружине противника.',effect:'Резко выше шанс элиток · +45% золота.'},
  forge:{id:'forge',rune:'ᚱ',name:'Кузня',kind:'УСИЛЕНИЕ',tone:'utility',desc:'Кузнец подстраивает дар под оружие в твоих руках.',effect:'Получить оружейно-ориентированный дар.'},
  altar:{id:'altar',rune:'ᛟ',name:'Алтарь',kind:'БЛАГОСЛОВЕНИЕ',tone:'utility',desc:'Руна вспыхнет только на одну следующую битву.',effect:'Скорость, сила или щит на всю следующую волну.'},
- event:{id:'event',rune:'ᛃ',name:'Случай у дороги',kind:'СОБЫТИЕ',tone:'utility',desc:'Сага сворачивает туда, где расчёт уже не помогает.',effect:'Случайное событие: золото, лечение, дар или цена.'},
- mystery:{id:'mystery',rune:'?',name:'Неизвестный путь',kind:'НЕИЗВЕСТНО',tone:'mystery',desc:'Руны молчат. За туманом может быть всё что угодно.',effect:'Случайный узел с усиленной наградой или риском.'}
+ event:{id:'event',rune:'ᛃ',name:'Случай у дороги',kind:'СОБЫТИЕ',tone:'utility',desc:'Встреть путников и сам реши, какой ценой помочь.',effect:'Одно из шести событий · два действия на выбор.'},
+ mystery:{id:'mystery',rune:'?',name:'Неизвестный путь',kind:'НЕИЗВЕСТНО',tone:'mystery',desc:'Руны молчат. За туманом ждёт решение и награда.',effect:'Событие с выбором · +12% золота в следующей волне.'}
 };
+const ROAD_EVENTS=[
+ {id:'drakkar',name:'СЛОМАННЫЙ ДРАККАР',desc:'На берегу лежит лодка дружины. Под её досками ещё есть припасы.',
+  choices:[{id:'repair',rune:'ᚱ',name:'Починить лодку',tone:'utility',effect:'−60 золота → случайный дар.',cost:60},
+   {id:'supplies',rune:'ᚨ',name:'Забрать припасы',tone:'reward',effect:'+35 золота без риска.'}]},
+ {id:'skald',name:'ПЛЕНЁННЫЙ СКАЛЬД',desc:'Скальд ждёт помощи. Его освободят только после опасной схватки.',
+  choices:[{id:'free',rune:'ᛋ',name:'Освободить',tone:'risk',effect:'−12% текущего HP каждому живому воину → +70 золота.'},
+   {id:'pass',rune:'ᚲ',name:'Пройти мимо',tone:'reward',effect:'+15 золота из брошенной сумки.'}]},
+ {id:'well',name:'РУНИЧЕСКИЙ КОЛОДЕЦ',desc:'Вода лечит раны, а руны на дне обещают опасный дар.',
+  choices:[{id:'water',rune:'ᛚ',name:'Испить воды',tone:'reward',effect:'Восстановить 30% максимального HP каждому живому воину.'},
+   {id:'rune',rune:'ᚾ',name:'Достать руну',tone:'risk',effect:'−10% текущего HP → случайный редкий или проклятый дар.'}]},
+ {id:'feud',name:'СПОР ДРУЖИН',desc:'Две дружины требуют решить спор на поле боя.',
+  choices:[{id:'challenge',rune:'ᚦ',name:'Принять вызов',tone:'risk',effect:'Больше элитных врагов → +35% золота в следующей волне.'},
+   {id:'truce',rune:'ᚹ',name:'Заключить мир',tone:'reward',effect:'Обычная следующая волна · +20 золота сейчас.'}]},
+ {id:'sindri',name:'ТОВАР СИНДРИ',desc:'На дороге лежит ящик с ценником кузнеца.',
+  choices:[{id:'buy',rune:'ᚠ',name:'Выкупить дар',tone:'utility',effect:'−40 золота → случайный оружейный дар.',cost:40},
+   {id:'sell',rune:'ᚷ',name:'Продать находку',tone:'reward',effect:'+30 золота сразу.'}]},
+ {id:'norns',name:'ЖЕРТВЕННИК НОРН',desc:'Норны предлагают силу на одну битву или дар ценой крови.',
+  choices:[{id:'blessing',rune:'ᛟ',name:'Взять благословение',tone:'utility',effect:'Сила, скорость или щит на следующую волну.'},
+   {id:'blood',rune:'ᛒ',name:'Отдать кровь',tone:'risk',effect:'−18% текущего HP → случайный редкий или легендарный дар.'}]}
+];
+function roadEvent(id){return ROAD_EVENTS.find(function(e){return e.id===id;});}
+function roadEventChoices(event){return event.choices.map(function(choice){
+ const c=Object.assign({},choice,{id:'event:'+event.id+':'+choice.id,kind:'РЕШЕНИЕ',desc:event.desc});
+ if(event.id==='well'&&choice.id==='water'&&save.chal.noheal)c.effect='+25 золота вместо лечения: клятва запрещает исцеление.';
+ return c;
+});}
+function roadEventId(routeId){const recent=new Set(routeHistory.slice(-3).map(function(h){return h.event;}));
+ const pool=ROAD_EVENTS.filter(function(e){return !recent.has(e.id);});
+ return pool[hashStr(String(team.runId)+'|'+(wave.num+1)+'|'+routeId)%pool.length].id;}
 function neutralRoute(){return Object.assign({},ROUTE_NEUTRAL);}
 function routeNode(id){return ROUTE_NODES[id]||ROUTE_NODES.event;}
 function routeLabelClass(id){if(id.indexOf('boss')===0)return'boss';if(id==='elite'||id==='slaughter'||id==='norns')return'elite';if(id==='forge')return'forge';if(id==='altar')return'altar';if(id==='mystery')return'mystery';return'';}
@@ -3044,7 +3092,7 @@ function renderRouteTrail(nextWave){
  const t=$('routeTrail');t.innerHTML='';
  const hist=routeHistory.slice(-6);
  if(!hist.length){const s=document.createElement('span');s.className='routeStep';s.innerHTML='<b>СТАРТ</b> · сага началась';t.appendChild(s);}
- for(let i=0;i<hist.length;i++){const h=hist[i],s=document.createElement('span');s.className='routeStep '+routeLabelClass(h.id);s.innerHTML='<b>'+roman(h.wave)+'</b> · '+h.name;t.appendChild(s);}
+ for(let i=0;i<hist.length;i++){const h=hist[i],s=document.createElement('span');s.className='routeStep '+routeLabelClass(h.id);s.textContent=roman(h.wave)+' · '+h.name+(h.choice?' · '+h.choice:'');t.appendChild(s);}
  $('routeFrom').textContent=roman(wave.num);$('routeTo').textContent=roman(nextWave);
  $('routeBossMark').classList.toggle('hidden',nextWave%5!==0);
 }
@@ -3058,15 +3106,6 @@ function forgePool(){
 }
 function giveForgeGift(){const u=drawUpgrade(forgePool());applyUp(u.id);showBanner('КУЗНЯ','Получен дар: '+u.name);AU.sHammer();}
 function setRouteBuff(kind){routePending.buff=kind;const n=kind==='damage'?'СИЛА':(kind==='speed'?'СКОРОСТЬ':'ЩИТ');showBanner('БЛАГОСЛОВЕНИЕ АЛТАРЯ',n+' — НА СЛЕДУЮЩУЮ ВОЛНУ');AU.sRune();}
-function resolveRoadEvent(strong){
- const roll=randi(0,strong?5:4);
- if(roll===0){const g=(strong?80:50)+wave.num*5;team.gold+=g;showBanner('БРОШЕННАЯ ПОВОЗКА','+'+g+' ЗОЛОТА');AU.sCoin();}
- else if(roll===1){for(let i=0;i<players.length;i++)if(players[i].alive)healP(players[i],players[i].maxHp*(strong?0.45:0.28));showBanner('ИСТОЧНИК ФРЕЙИ','РАНЫ ЗАТЯНУЛИСЬ');AU.sHeart();}
- else if(roll===2){const u=drawUpgrade(UPG.filter(function(x){return upRarity(x)!=='common';}));applyUp(u.id);showBanner('РУНА В ПЕПЛЕ','ДАР: '+u.name);}
- else if(roll===3){for(let i=0;i<players.length;i++)if(players[i].alive)players[i].hp=Math.max(1,players[i].hp*0.82);routePending.goldMul=Math.max(routePending.goldMul,1.55);showBanner('ЗАСАДА','−18% HP · +55% ЗОЛОТА В СЛЕДУЮЩЕЙ ВОЛНЕ');AU.sWarn();}
- else if(roll===4){routePending.eliteBoost=Math.max(routePending.eliteBoost,0.38);routePending.goldMul=Math.max(routePending.goldMul,1.35);showBanner('СЛЕД ЯРЛА','ВПЕРЕДИ ЭЛИТНАЯ ДРУЖИНА');}
- else{const u=drawUpgrade(UPG.filter(function(x){return upRarity(x)==='cursed'||upRarity(x)==='legendary';}));applyUp(u.id);showBanner('РУНЫ НЕ ЛГУТ','СУДЬБА: '+u.name);}
-}
 function makeRouteChoices(nextWave){
  if(nextWave%5===0){
   return [
@@ -3083,26 +3122,82 @@ function makeRouteChoices(nextWave){
  return ids.map(routeNode);
 }
 function openPath(){
- state='path';const nextWave=wave.num+1;
+ state='path';routeEvent=null;const nextWave=wave.num+1;
  routeChoices=makeRouteChoices(nextWave);renderRouteTrail(nextWave);
+ $('pathTitle').textContent='КАРТА САГИ';
  $('pathSub').textContent=nextWave%5===0?'Впереди Ётун. Выбери, как подготовиться к боссовой волне.':'Три дороги ведут дальше. Награда зависит от риска.';
  renderRouteCards();
 }
 function renderRouteCards(){
  const wrap=$('pathCards');wrap.innerHTML='';
+ wrap.classList.toggle('eventChoices',!!routeEvent);
+ $('routeMap').classList.toggle('hidden',!!routeEvent);
+ $('pathOutcome').classList.toggle('hidden',!routeEvent||!routeEvent.outcome);
+ if(routeEvent&&routeEvent.outcome){
+  $('pathOutcomeTitle').textContent=roadEvent(routeEvent.id).name;
+  $('pathOutcomeText').textContent=routeEvent.outcome;
+  $('btnPathContinue').classList.toggle('hidden',onlineGuest&&onlineActive);
+  $('pathScreen').classList.remove('hidden');
+  if(!onlineGuest)requestAnimationFrame(function(){$('btnPathContinue').focus();});
+  return;
+ }
  routeChoices.forEach(function(p,i){
   const d=document.createElement('div');
-  d.className='card routeCard '+(['reward','risk','utility','mystery','boss'].includes(p.tone)?p.tone:'');
+  const unavailable=p.cost>team.gold;
+  d.className='card routeCard '+(['reward','risk','utility','mystery','boss'].includes(p.tone)?p.tone:'')+(unavailable?' disabled':'');
   cardText(d,'span','routeKind',p.kind);cardText(d,'div','cRune',p.rune);cardText(d,'div','cName',p.name);
-  cardText(d,'div','cDesc',p.desc);cardText(d,'div','routeEffect',p.effect);cardText(d,'div','cKey',i+1);
-  d.onclick=function(){choosePath(p);};wrap.appendChild(d);
+  cardText(d,'div','cDesc',p.desc);cardText(d,'div','routeEffect',p.effect+(unavailable?' · НЕ ХВАТАЕТ ЗОЛОТА':''));cardText(d,'div','cKey',i+1);
+  d.onclick=function(){if(!unavailable)choosePath(p);};wrap.appendChild(d);
  });
  $('pathScreen').classList.remove('hidden');
 }
+function payEventHealth(fraction){for(const pl of players)if(pl.alive)pl.hp=Math.max(1,Math.round(pl.hp*(1-fraction)));}
+function chooseRoadEvent(p){
+ if(!routeEvent||routeEvent.outcome||p.cost>team.gold)return;
+ const event=roadEvent(routeEvent.id),choice=event.choices.find(function(c){return p.id==='event:'+event.id+':'+c.id;});
+ if(!choice)return;
+ let outcome='';
+ if(event.id==='drakkar'){
+  if(choice.id==='repair'){team.gold-=60;const u=drawUpgrade();applyUp(u.id);outcome='−60 золота · получен дар «'+u.name+'».';}
+  else{team.gold+=35;outcome='+35 золота из припасов.';}}
+ else if(event.id==='skald'){
+  if(choice.id==='free'){payEventHealth(.12);team.gold+=70;outcome='Скальд спасён · −12% текущего HP · +70 золота.';}
+  else{team.gold+=15;outcome='Дружина прошла мимо · +15 золота.';}}
+ else if(event.id==='well'){
+  if(choice.id==='water'){
+   if(save.chal.noheal){team.gold+=25;outcome='Клятва не позволяет исцелиться · +25 золота.';}
+   else{for(const pl of players)if(pl.alive)healP(pl,pl.maxHp*.3);outcome='Живая вода восстановила 30% максимального HP.';}}
+  else{payEventHealth(.1);const u=drawUpgrade(UPG.filter(function(x){return ['rare','cursed'].includes(upRarity(x));}));applyUp(u.id);outcome='−10% текущего HP · получен дар «'+u.name+'».';}}
+ else if(event.id==='feud'){
+  if(choice.id==='challenge'){routePending.eliteBoost=.4;routePending.goldMul=1.35;outcome='Вызов принят · больше элиты и +35% золота в следующей волне.';}
+  else{team.gold+=20;outcome='Дружины заключили мир · +20 золота.';}}
+ else if(event.id==='sindri'){
+  if(choice.id==='buy'){team.gold-=40;const u=drawUpgrade(forgePool());applyUp(u.id);outcome='−40 золота · получен оружейный дар «'+u.name+'».';}
+  else{team.gold+=30;outcome='Товар продан · +30 золота.';}}
+ else if(event.id==='norns'){
+  if(choice.id==='blessing'){const buff=pick(['speed','damage','shield']);routePending.buff=buff;outcome='На следующую волну даровано усиление: '+(buff==='speed'?'скорость':buff==='damage'?'сила':'щит')+'.';}
+  else{payEventHealth(.18);const u=drawUpgrade(UPG.filter(function(x){return ['rare','epic','legendary'].includes(upRarity(x));}));applyUp(u.id);outcome='−18% текущего HP · получен дар «'+u.name+'».';}}
+ routeEvent.outcome=outcome;routeEvent.choice=choice.name;
+ routeHistory.push({wave:wave.num+1,id:routeEvent.routeId,name:event.name,event:event.id,choice:choice.name,outcome:outcome});
+ routePending.name=event.name;routeChoices=[];renderRouteTrail(wave.num+1);
+ $('pathSub').textContent='Решение принято. Итог сохранится перед следующей волной.';
+ renderRouteCards();AU.sRune();
+}
+function continueRoadEvent(){
+ if(state!=='path'||!routeEvent||!routeEvent.outcome||(onlineGuest&&onlineActive))return;
+ routeEvent=null;routeChoices=[];$('pathScreen').classList.add('hidden');state='playing';doRest();
+}
 function choosePath(p){
- if(state!=='path'||(onlineGuest&&onlineActive))return;
+ if(state!=='path'||(onlineGuest&&onlineActive)||!p||!routeChoices.some(function(c){return c.id===p.id;}))return;
+ if(routeEvent){chooseRoadEvent(p);return;}
  routePending=neutralRoute();routePending.id=p.id;routePending.name=p.name;
  const nextWave=wave.num+1;
+ if(p.id==='event'||p.id==='mystery'){
+  const event=roadEvent(roadEventId(p.id));routeEvent={id:event.id,routeId:p.id,choice:'',outcome:''};
+  if(p.id==='mystery')routePending.goldMul=1.12;
+  routeChoices=roadEventChoices(event);$('pathTitle').textContent=event.name;$('pathSub').textContent=event.desc;
+  renderRouteCards();return;
+ }
  if(p.id==='fire'){for(let i=0;i<players.length;i++)if(players[i].alive){healP(players[i],players[i].maxHp*0.35);addText(players[i].x,players[i].y-32,'+35%','#7ddb82',15);}AU.sHeart();}
  else if(p.id==='cache'){const g=45+wave.num*6;team.gold+=g;showBanner('ТАЙНИК','+'+g+' ЗОЛОТА');AU.sCoin();}
  else if(p.id==='norns'){for(let i=0;i<players.length;i++)if(players[i].alive){players[i].hp=Math.max(1,Math.round(players[i].hp*0.8));addText(players[i].x,players[i].y-32,'−20%','#ff6b57',14);}applyUp(drawUpgrade().id);}
@@ -3110,8 +3205,6 @@ function choosePath(p){
  else if(p.id==='elite'){routePending.eliteBoost=0.5;routePending.goldMul=1.45;routePending.extra=0.08;showBanner('ОХОТА НА ЭЛИТУ','ЭЛИТНЫЕ ВРАГИ ВПЕРЕДИ');}
  else if(p.id==='forge'){giveForgeGift();}
  else if(p.id==='altar'){setRouteBuff(pick(['speed','damage','shield']));}
- else if(p.id==='event'){resolveRoadEvent(false);}
- else if(p.id==='mystery'){resolveRoadEvent(true);routePending.goldMul=Math.max(routePending.goldMul,1.12);}
  else if(p.id==='boss_forge'){routePending.boss=true;giveForgeGift();}
  else if(p.id==='boss_altar'){routePending.boss=true;setRouteBuff(pick(['speed','damage','shield']));}
  else if(p.id==='boss_blood'){routePending.boss=true;for(let i=0;i<players.length;i++)if(players[i].alive)players[i].hp=Math.max(1,Math.round(players[i].hp*0.85));const pool=UPG.filter(function(u){return upRarity(u)!=='common';});const u=drawUpgrade(pool);applyUp(u.id);showBanner('КРОВАВЫЕ ВРАТА','ДАР ПЕРЕД ЁТУНОМ: '+u.name);}
@@ -4511,7 +4604,7 @@ function exitTraining(){
 }
 function backToTitle(){
  enemies=[];projs=[];pickups=[];texts=[];trails=[];telegraphs=[];portals=[];zones=[];barrels=[];altars=[];players=[];
- curEvent=null;routeChoices=[];routeHistory=[];routePending=neutralRoute();routeActive=neutralRoute();resetPillars();buildBG();state='title';dailyMode=false;weeklyMode=false;orientationPaused=false;
+ curEvent=null;routeChoices=[];routeHistory=[];routeEvent=null;routePending=neutralRoute();routeActive=neutralRoute();resetPillars();buildBG();state='title';dailyMode=false;weeklyMode=false;orientationPaused=false;
  coachQueue=[];dismissCoach();coachGap=0;coachSlowT=0;
  document.body.classList.remove('orientation-blocked');
  updateTitleStats();showOnly('titleScreen');playMenuMusic(false);
@@ -4828,6 +4921,7 @@ $('btnAgain').onclick=function(){if(!onlineActive)startGame(mode);};
 $('btnToHall').onclick=async function(){AU.sClick();if(onlineActive&&onlineRoom)await leaveOnlineRoom();else backToTitle();renderHall();showOnly('hallScreen');};
 $('btnRestart').onclick=function(){setPauseQuit(false,false);if(trainingActive)startTraining();else startGame(mode);};
 $('btnResume').onclick=function(){if(touchMode)requestLandscape();pauseGame(false);};
+$('btnPathContinue').onclick=continueRoadEvent;
 $('btnQuitRun').onclick=function(){AU.sClick();setPauseQuit(true);};
 $('btnQuitNo').onclick=function(){AU.sClick();setPauseQuit(false);};
 $('btnQuitYes').onclick=function(){if(trainingActive)exitTraining();else abandonRun();};

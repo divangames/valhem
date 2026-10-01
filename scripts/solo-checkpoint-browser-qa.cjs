@@ -417,11 +417,69 @@ async function main() {
     })()`);
     assert.deepEqual(musicControls,{muted:true,restored:true,stopped:true});
     console.log('[QA] Six numbered biome tracks, mute and menu transition passed');
+    const roadEvents=await cdp.eval(`(() => {
+      const results=[];
+      for(const event of ROAD_EVENTS)for(let branch=0;branch<2;branch++){
+        backToTitle();startGame('solo');wave.num=2;wave.queue=[];enemies=[];
+        team.gold=200;players[0].hp=50;routeHistory=[];
+        let attempt=0;
+        do{team.runId='qa-'+event.id+'-'+attempt++;}while(roadEventId('event')!==event.id&&attempt<100);
+        state='path';routeChoices=[ROUTE_NODES.event];renderRouteTrail(3);
+        choosePath(routeChoices[0]);
+        const opened=routeEvent&&routeEvent.id===event.id&&routeChoices.length===2&&
+          !document.getElementById('pathScreen').classList.contains('hidden');
+        const choice=routeChoices[branch],gold=team.gold,hp=players[0].hp;
+        choosePath(choice);
+        const outcome=routeEvent&&!!routeEvent.outcome&&routeHistory.length===1&&
+          routeHistory[0].event===event.id&&routeHistory[0].choice===event.choices[branch].name&&
+          !document.getElementById('pathOutcome').classList.contains('hidden')&&state==='path';
+        const resultText=routeEvent.outcome,resolvedGold=team.gold,resolvedHp=players[0].hp,
+          owned=JSON.stringify(players[0].upgOwned),history=JSON.stringify(routeHistory);
+        choosePath(choice);
+        const single=team.gold===resolvedGold&&players[0].hp===resolvedHp&&
+          JSON.stringify(players[0].upgOwned)===owned&&JSON.stringify(routeHistory)===history;
+        document.getElementById('btnPathContinue').click();
+        const cp=readSoloCheckpoint();
+        const saved=state==='playing'&&cp?.routeHistory?.length===1&&
+          cp.routeHistory[0].outcome===resultText;
+        const afterGold=team.gold;
+        backToTitle();const resumed=resumeSoloCheckpoint();
+        const noDuplicate=resumed&&team.gold===afterGold&&routeHistory.length===1&&routeEvent===null;
+        results.push({id:event.id,branch,opened:!!opened,outcome:!!outcome,single,saved:!!saved,
+          noDuplicate,effect:gold!==resolvedGold||hp!==resolvedHp||owned!=='{}'||routePending.buff!==null||routePending.eliteBoost>0});
+      }
+      backToTitle();return results;
+    })()`);
+    assert.equal(roadEvents.length,12);
+    for(const item of roadEvents)assert.deepEqual(item,{id:item.id,branch:item.branch,opened:true,outcome:true,single:true,saved:true,noDuplicate:true,effect:true});
+    console.log('[QA] Six road events, both choices, one-time outcome and solo checkpoint passed');
+    const eventLimits=await cdp.eval(`(() => {
+      backToTitle();startGame('solo');wave.num=2;wave.queue=[];enemies=[];team.gold=0;
+      let i=0;do{team.runId='qa-price-'+i++;}while(roadEventId('event')!=='drakkar'&&i<100);
+      state='path';routeChoices=[ROUTE_NODES.event];choosePath(routeChoices[0]);
+      const blocked=document.querySelector('#pathCards .routeCard.disabled')!==null;
+      choosePath(routeChoices[0]);const noCharge=team.gold===0&&!routeEvent.outcome;
+      choosePath(routeChoices[1]);const safe=team.gold===35;
+      backToTitle();startGame('solo');wave.num=2;wave.queue=[];enemies=[];save.chal.noheal=true;
+      i=0;do{team.runId='qa-noheal-'+i++;}while(roadEventId('event')!=='well'&&i<100);
+      state='path';routeChoices=[ROUTE_NODES.event];choosePath(routeChoices[0]);
+      const adapted=routeChoices[0].effect.includes('+25 золота');const before=team.gold;
+      choosePath(routeChoices[0]);const noHeal=team.gold===before+25&&routeEvent.outcome.includes('+25 золота');
+      save.chal.noheal=false;
+      backToTitle();startGame('solo');wave.num=2;wave.queue=[];enemies=[];
+      state='path';routeChoices=[ROUTE_NODES.mystery];choosePath(routeChoices[0]);
+      const bonus=routePending.goldMul===1.12;choosePath(routeChoices[1]);
+      const history=routeHistory[0]?.id==='mystery';continueRoadEvent();
+      const saved=readSoloCheckpoint()?.routePending?.goldMul===1.12;
+      backToTitle();return {blocked,noCharge,safe,adapted,noHeal,bonus,history,saved};
+    })()`);
+    assert.deepEqual(eventLimits,{blocked:true,noCharge:true,safe:true,adapted:true,noHeal:true,bonus:true,history:true,saved:true});
+    console.log('[QA] Event prices, no-heal oath and mystery reward passed');
     const initial = await cdp.eval(`(() => {
       startGame('solo'); wave.num=2; wave.queue=[]; enemies=[];
       team.gold=200; team.level=4; players[0].hp=47; players[0].maxHp=125;
       players[0].mastery.sword='guardian'; team.relics=['heimdall'];
-      state='path'; choosePath(ROUTE_NODES.cache);
+      state='path';routeChoices=[ROUTE_NODES.cache];choosePath(routeChoices[0]);
       const cp=readSoloCheckpoint();
       return {wave:cp?.wave, gold:cp?.team.gold, hp:cp?.players[0].hp,
         route:cp?.routePending.id, mastery:cp?.players[0].mastery.sword,
@@ -571,6 +629,26 @@ async function main() {
       return {offline,visible,wave:wave.num,next:readSoloCheckpoint()?.resumeWave,gold:team.gold};
     })()`),{offline:true,visible:true,wave:1,next:2,gold:77});
     console.log('[QA] Offline PWA interrupted-wave continuation passed');
+    const offlineEvent=await cdp.eval(`(() => {
+      startGame('solo');wave.num=2;wave.queue=[];enemies=[];team.gold=100;
+      state='path';routeChoices=[ROUTE_NODES.event];choosePath(routeChoices[0]);
+      choosePath(routeChoices.find(c=>!c.cost||c.cost<=team.gold));
+      const outcome=routeEvent.outcome;continueRoadEvent();
+      const saved=readSoloCheckpoint()?.routeHistory?.[0]?.outcome===outcome;
+      backToTitle();return {saved,outcome};
+    })()`);
+    assert.equal(offlineEvent.saved,true);
+    await reload(cdp);
+    await until(() => cdp.eval("!document.getElementById('bootEnter').classList.contains('hidden')"));
+    const eventEnter=await cdp.eval(`(() => {const r=document.getElementById('bootEnter').getBoundingClientRect();
+      return {x:r.left+r.width/2,y:r.top+r.height/2};})()`);
+    await cdp.send('Input.dispatchMouseEvent',{type:'mousePressed',x:eventEnter.x,y:eventEnter.y,button:'left',clickCount:1});
+    await cdp.send('Input.dispatchMouseEvent',{type:'mouseReleased',x:eventEnter.x,y:eventEnter.y,button:'left',clickCount:1});
+    await until(() => cdp.eval("document.getElementById('brandSplash').classList.contains('hidden')"),8000);
+    assert.deepEqual(await cdp.eval(`(() => ({offline:!navigator.onLine,resumed:resumeSoloCheckpoint(),
+      outcome:routeHistory[0]?.outcome,count:routeHistory.length}))()`),
+      {offline:true,resumed:true,outcome:offlineEvent.outcome,count:1});
+    console.log('[QA] Offline PWA event outcome persisted once');
     await cdp.send('Network.emulateNetworkConditions', {offline:false,latency:0,downloadThroughput:0,uploadThroughput:0});
     await cdp.send('Emulation.setDeviceMetricsOverride',
       {width:844,height:390,deviceScaleFactor:2,mobile:true});
@@ -612,6 +690,27 @@ async function main() {
     }
     await cdp.eval('backToTitle()');
     console.log('[QA] Six terrain warnings fit the 844×390 viewport');
+    const mobileRoadEvent=await cdp.eval(`(() => {
+      startGame('solo');wave.num=2;wave.queue=[];enemies=[];team.gold=200;
+      state='path';routeChoices=[ROUTE_NODES.event];renderRouteTrail(3);choosePath(routeChoices[0]);
+      const cards=[...document.querySelectorAll('#pathCards .routeCard')];
+      const rects=cards.map(card=>card.getBoundingClientRect());
+      const options=cards.length===2&&rects.every(r=>r.width>=220&&r.left>=0&&r.right<=innerWidth)&&
+        getComputedStyle(document.getElementById('pathScreen')).overflowY==='auto';
+      return {options,event:routeEvent&&routeEvent.id,rects:rects.map(r=>({left:r.left,right:r.right,width:r.width})),
+        overflow:getComputedStyle(document.getElementById('pathScreen')).overflowY};
+    })()`);
+    if(!mobileRoadEvent.options)console.error('[QA] Mobile event layout:',mobileRoadEvent);
+    assert.equal(mobileRoadEvent.options,true);
+    if(process.env.VALHEM_QA_EVENT_SHOT){
+      const shot=await cdp.send('Page.captureScreenshot',{format:'png'});
+      fs.writeFileSync(process.env.VALHEM_QA_EVENT_SHOT,Buffer.from(shot.data,'base64'));
+    }
+    assert.equal(await cdp.eval(`(() => {choosePath(routeChoices[0]);
+      const b=document.getElementById('btnPathContinue').getBoundingClientRect();
+      const visible=!document.getElementById('pathOutcome').classList.contains('hidden')&&b.height>=48;
+      backToTitle();return visible;})()`),true);
+    console.log('[QA] Mobile event choices and outcome remain touch readable');
     const mobile = await cdp.eval(`(() => {
       localStorage.removeItem(SOLO_CHECKPOINT_KEY);soloCheckpoint=null;
       save.sett.touch='on';persist();detectTouch();resize();
