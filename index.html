@@ -901,6 +901,123 @@ button,a,[role="button"],.titleChoice,.hubChoice,.sbtn{touch-action:manipulation
   #stage>.screen:not(#titleScreen) .hcard{transition-duration:.01ms}
 }
 
+/* ===== PC INTERNAL MENUS ===== */
+@media (min-width:1024px){
+ body.pc-mode #stage>.screen:not(#titleScreen){
+  padding:clamp(28px,3.2vh,46px) clamp(34px,3.4vw,64px);
+  background:
+   radial-gradient(ellipse at 50% 24%,rgba(64,49,23,.14),transparent 48%),
+   linear-gradient(180deg,rgba(5,8,12,.72),rgba(3,5,8,.96))
+ }
+ body.pc-mode #stage>.screen:not(#titleScreen)>.scInner{
+  width:min(1360px,calc(100% - 16px));
+  max-height:calc(var(--app-height,100dvh) - clamp(56px,6.4vh,92px));
+  padding:clamp(26px,2.4vw,38px) clamp(32px,3vw,46px) clamp(30px,3vw,44px);
+  border-color:rgba(137,108,50,.68);
+  background:linear-gradient(180deg,rgba(18,22,29,.97),rgba(7,10,15,.975));
+  box-shadow:0 32px 90px rgba(0,0,0,.54),inset 0 0 0 1px rgba(255,225,154,.025)
+ }
+ body.pc-mode #stage>.screen:not(#titleScreen) h2{font-size:clamp(34px,3vw,48px);letter-spacing:.16em}
+ body.pc-mode #stage>.screen:not(#titleScreen) .runeRow{font-size:14px;letter-spacing:.72em;margin-bottom:7px}
+ body.pc-mode #stage>.screen:not(#titleScreen) .sub{font-size:15px;line-height:1.42;margin-top:8px}
+ body.pc-mode #stage>.screen:not(#titleScreen) .btn{min-height:48px}
+ body.pc-mode #stage>.screen:not(#titleScreen) .secHead{font-size:13px;letter-spacing:.22em;margin:12px 0 8px}
+
+ body.pc-mode #offlineHubScreen .hubMenu,
+ body.pc-mode #loreHubScreen .hubMenu{
+  grid-template-columns:repeat(3,minmax(0,1fr));width:100%;max-width:1180px;gap:12px;margin-top:20px
+ }
+ body.pc-mode #offlineHubScreen .hubChoice,
+ body.pc-mode #loreHubScreen .hubChoice{min-height:112px;padding:18px 36px 18px 24px}
+ body.pc-mode #offlineHubScreen .hubChoice strong,
+ body.pc-mode #loreHubScreen .hubChoice strong{font-size:18px}
+ body.pc-mode #offlineHubScreen .hubChoice.wide,
+ body.pc-mode #loreHubScreen .hubChoice.wide{grid-column:auto}
+ body.pc-mode .hubTidings{width:min(1120px,100%);margin-top:16px}
+
+ body.pc-mode #howScreen .howGrid{
+  grid-template-columns:repeat(3,minmax(0,1fr));width:100%;max-width:1180px;gap:12px 14px;margin:20px auto
+ }
+ body.pc-mode #howScreen .howCard{min-height:132px;padding:16px 18px}
+ body.pc-mode #howScreen .howCard strong{font-size:17px}
+ body.pc-mode #howScreen .howCard p{font-size:13px;line-height:1.38}
+
+ body.pc-mode #settScreen .settingsList{
+  display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px 18px;max-width:1160px;margin:20px auto 12px
+ }
+ body.pc-mode #settScreen .srow{
+  min-height:68px;margin:0;padding:11px 14px;border:1px solid rgba(58,65,80,.76);align-items:center
+ }
+ body.pc-mode #settScreen .srow label{font-size:13px;letter-spacing:.08em}
+ body.pc-mode #settScreen .srow .sdesc{font-size:10.5px;line-height:1.2}
+ body.pc-mode #settScreen .srow:nth-last-child(-n+4){grid-column:1/-1}
+ body.pc-mode #settScreen .netInput{max-width:320px}
+ body.pc-mode #settScreen #btnBackTitle4{margin-top:8px}
+
+ body.pc-mode #prepScreen .prepCols{max-width:1180px;gap:16px 44px}
+ body.pc-mode #prepScreen .hgrid{grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+ body.pc-mode #prepScreen .hcard{min-height:104px;padding:14px}
+ body.pc-mode #prepScreen .oath{min-height:58px}
+ body.pc-mode #hallScreen .hallGrid{grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;max-width:1180px;margin:18px auto}
+ body.pc-mode #hallScreen .mcard{min-height:164px}
+
+ body.pc-mode #chronScreen .chrCols{grid-template-columns:minmax(0,.92fr) minmax(0,1.08fr);gap:20px 42px;max-width:1200px;margin-top:18px}
+ body.pc-mode #chronScreen .achGrid{grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
+ body.pc-mode #chronScreen .boardRow{min-height:42px;padding:8px 12px}
+ body.pc-mode #bestScreen .bestGrid{grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;max-width:1180px;margin:18px auto}
+ body.pc-mode #bestScreen .bcard{min-height:205px;padding:16px 14px}
+ body.pc-mode #contractScreen .contractGrid{grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;max-width:1120px;margin:20px auto}
+ body.pc-mode #contractScreen .contractCard{min-height:170px;padding:18px}
+
+ body.pc-mode #onlineScreen>.scInner{width:min(1420px,calc(100% - 16px))}
+ body.pc-mode #onlineScreen .onlineSetup{grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:18px;max-width:1240px;margin:18px auto}
+ body.pc-mode #onlineScreen .onlinePane{padding:18px;min-height:260px}
+ body.pc-mode #onlineScreen .onlineRecords{max-width:1240px}
+ body.pc-mode #onlineScreen .roomList{max-height:330px}
+
+ body.pc-mode #pauseScreen>.scInner{width:min(1280px,calc(100% - 16px))}
+ body.pc-mode #pauseScreen .pauseLayout{grid-template-columns:minmax(300px,.64fr) minmax(0,1.36fr);gap:22px;min-height:520px}
+ body.pc-mode #pauseScreen .pauseRail{padding:22px 16px}
+ body.pc-mode #pauseScreen .pauseActions{grid-template-columns:minmax(0,1fr);gap:9px;width:min(320px,100%);margin-top:26px}
+ body.pc-mode #pauseScreen .pauseActions .btn{min-height:52px}
+ body.pc-mode #pauseScreen #pauseBuild{padding:14px 16px}
+ body.pc-mode #pauseScreen #pauseBuild .buildGrid{grid-template-columns:repeat(2,minmax(0,1fr));gap:14px 18px}
+
+ body.pc-mode #levelScreen #cards{gap:18px;margin-top:24px}
+ body.pc-mode #levelScreen #cards .card{width:260px;min-height:270px;padding:30px 22px 20px}
+ body.pc-mode #pathScreen .routeMap{max-width:1080px}
+ body.pc-mode #pathScreen #pathCards.routeCards{gap:18px}
+ body.pc-mode #pathScreen .routeCard{width:280px;min-height:245px;padding:34px 20px 20px}
+
+ body.pc-mode #deathScreen .statsGrid,
+ body.pc-mode #sagaScreen .statsGrid{
+  display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;max-width:900px;margin:22px auto 10px
+ }
+ body.pc-mode #deathScreen .statBox,
+ body.pc-mode #sagaScreen .statBox{min-width:0;padding:15px 18px}
+ body.pc-mode #deathScreen .deathLesson{
+  display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;max-width:1080px;margin:18px auto;padding:0;background:transparent;border:0
+ }
+ body.pc-mode #deathScreen .deathLesson>div{min-height:88px;padding:12px 14px}
+ body.pc-mode #sagaScreen .sagaActions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;max-width:620px;margin:18px auto 0}
+ body.pc-mode #sagaScreen .sagaActions .btn{min-width:0;width:100%;margin:0}
+}
+@media (min-width:1440px){
+ body.pc-mode #stage>.screen:not(#titleScreen)>.scInner{width:min(1420px,calc(100% - 24px))}
+ body.pc-mode #levelScreen #cards .card{width:280px}
+ body.pc-mode #pathScreen .routeCard{width:300px}
+}
+@media (min-width:1024px) and (max-height:780px){
+ body.pc-mode #stage>.screen:not(#titleScreen){padding:18px 30px}
+ body.pc-mode #stage>.screen:not(#titleScreen)>.scInner{max-height:calc(100dvh - 36px);padding:22px 30px 26px}
+ body.pc-mode #stage>.screen:not(#titleScreen) h2{font-size:34px}
+ body.pc-mode #stage>.screen:not(#titleScreen) .runeRow{font-size:11px;margin-bottom:4px}
+ body.pc-mode #stage>.screen:not(#titleScreen) .sub{font-size:13px}
+ body.pc-mode #pauseScreen .pauseLayout{min-height:430px}
+ body.pc-mode #howScreen .howCard{min-height:112px;padding:12px 14px}
+ body.pc-mode #bestScreen .bcard{min-height:175px}
+}
+
 /* ===== CINEMATIC MAIN MENU ===== */
 #titleScreen{padding:0;align-items:stretch;justify-content:stretch;background:#030609;isolation:isolate;overflow:hidden}
 #titleBackdrop{position:absolute;z-index:0;inset:-5%;background-image:url('assets/images/main_menu/main_horizon.webp');background-size:cover;background-position:center center;will-change:transform;animation:titleBackdropDrift 20s var(--ease-in-out) infinite alternate}
@@ -1009,6 +1126,84 @@ button,a,[role="button"],.titleChoice,.hubChoice,.sbtn{touch-action:manipulation
  #titleScreen .mainMenuIntro .orn{margin-top:5px}
  #titleScreen .mainMenuLayout{gap:9px}
  #titleScreen .titleChoice,#titleScreen .titleChoice.primary,#titleScreen .titleChoice.compact{min-height:58px}
+}
+
+/* ===== PC MAIN MENU · reference composition ===== */
+.desktopQuickbar,.desktopFooterMark{display:none}
+.creditPlatform::after{content:' · MOBILE'}
+@media (min-width:1024px){
+ body.pc-mode #titleScreen .titleVeil{background:
+  linear-gradient(90deg,rgba(2,4,7,.56) 0%,rgba(2,4,7,.22) 39%,rgba(2,4,7,.12) 55%,rgba(2,4,7,.72) 100%),
+  linear-gradient(180deg,rgba(2,4,7,.06) 0%,rgba(2,4,7,.04) 67%,rgba(2,4,7,.88) 100%)}
+ body.pc-mode #titleScreen .mainMenuLayout{
+  width:min(1680px,100%);max-width:1680px;min-height:100%;margin:0 auto;
+  padding:clamp(82px,9vh,132px) clamp(64px,5.8vw,112px) 82px;
+  grid-template-columns:minmax(500px,1.08fr) minmax(480px,.92fr);
+  gap:clamp(72px,7vw,150px);align-items:center
+ }
+ body.pc-mode #titleScreen .mainMenuIntro{width:min(680px,100%);justify-self:center;text-align:center;transform:translateX(-1.6vw)}
+ body.pc-mode #titleScreen .mainMenuIntro .runeRow{font-size:clamp(13px,1vw,18px);letter-spacing:.78em;margin-bottom:10px}
+ body.pc-mode #titleScreen .mainMenuIntro h1{font-size:clamp(92px,7.2vw,142px);letter-spacing:.12em;line-height:.88}
+ body.pc-mode #titleScreen .mainMenuIntro .packBadge{font-size:clamp(9px,.66vw,12px);letter-spacing:.32em;padding:7px 24px;margin-top:18px}
+ body.pc-mode #titleScreen .mainMenuIntro .tag{max-width:610px;margin-top:26px;font-size:clamp(15px,.98vw,19px);line-height:1.55;color:#d2c4a5}
+ body.pc-mode #titleScreen .mainMenuIntro .orn{width:min(490px,78%);margin:24px auto 12px}
+ body.pc-mode #titleScreen .mainLoreLine{font-size:clamp(10px,.72vw,13px);letter-spacing:.38em;color:#a9adb6}
+ body.pc-mode #titleScreen .mainMenuActions{width:100%;max-width:590px;justify-self:end;align-self:center}
+ body.pc-mode #titleScreen .titleMenu{grid-template-columns:minmax(0,1fr);width:100%;max-width:590px;gap:12px;margin:0}
+ body.pc-mode #titleScreen .titleChoice,
+ body.pc-mode #titleScreen .titleChoice.primary,
+ body.pc-mode #titleScreen .titleChoice.compact,
+ body.pc-mode #titleScreen .titleChoice.resume{
+  grid-column:1;min-height:86px;padding:14px 48px 14px 28px;
+  clip-path:polygon(26px 0,calc(100% - 26px) 0,100% 50%,calc(100% - 26px) 100%,26px 100%,0 50%);
+  background:linear-gradient(90deg,rgba(50,41,25,.97),rgba(16,16,15,.965));
+  border-color:rgba(142,112,54,.8);box-shadow:inset 0 0 0 1px rgba(255,230,170,.025),0 14px 34px rgba(0,0,0,.22)
+ }
+ body.pc-mode #titleScreen .titleChoice.primary{min-height:88px}
+ body.pc-mode #titleScreen .titleChoice.resume{min-height:100px;border-color:#d2a544;background:linear-gradient(90deg,rgba(76,55,25,.98),rgba(25,20,14,.98));box-shadow:0 0 0 1px rgba(255,216,112,.24),0 0 26px rgba(216,169,60,.16),0 16px 38px rgba(0,0,0,.28)}
+ body.pc-mode #titleScreen .titleChoice.resumeDiscard{grid-column:1;min-height:54px;padding:10px 28px;font-size:13px}
+ body.pc-mode #titleScreen .titleChoice strong{font-size:clamp(20px,1.4vw,27px);letter-spacing:.14em}
+ body.pc-mode #titleScreen .titleChoice small{font-size:clamp(12px,.76vw,14px);margin-top:5px}
+ body.pc-mode #titleScreen .titleChoice::after{right:24px;font-size:31px;color:rgba(216,169,60,.34)}
+ body.pc-mode #titleScreen .titleChoice:hover{transform:translateX(-5px);filter:brightness(1.11);border-color:#d8a93c}
+ body.pc-mode #titleScreen .titleChoice:active{transform:translateX(-2px) scale(.985)}
+ body.pc-mode .desktopQuickbar{
+  position:absolute;z-index:6;top:clamp(32px,5.2vh,58px);right:clamp(44px,4.8vw,86px);
+  display:flex;align-items:center;gap:12px
+ }
+ body.pc-mode .pcQuickBtn{
+  width:48px;height:48px;display:grid;place-items:center;padding:0;border:0;background:rgba(5,7,10,.34);
+  color:#a99a75;cursor:pointer;transition:transform 140ms var(--ease-out),color 160ms ease,background-color 160ms ease
+ }
+ body.pc-mode .pcQuickBtn svg{width:25px;height:25px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+ body.pc-mode #pcQuickChron svg path{fill:currentColor;stroke:none}
+ body.pc-mode .pcQuickBtn:hover{color:#f1d58f;background:rgba(216,169,60,.07);transform:translateY(-2px)}
+ body.pc-mode .pcQuickBtn:active{transform:scale(.96)}
+ body.pc-mode .pcQuickBtn:focus-visible{outline:1px solid #d8a93c;outline-offset:3px}
+ body.pc-mode .pcQuickDivider{width:1px;height:38px;background:linear-gradient(180deg,transparent,#6f5828,transparent)}
+ body.pc-mode #titleScreen .mainMenuFooter{
+  min-height:70px;padding:11px clamp(34px,3vw,58px);
+  grid-template-columns:auto 1fr auto;gap:28px;border-top-color:rgba(216,169,60,.42);
+  background:linear-gradient(180deg,rgba(3,5,8,.22),rgba(2,4,7,.94))
+ }
+ body.pc-mode .desktopFooterMark{display:grid;place-items:center;width:48px;height:48px;font:31px 'Forum';color:#d8a93c;text-shadow:0 0 14px rgba(216,169,60,.35)}
+ body.pc-mode #titleScreen #titleStats{justify-self:start;padding:0;font-size:12px;letter-spacing:.16em;color:#aeb5c1}
+ body.pc-mode #titleScreen #titleStats b{color:#ffd97a;font-weight:400}
+ body.pc-mode #titleScreen .credit{font-size:10px;letter-spacing:.2em;color:#777d84}
+ body.pc-mode #titleScreen .creditPlatform::after{content:' · PC'}
+}
+@media (min-width:1024px) and (max-height:820px){
+ body.pc-mode #titleScreen .mainMenuLayout{padding-top:66px;padding-bottom:70px;gap:64px}
+ body.pc-mode #titleScreen .mainMenuIntro h1{font-size:clamp(78px,6.4vw,112px)}
+ body.pc-mode #titleScreen .mainMenuIntro .tag{margin-top:16px;font-size:14px;line-height:1.4}
+ body.pc-mode #titleScreen .mainMenuIntro .orn{margin:14px auto 8px}
+ body.pc-mode #titleScreen .titleMenu{gap:8px}
+ body.pc-mode #titleScreen .titleChoice,body.pc-mode #titleScreen .titleChoice.primary,body.pc-mode #titleScreen .titleChoice.compact{min-height:66px;padding-top:9px;padding-bottom:9px}
+ body.pc-mode #titleScreen .titleChoice.resume{min-height:76px}
+ body.pc-mode #titleScreen .titleChoice.resumeDiscard{min-height:40px}
+ body.pc-mode #titleScreen .titleChoice strong{font-size:clamp(17px,1.28vw,22px)}
+ body.pc-mode .desktopQuickbar{top:22px}
+ body.pc-mode #titleScreen .mainMenuFooter{min-height:56px;padding-top:6px;padding-bottom:6px}
 }
 @media(prefers-reduced-motion:reduce){
  #titleBackdrop{animation:none;transform:scale(1.04)}
@@ -1278,6 +1473,19 @@ body.touch .trainingActions{margin-top:3px}
       <span style="--x:78%;--s:2px;--d:11.1s;--delay:-3.2s;--drift:17px"></span>
       <span style="--x:90%;--s:3px;--d:14.1s;--delay:-8.4s;--drift:-13px"></span>
     </div>
+    <nav class="desktopQuickbar" aria-label="Быстрые действия ПК">
+      <button id="pcQuickSettings" class="pcQuickBtn" type="button" aria-label="Руны очага" title="Руны очага">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 8.2a3.8 3.8 0 1 0 0 7.6 3.8 3.8 0 0 0 0-7.6Z"/><path d="M19 13.2v-2.4l-2-.7a7.7 7.7 0 0 0-.7-1.6l.9-1.9-1.8-1.8-1.9.9a7.7 7.7 0 0 0-1.6-.7L11.2 3H8.8l-.7 2a7.7 7.7 0 0 0-1.6.7l-1.9-.9-1.8 1.8.9 1.9a7.7 7.7 0 0 0-.7 1.6l-2 .7v2.4l2 .7c.2.6.4 1.1.7 1.6l-.9 1.9 1.8 1.8 1.9-.9c.5.3 1 .5 1.6.7l.7 2h2.4l.7-2c.6-.2 1.1-.4 1.6-.7l1.9.9 1.8-1.8-.9-1.9c.3-.5.5-1 .7-1.6l2-.7Z"/></svg>
+      </button>
+      <span class="pcQuickDivider" aria-hidden="true"></span>
+      <button id="pcQuickChron" class="pcQuickBtn" type="button" aria-label="Летопись подвигов" title="Летопись подвигов">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 19V9h4v10H4Zm6 0V4h4v15h-4Zm6 0v-7h4v7h-4Z"/></svg>
+      </button>
+      <span class="pcQuickDivider" aria-hidden="true"></span>
+      <button id="pcQuickFS" class="pcQuickBtn" type="button" aria-label="Полный экран" title="Полный экран">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 3H3v5M16 3h5v5M8 21H3v-5M16 21h5v-5"/></svg>
+      </button>
+    </nav>
     <div class="scInner mainMenuLayout">
       <div class="mainMenuIntro">
         <div class="runeRow">ᚠ ᚢ ᚦ ᚨ ᚱ ᚲ ᚷ ᚹ</div>
@@ -1299,8 +1507,9 @@ body.touch .trainingActions{margin-top:3px}
       </div>
     </div>
     <div class="mainMenuFooter">
+      <div class="desktopFooterMark" aria-hidden="true">ᛟ</div>
       <div id="titleStats"></div>
-      <div class="credit">VALHEM v2.7.0 · MOBILE FIRST</div>
+      <div class="credit">VALHEM v2.7.0 · ПЕРВАЯ САГА<span class="creditPlatform"></span></div>
     </div>
   </section>
 
@@ -1834,7 +2043,7 @@ function viewportSize(){
 function resize(){
  const scale=(save.sett.scale||100)/100;
  const cap=perfLevel===0?1:(perfLevel===1?1.5:2);DPR=Math.min(cap,(devicePixelRatio||1)*scale);
- const vp=viewportSize();W=vp.w;H=vp.h;
+ const vp=viewportSize();W=vp.w;H=vp.h;updatePcMode();
  document.documentElement.style.setProperty('--app-height',H+'px');
  cvs.width=W*DPR;cvs.height=H*DPR;ctx.setTransform(DPR,0,0,DPR,0,0);
  fog.width=W*DPR;fog.height=H*DPR;
@@ -2044,11 +2253,12 @@ function sendGuestInput(now){if(!onlineGuest||!onlineActive||!onlineSocket||onli
 let touchMode=false,touchAttack=false;
 const touchMove={x:0,y:0};
 let resetTouchControls=function(){touchAttack=false;touchMove.x=0;touchMove.y=0;};
+function updatePcMode(){document.body.classList.toggle('pc-mode',!touchMode&&innerWidth>=1024);}
 function detectTouch(){
  const coarse=(window.matchMedia&&matchMedia('(pointer: coarse)').matches)||('ontouchstart' in window);
  const pref=save.sett.touch||'auto';
  touchMode=pref==='on'||(pref==='auto'&&coarse);
- document.body.classList.toggle('touch',touchMode);applyTouchLayout();
+ document.body.classList.toggle('touch',touchMode);updatePcMode();applyTouchLayout();
 }
 detectTouch();
 function applyTouchLayout(){const size=((save&&save.sett&&save.sett.touchSize)||100)/100;document.body.style.setProperty('--touch-scale',String(size));document.body.classList.toggle('mirror-touch',!!(save&&save.sett&&save.sett.mirror));}
@@ -5576,6 +5786,9 @@ $('btnHall').onclick=function(){AU.init();AU.sClick();renderHall();showOnly('hal
 $('btnChron').onclick=function(){AU.init();AU.sClick();renderChronicle();showOnly('chronScreen');void renderGlobalBoard();};
 $('btnBestiary').onclick=function(){AU.init();AU.sClick();renderBestiary();showOnly('bestScreen');};
 $('btnSettings').onclick=function(){AU.init();AU.sClick();renderSettings();showOnly('settScreen');};
+$('pcQuickSettings').onclick=function(){$('btnSettings').click();};
+$('pcQuickChron').onclick=function(){AU.init();AU.sClick();renderChronicle();showOnly('chronScreen');void renderGlobalBoard();};
+$('pcQuickFS').onclick=function(){toggleFS();};
 $('btnBackTitle').onclick=function(){AU.sClick();dailyMode=false;weeklyMode=false;updateTitleStats();showOnly('offlineHubScreen');};
 $('btnBackTitle2').onclick=function(){AU.sClick();updateTitleStats();showOnly('loreHubScreen');};
 $('btnBackTitle3').onclick=function(){AU.sClick();updateTitleStats();showOnly('loreHubScreen');};

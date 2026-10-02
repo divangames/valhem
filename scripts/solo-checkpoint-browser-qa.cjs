@@ -149,14 +149,50 @@ async function main() {
       throw error;
     }
     assert.equal(await cdp.eval("AU.musicOn===false && state==='title'"), true);
+    await cdp.send('Emulation.setDeviceMetricsOverride',{width:1920,height:1080,deviceScaleFactor:1,mobile:false});
+    await cdp.eval("resize()");
     const mainMenuDesktop=await cdp.eval(`(() => {
       const bg=getComputedStyle(document.getElementById('titleBackdrop')).backgroundImage;
       const buttons=[...document.querySelectorAll('#titleScreen .titleChoice:not(.hidden)')];
       const menu=document.querySelector('#titleScreen .mainMenuLayout').getBoundingClientRect();
+      const intro=document.querySelector('#titleScreen .mainMenuIntro').getBoundingClientRect();
+      const actions=document.querySelector('#titleScreen .mainMenuActions').getBoundingClientRect();
+      const quick=getComputedStyle(document.querySelector('.desktopQuickbar'));
+      const footerMark=getComputedStyle(document.querySelector('.desktopFooterMark'));
+      const cols=getComputedStyle(document.querySelector('#titleScreen .titleMenu')).gridTemplateColumns.split(' ').length;
       return {horizontal:bg.includes('main_horizon.webp'),snow:document.querySelectorAll('#titleSnow span').length>=24,
-        buttons:buttons.length>=4,visible:menu.left>=0&&menu.top>=0&&menu.right<=innerWidth&&menu.bottom<=innerHeight+2};
+        buttons:buttons.length>=4,visible:menu.left>=0&&menu.top>=0&&menu.right<=innerWidth&&menu.bottom<=innerHeight+2,
+        pcQuickbar:quick.display==='flex',footerMark:footerMark.display==='grid',oneColumn:cols===1,
+        sideBySide:intro.right<actions.left+12,pcPlatform:getComputedStyle(document.querySelector('.creditPlatform'),'::after').content.includes('PC'),
+        quickHandlers:['pcQuickSettings','pcQuickChron','pcQuickFS'].every(id=>typeof document.getElementById(id).onclick==='function')};
     })()`);
-    assert.deepEqual(mainMenuDesktop,{horizontal:true,snow:true,buttons:true,visible:true});
+    assert.deepEqual(mainMenuDesktop,{horizontal:true,snow:true,buttons:true,visible:true,pcQuickbar:true,footerMark:true,
+      oneColumn:true,sideBySide:true,pcPlatform:true,quickHandlers:true});
+    if(process.env.VALHEM_QA_PC_SHOT){
+      const shot=await cdp.send('Page.captureScreenshot',{format:'png'});
+      fs.writeFileSync(process.env.VALHEM_QA_PC_SHOT,Buffer.from(shot.data,'base64'));
+    }
+    const desktopMenuSystem=await cdp.eval(`(() => {
+      const cols=sel=>getComputedStyle(document.querySelector(sel)).gridTemplateColumns.split(' ').filter(Boolean).length;
+      document.getElementById('btnOfflineHub').click();
+      const offlineCols=cols('#offlineHubScreen .hubMenu');
+      document.getElementById('btnHowToPlay').click();const howCols=cols('#howScreen .howGrid');document.getElementById('btnHowBack').click();
+      document.getElementById('btnContracts').click();const contractCols=cols('#contractScreen .contractGrid');document.getElementById('btnBackContracts').click();
+      document.getElementById('btnBackOfflineHub').click();document.getElementById('btnLoreHub').click();
+      const loreCols=cols('#loreHubScreen .hubMenu');
+      document.getElementById('btnHall').click();const hallCols=cols('#hallScreen .hallGrid');document.getElementById('btnBackTitle2').click();
+      document.getElementById('btnBestiary').click();const bestCols=cols('#bestScreen .bestGrid');document.getElementById('btnBackTitle3').click();
+      document.getElementById('btnChron').click();const chronCols=cols('#chronScreen .chrCols');document.getElementById('btnBackTitle5').click();
+      document.getElementById('btnBackLoreHub').click();document.getElementById('pcQuickSettings').click();
+      const settingsCols=cols('#settScreen .settingsList'),shell=document.querySelector('#settScreen>.scInner').getBoundingClientRect();
+      const settingsFits=shell.left>=0&&shell.right<=innerWidth&&shell.top>=0&&shell.bottom<=innerHeight+1;
+      document.getElementById('btnBackTitle4').click();
+      return {offlineCols,howCols,contractCols,loreCols,hallCols,bestCols,chronCols,settingsCols,settingsFits,
+        backAtTitle:!document.getElementById('titleScreen').classList.contains('hidden')};
+    })()`);
+    assert.deepEqual(desktopMenuSystem,{offlineCols:3,howCols:3,contractCols:3,loreCols:3,hallCols:4,bestCols:4,chronCols:2,
+      settingsCols:2,settingsFits:true,backAtTitle:true});
+    console.log('[QA] PC main menu and desktop menu grids passed at 1920×1080');
     await cdp.send('Emulation.setDeviceMetricsOverride',{width:844,height:390,deviceScaleFactor:2,mobile:true});
     const mainMenuLandscape=await cdp.eval(`(() => {
       document.body.classList.add('touch');const intro=document.querySelector('.mainMenuIntro').getBoundingClientRect();
