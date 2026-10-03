@@ -270,7 +270,7 @@ if errorlevel 1 (
   echo [ОШИБКА] Node.js не найден. Он нужен для проверки сервера VALHEM.
   exit /b 1
 )
-for %%F in (server\package.json server\package-lock.json server\src\server.js server\src\store.js server\src\rooms.js server\test\api.test.js server\test\rooms.test.js server\test\store.test.js) do (
+for %%F in (server\package.json server\package-lock.json server\src\server.js server\src\store.js server\src\rooms.js server\test\api.test.js server\test\rooms.test.js server\test\store.test.js server\test\ws.test.js) do (
   if not exist "%%F" (
     echo [ОШИБКА] Не найден файл сервера VALHEM: %%F
     exit /b 1
@@ -283,7 +283,7 @@ if errorlevel 1 (
 )
 pushd "server"
 echo Проверяю серверную часть...
-node --test test\api.test.js test\rooms.test.js test\store.test.js
+node --test test\api.test.js test\rooms.test.js test\store.test.js test\ws.test.js
 set "SERVER_TEST_EXIT=%ERRORLEVEL%"
 popd
 if not "%SERVER_TEST_EXIT%"=="0" exit /b 1
@@ -322,7 +322,7 @@ set "REMOTE_ARCHIVE=/tmp/valhem-server-%DEPLOY_ID%.tar.gz"
 set "REMOTE_SCRIPT=/tmp/valhem-update-%DEPLOY_ID%.sh"
 
 rem Упаковываем только VALHEM: в общей папке server есть файлы другой игры.
-tar -czf "%LOCAL_ARCHIVE%" -C "server" package.json package-lock.json src/server.js src/store.js src/rooms.js test/api.test.js test/rooms.test.js test/store.test.js
+tar -czf "%LOCAL_ARCHIVE%" -C "server" package.json package-lock.json src/server.js src/store.js src/rooms.js test/api.test.js test/rooms.test.js test/store.test.js test/ws.test.js
 if errorlevel 1 exit /b 1
 
 echo Загружаю серверную сборку на VPS...

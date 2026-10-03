@@ -7,7 +7,7 @@ import {RoomRegistry} from './rooms.js';
 
 const PORT = Number(process.env.PORT || 8080);
 const HOST = process.env.HOST || '127.0.0.1';
-const VERSION = '0.4.0';
+const VERSION = '0.4.1';
 const DATA_DIR = resolve(process.env.DATA_DIR || './data');
 const ROOM_TTL_MS = Number(process.env.ROOM_TTL_MS || 45_000);
 const ROOM_RECONNECT_TTL_MS = Number(process.env.ROOM_RECONNECT_TTL_MS || 120_000);
@@ -231,10 +231,12 @@ wss.on('connection', (ws, req) => {
   rooms.heartbeat(roomCode, clientId);
   ws.valhem = {roomCode, clientId, host: member.host};
   ws.send(JSON.stringify({type: 'ready', version: VERSION, room}));
-  const relay = (message, predicate) => {
+  const relay = (message, predicate, options = {}) => {
     const payload = JSON.stringify(message);
     for (const peer of wss.clients) {
-      if (peer.readyState === 1 && peer !== ws && peer.valhem?.roomCode === roomCode && predicate(peer.valhem)) peer.send(payload);
+      if (peer.readyState !== 1 || peer === ws || peer.valhem?.roomCode !== roomCode || !predicate(peer.valhem)) continue;
+      if (options.dropBuffered && peer.bufferedAmount > 192 * 1024) continue;
+      peer.send(payload);
     }
   };
   ws.on('message', (raw) => {
@@ -246,15 +248,24 @@ wss.on('connection', (ws, req) => {
         const active = rooms.start(roomCode, clientId);
         const payload = JSON.stringify({type: 'start', room: active, at: Date.now()});
         for (const peer of wss.clients) if (peer.readyState === 1 && peer.valhem?.roomCode === roomCode) peer.send(payload);
-      } else if ((msg.type === 'input' || msg.type === 'action') && !ws.valhem.host) relay(msg, (peer) => peer.host);
-      else if (msg.type === 'command' && !ws.valhem.host && rooms.commandAllowed(roomCode, clientId, msg.command)) relay({type: 'command', command: msg.command, offerId: cleanText(msg.offerId, 32)}, (peer) => peer.host);
+      } else if (msg.type === 'input' && !ws.valhem.host) {
+        const mx = Math.max(-1, Math.min(1, Number(msg.mx) || 0));
+        const my = Math.max(-1, Math.min(1, Number(msg.my) || 0));
+        relay({type: 'input', mx, my, attack: !!msg.attack}, (peer) => peer.host);
+      } else if (msg.type === 'action' && !ws.valhem.host) {
+        const action = cleanText(msg.action, 16);
+        if (['attack','axe','dodge','berserk','parry','stance','swap','execute'].includes(action)) relay({type: 'action', action}, (peer) => peer.host);
+      } else if (msg.type === 'command' && !ws.valhem.host && rooms.commandAllowed(roomCode, clientId, msg.command)) relay({type: 'command', command: msg.command, offerId: cleanText(msg.offerId, 32)}, (peer) => peer.host);
       else if (msg.type === 'snapshot' && ws.valhem.host) {
         rooms.updateProgress(roomCode, clientId, msg.world);
-        relay(msg, (peer) => !peer.host);
+        relay(msg, (peer) => !peer.host, {dropBuffered: true});
       } else if (msg.type === 'event' && ws.valhem.host) relay(msg, (peer) => !peer.host);
     } catch {
       ws.close(1003, 'bad message');
     }
+  });
+  ws.on('close', () => {
+    if (!ws.valhem?.host) relay({type: 'input', mx: 0, my: 0, attack: false}, (peer) => peer.host);
   });
 });
 

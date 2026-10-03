@@ -118,6 +118,48 @@ async function main() {
     await until(() => host.eval("onlineActive&&onlineHost&&state==='playing'"));
     await until(() => guest.eval("onlineActive&&onlineGuest&&state==='playing'"));
     console.log('[QA] Two independent browsers joined one active room');
+
+    const compactSnapshot=await host.eval(`(() => {
+      for(let i=0;i<320;i++)parts.push({type:'spark',x:players[0].x,y:players[0].y,vx:0,vy:0,t:0,life:1,size:2});
+      for(let i=0;i<80;i++){texts.push({x:0,y:0,t:0,life:1,text:'x'});trails.push({x:0,y:0,t:0,life:1});}
+      const snap=makeOnlineSnapshot();
+      return {parts:snap.parts.length,texts:snap.texts.length,trails:snap.trails.length,interval:ONLINE_SNAPSHOT_MS,bytes:JSON.stringify(snap).length};
+    })()`);
+    assert.equal(compactSnapshot.parts<=24&&compactSnapshot.texts<=12&&compactSnapshot.trails<=12,true);
+    assert.equal(compactSnapshot.interval,100);
+    await host.eval('parts=[];texts=[];trails=[]');
+    console.log('[QA] Online snapshot is compact and bounded:',compactSnapshot);
+
+    await host.eval(`(() => {
+      wave.breakT=1000;wave.queue=[];enemies=[];
+      players[0].x=ARENA.w/2-320;players[0].y=ARENA.h/2;
+      players[1].x=ARENA.w/2+320;players[1].y=ARENA.h/2;players[1].vx=0;players[1].vy=0;
+      netGuestInput={mx:0,my:0,attack:false};netGuestInputAt=performance.now();
+    })()`);
+    await until(() => guest.eval("players[1]&&Math.abs(players[1].x-(ARENA.w/2+320))<90"),10000);
+    const guestStartX=await host.eval('players[1].x');
+    await guest.eval("keys.KeyD=true;sendGuestInput(performance.now(),true)");
+    await until(() => host.eval("players[1].x>"+(guestStartX+18)),10000);
+    await until(() => guest.eval("players[1].x>"+(guestStartX+12)),10000);
+    await guest.eval("keys.KeyD=false;sendGuestInput(performance.now(),true)");
+    await delay(450);
+    const guestControl=await guest.eval(`(() => ({
+      localIdx:localControlledPlayer()&&localControlledPlayer().idx,
+      cameraOwn:Math.abs((cam.x+W/2)-players[1].x)<150,
+      hostFar:Math.abs((cam.x+W/2)-players[0].x)>180,
+      predicted:guestPredictionReady&&!!guestAuthState
+    }))()`);
+    assert.deepEqual(guestControl,{localIdx:1,cameraOwn:true,hostFar:true,predicted:true});
+    await guest.eval("save.sett.touch='on';detectTouch();touchMove.x=-1;touchMove.y=0;sendGuestInput(performance.now(),true)");
+    const touchStartX=await host.eval('players[1].x');
+    await until(() => host.eval("players[1].x<"+(touchStartX-12)),10000);
+    assert.deepEqual(await guest.eval("({idx:localControlledPlayer().idx,mx:guestControlState().mx,touch:touchMode})"),{idx:1,mx:-1,touch:true});
+    await guest.eval("touchMove.x=0;touchMove.y=0;touchAttack=false;sendGuestInput(performance.now(),true);save.sett.touch='off';detectTouch()");
+    await guest.eval("sendOnline({type:'input',mx:99,my:-99,attack:false})");
+    await until(() => host.eval("netGuestInput.mx===1&&netGuestInput.my===-1"),5000);
+    await guest.eval("sendGuestInput(performance.now(),true)");
+    console.log('[QA] Guest owns player two: keyboard, touch, camera and local prediction passed');
+
     await guest.eval('pauseGame(true)');
     await delay(500);
     assert.equal(await guest.eval("state==='paused'&&!document.getElementById('pauseScreen').classList.contains('hidden')"),true);
