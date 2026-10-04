@@ -76,12 +76,12 @@ test('sanitizes guest input and clears it immediately when guest socket closes',
   await Promise.all([once(host, 'open'), once(guest, 'open')]);
 
   const clampedP = nextJson(host, 'input');
-  guest.send(JSON.stringify({type: 'input', mx: 99, my: -99, attack: true}));
+  guest.send(JSON.stringify({type: 'input', mx: 99, my: -99, attack: true, seq: 42}));
   const clamped = await clampedP;
-  assert.deepEqual(clamped, {type: 'input', mx: 1, my: -1, attack: true});
+  assert.deepEqual(clamped, {type: 'input', mx: 1, my: -1, attack: true, seq: 42});
 
   const clearedP = nextJson(host, 'input');
   guest.close();
   const cleared = await clearedP;
-  assert.deepEqual(cleared, {type: 'input', mx: 0, my: 0, attack: false});
+  assert.deepEqual(cleared, {type: 'input', mx: 0, my: 0, attack: false, reset: true});
 });

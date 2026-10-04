@@ -235,7 +235,7 @@ wss.on('connection', (ws, req) => {
     const payload = JSON.stringify(message);
     for (const peer of wss.clients) {
       if (peer.readyState !== 1 || peer === ws || peer.valhem?.roomCode !== roomCode || !predicate(peer.valhem)) continue;
-      if (options.dropBuffered && peer.bufferedAmount > 192 * 1024) continue;
+      if (options.dropBuffered && peer.bufferedAmount > 96 * 1024) continue;
       peer.send(payload);
     }
   };
@@ -251,7 +251,8 @@ wss.on('connection', (ws, req) => {
       } else if (msg.type === 'input' && !ws.valhem.host) {
         const mx = Math.max(-1, Math.min(1, Number(msg.mx) || 0));
         const my = Math.max(-1, Math.min(1, Number(msg.my) || 0));
-        relay({type: 'input', mx, my, attack: !!msg.attack}, (peer) => peer.host);
+        const seq = Math.max(0, Math.min(Number.MAX_SAFE_INTEGER, Math.floor(Number(msg.seq) || 0)));
+        relay({type: 'input', mx, my, attack: !!msg.attack, seq}, (peer) => peer.host);
       } else if (msg.type === 'action' && !ws.valhem.host) {
         const action = cleanText(msg.action, 16);
         if (['attack','axe','dodge','berserk','parry','stance','swap','execute'].includes(action)) relay({type: 'action', action}, (peer) => peer.host);
@@ -265,7 +266,7 @@ wss.on('connection', (ws, req) => {
     }
   });
   ws.on('close', () => {
-    if (!ws.valhem?.host) relay({type: 'input', mx: 0, my: 0, attack: false}, (peer) => peer.host);
+    if (!ws.valhem?.host) relay({type: 'input', mx: 0, my: 0, attack: false, reset: true}, (peer) => peer.host);
   });
 });
 

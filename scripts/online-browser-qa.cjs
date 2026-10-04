@@ -125,8 +125,8 @@ async function main() {
       const snap=makeOnlineSnapshot();
       return {parts:snap.parts.length,texts:snap.texts.length,trails:snap.trails.length,interval:ONLINE_SNAPSHOT_MS,bytes:JSON.stringify(snap).length};
     })()`);
-    assert.equal(compactSnapshot.parts<=24&&compactSnapshot.texts<=12&&compactSnapshot.trails<=12,true);
-    assert.equal(compactSnapshot.interval,100);
+    assert.equal(compactSnapshot.parts<=8&&compactSnapshot.texts<=4&&compactSnapshot.trails<=6,true);
+    assert.equal(compactSnapshot.interval,50);
     await host.eval('parts=[];texts=[];trails=[]');
     console.log('[QA] Online snapshot is compact and bounded:',compactSnapshot);
 
@@ -150,15 +150,32 @@ async function main() {
       predicted:guestPredictionReady&&!!guestAuthState
     }))()`);
     assert.deepEqual(guestControl,{localIdx:1,cameraOwn:true,hostFar:true,predicted:true});
+    const guestOwnershipRegression=await guest.eval(`(() => {
+      const own=localControlledPlayer(),beforeX=own.x;
+      applyOnlinePlayers([Object.assign({},players[0],{x:players[0].x+40})],'playing');
+      const after=localControlledPlayer();updateGuestPrediction(.016);
+      return {idx:after&&after.idx,same:after===own,hasSecond:!!players[1],notHost:after!==players[0],keptX:Math.abs(after.x-beforeX)<80};
+    })()`);
+    assert.deepEqual(guestOwnershipRegression,{idx:1,same:true,hasSecond:true,notHost:true,keptX:true});
+    console.log('[QA] Missing player-two snapshot cannot turn guest into host spectator');
     await guest.eval("save.sett.touch='on';detectTouch();touchMove.x=-1;touchMove.y=0;sendGuestInput(performance.now(),true)");
     const touchStartX=await host.eval('players[1].x');
     await until(() => host.eval("players[1].x<"+(touchStartX-12)),10000);
     assert.deepEqual(await guest.eval("({idx:localControlledPlayer().idx,mx:guestControlState().mx,touch:touchMode})"),{idx:1,mx:-1,touch:true});
     await guest.eval("touchMove.x=0;touchMove.y=0;touchAttack=false;sendGuestInput(performance.now(),true);save.sett.touch='off';detectTouch()");
-    await guest.eval("sendOnline({type:'input',mx:99,my:-99,attack:false})");
-    await until(() => host.eval("netGuestInput.mx===1&&netGuestInput.my===-1"),5000);
+    await guest.eval("onlineInputSeq+=100;sendOnline({type:'input',mx:99,my:-99,attack:false,seq:onlineInputSeq})");
+    await until(() => host.eval("netGuestInput.mx===1&&netGuestInput.my===-1&&netGuestInput.seq>0"),5000);
     await guest.eval("sendGuestInput(performance.now(),true)");
-    console.log('[QA] Guest owns player two: keyboard, touch, camera and local prediction passed');
+    await until(() => guest.eval("guestLastAck>0"),5000);
+    const smoothUnit=await guest.eval(`(() => {
+      let list=[{netId:'qa-e',x:0,y:0,fa:0,type:'draugr'}];
+      list=mergeNetList(list,[{netId:'qa-e',x:120,y:40,fa:1,type:'draugr'}]);
+      const before={x:list[0].x,y:list[0].y,tx:list[0]._netX,ty:list[0]._netY};
+      const oldEnemies=enemies;enemies=list;updateRemoteInterpolation(.016);const after={x:list[0].x,y:list[0].y};enemies=oldEnemies;
+      return {targeted:before.tx===120&&before.ty===40,between:after.x>0&&after.x<120&&after.y>0&&after.y<40};
+    })()`);
+    assert.deepEqual(smoothUnit,{targeted:true,between:true});
+    console.log('[QA] Guest owns player two: keyboard, touch, camera, seq/ack and interpolation passed');
 
     await guest.eval('pauseGame(true)');
     await delay(500);
