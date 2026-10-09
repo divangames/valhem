@@ -6,8 +6,21 @@ const {build, verify} = require('./build-pages.cjs');
 
 const root = join(__dirname, '..');
 const assets = [
+  'assets/images/heroes/viking-full.png',
+  'assets/images/heroes/viking-avatar.png',
+  'assets/images/heroes/viking-sprite.png',
+  'assets/images/heroes/berserk-full.png',
+  'assets/images/heroes/berserk-avatar.png',
+  'assets/images/heroes/berserk-sprite.png',
+  'assets/images/heroes/maiden-full.png',
+  'assets/images/heroes/maiden-avatar.png',
+  'assets/images/heroes/maiden-sprite.png',
+  'assets/images/heroes/ulf-full.png',
+  'assets/images/heroes/ulf-avatar.png',
+  'assets/images/heroes/ulf-sprite.png',
   'index.html', 'startup.js', 'startup.css', 'sw.js',
   'manifest.webmanifest', 'icon.svg', 'icon-192.png', 'icon-512.png',
+  'assets/images/arena/hall-floor.png',
   'assets/divan/divan_logo.webp', 'assets/images/main_menu/main_horizon.webp',
   'assets/images/main_menu/main_vertical.webp', 'assets/music/VALHEM - Viking Trail.wav',
   'assets/music/VALHEM - Viking Trail.opus', 'assets/music/Death.m4a',

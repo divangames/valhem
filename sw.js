@@ -1,5 +1,16 @@
-const CACHE='valhem-v24-main-menu';
+const CACHE='valhem-v29-hero-avatars';
 const APP_SHELL=['./','./index.html','./icon.svg','./icon-192.png','./icon-512.png','./manifest.webmanifest','./startup.css','./startup.js','./assets/divan/divan_logo.webp','./assets/images/main_menu/main_horizon.webp','./assets/images/main_menu/main_vertical.webp','./assets/music/VALHEM - Viking Trail.opus','./assets/music/Death.m4a','./assets/music/bioms/01 VALHEM - Crypt Battle Charge.m4a'];
+APP_SHELL.push('./assets/images/arena/hall-floor.png');
+APP_SHELL.push(
+ './assets/images/heroes/viking-avatar.png',
+ './assets/images/heroes/viking-sprite.png',
+ './assets/images/heroes/berserk-avatar.png',
+ './assets/images/heroes/berserk-sprite.png',
+ './assets/images/heroes/maiden-avatar.png',
+ './assets/images/heroes/maiden-sprite.png',
+ './assets/images/heroes/ulf-avatar.png',
+ './assets/images/heroes/ulf-sprite.png'
+);
 self.addEventListener('install',e=>{e.waitUntil(caches.open(CACHE).then(c=>c.addAll(APP_SHELL)).then(()=>self.skipWaiting()));});
 self.addEventListener('activate',e=>{e.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(key=>key!==CACHE).map(key=>caches.delete(key)))).then(()=>self.clients.claim()));});
 self.addEventListener('fetch',e=>{

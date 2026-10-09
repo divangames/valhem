@@ -259,6 +259,30 @@ async function main() {
     })()`);
     assert.deepEqual(helpDesktop,{shown:true,cards:6,explains:true,returned:true});
     console.log('[QA] How-to-play screen and navigation passed on desktop');
+    await cdp.send('Emulation.setDeviceMetricsOverride',{width:1920,height:1080,deviceScaleFactor:1,mobile:false});
+    await until(() => cdp.eval('Object.values(HERO_ART).every(a=>!!a.sprite)'));
+    const heroArt=await cdp.eval(`(async()=>{
+      const hero=save.hero,unlocks=save.heroes;save.heroes={berserk:true,maiden:true,ulf:true};
+      const rows=[];
+      for(const [i,id] of Object.keys(HEROES).entries()){
+        renderPrep();showOnly('prepScreen');document.querySelectorAll('#heroGrid .hcard')[i].click();
+        startGame('solo');syncHUD();draw(performance.now()/1000);
+        rows.push(players[0].hero===id&&document.querySelector('#portrait1 img').src.endsWith(id+'-avatar.png')&&
+          HERO_ART[id].sprite.getContext('2d').getImageData(0,0,1,1).data[3]===0);
+        backToTitle();
+      }
+      save.hero=hero;save.heroes=unlocks;persist();renderPrep();showOnly('prepScreen');
+      await Promise.all([...document.querySelectorAll('#heroGrid img')].map(img=>img.decode()));
+      return {rows,images:document.querySelectorAll('#heroGrid img').length,
+        avatarsOnly:[...document.querySelectorAll('#heroGrid img')].every(img=>img.src.endsWith('-avatar.png'))};
+    })()`);
+    assert.deepEqual(heroArt,{rows:[true,true,true,true],images:4,avatarsOnly:true});
+    if(process.env.VALHEM_QA_HERO_PC_SHOT){
+      const shot=await cdp.send('Page.captureScreenshot',{format:'png'});
+      fs.writeFileSync(process.env.VALHEM_QA_HERO_PC_SHOT,Buffer.from(shot.data,'base64'));
+    }
+    await cdp.eval('backToTitle()');await cdp.send('Emulation.clearDeviceMetricsOverride');
+    console.log('[QA] Four selectable heroes, transparent sprite caches and matching HUD avatars passed');
     const earlyBalance=await cdp.eval(`(() => {
       const oldHero=save.hero,oldDaily=dailyMode,oldWeekly=weeklyMode;
       dailyMode=false;weeklyMode=false;
@@ -752,6 +776,21 @@ async function main() {
     await cdp.send('Input.dispatchMouseEvent', {type:'mouseReleased',x:offlineEnter.x,y:offlineEnter.y,button:'left',clickCount:1});
     await until(() => cdp.eval("document.getElementById('brandSplash').classList.contains('hidden')"), 14000);
     await until(() => cdp.eval("!document.getElementById('menuMusic').paused && document.getElementById('menuMusic').readyState>=2"), 10000);
+    await until(() => cdp.eval('hallFloor.complete&&hallFloor.naturalWidth>0'));
+    assert.equal(await cdp.eval(`(async()=>{
+      const cached=await caches.match('assets/images/arena/hall-floor.png');
+      return !!cached&&cached.ok;
+    })()`),true);
+    console.log('[QA] Painted hall floor loaded from offline PWA cache');
+    await until(()=>cdp.eval('Object.values(HERO_ART).every(a=>!!a.sprite)'));
+    assert.equal(await cdp.eval(`(async()=>{
+      for(const id of Object.keys(HEROES))for(const kind of ['avatar','sprite']){
+        const cached=await caches.match('assets/images/heroes/'+id+'-'+kind+'.png');
+        if(!cached||!cached.ok)return false;
+      }
+      return true;
+    })()`),true);
+    console.log('[QA] All eight active hero assets available in offline PWA cache');
     assert.equal(await cdp.eval(`document.querySelector('#brandSplash img').naturalWidth>0 &&
       document.getElementById('menuMusic').currentSrc.endsWith('.opus')`), true);
     const offlineAudioRanges=await cdp.eval(`(async() => {
@@ -1000,6 +1039,12 @@ async function main() {
     })()`);
     assert.deepEqual(mobileBuild,{pauseReadable:true,compactBuild:true,actionsPinned:true,levelReachable:true});
     console.log('[QA] Mobile two-pane pause, compact huge build and reroll layout passed');
+    if(process.env.VALHEM_QA_HERO_MOBILE_SHOT){
+      await cdp.eval(`(async()=>{openPrep(false);await Promise.all([...document.querySelectorAll('#heroGrid img')].map(img=>img.decode()));})()`);
+      const shot=await cdp.send('Page.captureScreenshot',{format:'png'});
+      fs.writeFileSync(process.env.VALHEM_QA_HERO_MOBILE_SHOT,Buffer.from(shot.data,'base64'));
+      await cdp.eval('backToTitle()');
+    }
     if (process.env.VALHEM_QA_TRAINING_SHOT) {
       await cdp.eval('startTraining()');
       await delay(150);

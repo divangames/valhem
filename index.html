@@ -333,6 +333,11 @@ body.touch .howCard p{font-size:13px}
 .hcard.sel{border-color:var(--gold);box-shadow:0 0 18px rgba(216,169,60,.28)}
 .hcard.lock{opacity:.62}
 .hRune{font-size:26px;color:var(--gold)}
+.heroArtwork{height:96px;margin:12px 0 6px}
+.heroArtAvatar{display:block;width:96px;height:96px;max-width:100%;margin:auto;object-fit:contain;pointer-events:none}
+.portrait img{width:100%;height:100%;object-fit:cover;pointer-events:none}
+body.touch .heroArtwork{height:64px}
+body.touch .heroArtAvatar{width:64px;height:64px}
 .hName{font-family:'Forum';letter-spacing:.12em;font-size:16px;margin:2px 0}
 .hDesc{font-size:12.5px;color:#9aa3b2;line-height:1.4}
 .hCost{position:absolute;top:10px;right:12px;font-family:'Forum';color:var(--gold-hi);font-size:13px}
@@ -2789,6 +2794,11 @@ const ALTARNAME={speed:'СКОРОСТЬ!',damage:'СИЛА!',shield:'ЩИТ!'};
 /* ============ background ============ */
 const bgC=document.createElement('canvas');bgC.width=ARENA.w;bgC.height=ARENA.h;
 const bgc=bgC.getContext('2d');
+// Фактура запекается в фон один раз; при недоступности файла остаётся процедурный пол.
+const HALL_FLOOR_TILE=128;
+const hallFloor=new Image();
+hallFloor.onload=function(){if(state==='title'&&curBiome.id==='hall')buildBG();};
+hallFloor.src='assets/images/arena/hall-floor.png';
 function buildBG(){
  const b=curBiome;
  decor={pools:[],canopies:[]};
@@ -2802,6 +2812,12 @@ function buildBG(){
   bgc.fillStyle='rgba(0,0,0,'+rand(0.02,0.09)+')';bgc.fillRect(x+ox,y,cw,cw);
   bgc.strokeStyle=b.tile;bgc.lineWidth=2;bgc.strokeRect(x+ox,y,cw,cw);}
  if(b.id==='hall'){
+  if(hallFloor.complete&&hallFloor.naturalWidth>0){
+   for(let y=0;y<ARENA.h;y+=HALL_FLOOR_TILE)for(let x=0;x<ARENA.w;x+=HALL_FLOOR_TILE)
+    bgc.drawImage(hallFloor,x,y,HALL_FLOOR_TILE,HALL_FLOOR_TILE);
+   // Приглушённая фактура сохраняет контраст героя и предупреждений атак.
+   bgc.fillStyle='rgba(5,10,19,.4)';bgc.fillRect(0,0,ARENA.w,ARENA.h);
+  }
   for(let i=0;i<26;i++){bgc.strokeStyle='rgba(0,0,0,0.3)';bgc.lineWidth=rand(1,2.5);bgc.beginPath();
    let x=rand(0,ARENA.w),y=rand(0,ARENA.h);bgc.moveTo(x,y);
    for(let k=0;k<randi(3,6);k++){x+=rand(-70,70);y+=rand(-70,70);bgc.lineTo(x,y);}bgc.stroke();}}
@@ -3096,6 +3112,24 @@ const HEROES={
  berserk:{rune:'ᚦ',name:'БЕРСЕРК',desc:'Урон +30%, ярость ×1.8 — но лишь 80 здоровья.',cost:200},
  maiden:{rune:'ᛏ',name:'КОПЕЙЩИЦА',desc:'Начинает с копьём. +10% крит, атаки на 12% чаще.',cost:300},
  ulf:{rune:'ᛚ',name:'УЛЬФХЕДНАР',desc:'+18% скорости, рывок на 30% чаще, урон −10%.',cost:400}};
+// Исходники прозрачные; небольшой игровой Canvas готовится один раз после загрузки.
+const HERO_SPRITE_SIZE=56;
+const HERO_ART={};
+for(const id of Object.keys(HEROES)){
+ const art={full:'assets/images/heroes/'+id+'-full.png',avatar:'assets/images/heroes/'+id+'-avatar.png',sprite:null};
+ const image=new Image();
+ image.onload=function(){const canvas=document.createElement('canvas');canvas.width=canvas.height=HERO_SPRITE_SIZE;
+  canvas.getContext('2d').drawImage(image,0,0,HERO_SPRITE_SIZE,HERO_SPRITE_SIZE);art.sprite=canvas;};
+ image.src='assets/images/heroes/'+id+'-sprite.png';HERO_ART[id]=art;
+}
+function playerHero(pl){return HEROES[pl.hero]?pl.hero:(HEROES[save.hero]?save.hero:'viking');}
+// Аватарка берётся из героя игрока, в том числе из авторитетного сетевого снимка.
+function syncHeroPortrait(pl,s){
+ const id=playerHero(pl),el=$('portrait'+s);if(el.dataset.hero===id||el.dataset.hero===id+'-missing')return;
+ el.dataset.hero=id;el.textContent='';const img=document.createElement('img');
+ img.src=HERO_ART[id].avatar;img.alt=HEROES[id].name;
+ img.onerror=function(){el.textContent=HEROES[id].rune;el.dataset.hero=id+'-missing';};el.appendChild(img);
+}
 const OATHS=[
  {id:'iron',rune:'ᛁ',name:'Клятва железа',desc:'Без рывка. Ноги должны помнить страх.',mult:1.5},
  {id:'fury',rune:'ᚠ',name:'Клятва покоя',desc:'Ярость запечатана. Только сталь и расчёт.',mult:1.5},
@@ -3112,6 +3146,7 @@ const META=[
 function metaCost(m){return Math.round(m.base*Math.pow(m.grow,save.up[m.id]));}
 function oathMult(){let m=1;for(let i=0;i<OATHS.length;i++)if(save.oaths[OATHS[i].id])m*=OATHS[i].mult;return m;}
 function applyHero(pl,id){
+ pl.hero=HEROES[id]?id:'viking';
  if(id==='berserk'){pl.maxHp=80;pl.dmgMul*=1.3;pl.rageMul*=1.8;}
  else if(id==='maiden'){pl.weapon='spear';pl.crit+=0.10;pl.atkRate*=0.88;}
  else if(id==='ulf'){pl.speed*=1.18;pl.dodgeCdMax*=0.7;pl.dmgMul*=0.9;}
@@ -3321,7 +3356,7 @@ function initRun(m){
  $('fx-berserk').classList.remove('on');
  $('hudTR').classList.toggle('hidden',m!=='coop');
  $('hudBC').classList.toggle('hidden',m==='coop'||touchMode);
- $('portrait1').textContent=HEROES[save.hero].rune;renderRelicStrip();
+ syncHeroPortrait(players[0],'1');if(players[1])syncHeroPortrait(players[1],'2');renderRelicStrip();
 }
 
 /* ============ enemies ============ */
@@ -5264,6 +5299,7 @@ function drawEnemy(e,ts){
 }
 function drawPlayer(pl,ts){
  const pal=PAL[pl.idx];
+ const sprite=HERO_ART[playerHero(pl)].sprite;
  ctx.save();ctx.translate(pl.x,pl.y);
  if(pl.iframes>0&&Math.floor(ts*18)%2===0)ctx.globalAlpha=0.45;
  ctx.fillStyle='rgba(0,0,0,0.4)';ctx.beginPath();ctx.ellipse(0,pl.r*0.8,pl.r*1.15,pl.r*0.45,0,0,TAU);ctx.fill();
@@ -5281,7 +5317,8 @@ function drawPlayer(pl,ts){
   ctx.globalCompositeOperation='source-over';}
  ctx.rotate(pl.aim+Math.PI/2);
  const mv=Math.hypot(pl.vx,pl.vy)>30?1:0.3,bob=Math.sin(pl.bob*10)*1.2*mv;
- ctx.fillStyle=pal.cape;ctx.beginPath();ctx.ellipse(0,8,11,13,0,0,TAU);ctx.fill();
+ if(sprite)ctx.drawImage(sprite,-HERO_SPRITE_SIZE/2,-HERO_SPRITE_SIZE/2+bob,HERO_SPRITE_SIZE,HERO_SPRITE_SIZE);
+ else{ctx.fillStyle=pal.cape;ctx.beginPath();ctx.ellipse(0,8,11,13,0,0,TAU);ctx.fill();}
  ctx.fillStyle=pal.shield;ctx.beginPath();ctx.arc(-13,2,8.5,0,TAU);ctx.fill();
  ctx.strokeStyle=pal.shieldRim;ctx.lineWidth=2;ctx.stroke();
  ctx.fillStyle=pal.shieldRim;ctx.beginPath();ctx.arc(-13,2,2.5,0,TAU);ctx.fill();
@@ -5323,7 +5360,7 @@ function drawPlayer(pl,ts){
    ctx.beginPath();ctx.moveTo(3.5,0);ctx.lineTo(16,0);ctx.stroke();
    ctx.fillStyle='#e8edf2';ctx.beginPath();ctx.moveTo(19,0);ctx.lineTo(15,-2);ctx.lineTo(15,2);ctx.closePath();ctx.fill();}
   ctx.restore();}
- ctx.fillStyle=pal.armor;ctx.beginPath();ctx.arc(0,bob*0.3,12,0,TAU);ctx.fill();
+ if(!sprite){ctx.fillStyle=pal.armor;ctx.beginPath();ctx.arc(0,bob*0.3,12,0,TAU);ctx.fill();
  ctx.strokeStyle='#1c212b';ctx.lineWidth=2;ctx.stroke();
  ctx.strokeStyle=pal.trim;ctx.lineWidth=2;
  ctx.beginPath();ctx.arc(0,bob*0.3,8,Math.PI*1.15,Math.PI*1.85);ctx.stroke();
@@ -5331,7 +5368,7 @@ function drawPlayer(pl,ts){
  ctx.strokeStyle=pal.trim;ctx.lineWidth=1.5;ctx.stroke();
  ctx.strokeStyle='#ded6bd';ctx.lineWidth=3;
  ctx.beginPath();ctx.moveTo(-6,-4);ctx.quadraticCurveTo(-13,-8,-14,-14);ctx.stroke();
- ctx.beginPath();ctx.moveTo(6,-4);ctx.quadraticCurveTo(13,-8,14,-14);ctx.stroke();
+ ctx.beginPath();ctx.moveTo(6,-4);ctx.quadraticCurveTo(13,-8,14,-14);ctx.stroke();}
  ctx.restore();
  const playerName=cleanOnlineName(pl.netName,18,pl.idx===0?((save.net&&save.net.name)||'СКАЛЬД'):'ТОВАРИЩ');
  if(players.length>1||mode==='online'){
@@ -5364,6 +5401,7 @@ function mobileMasteryName(s){
  return map[s]||s;
 }
 function setBars(s,pl){
+ syncHeroPortrait(pl,s);
  $('hpFill'+s).style.width=clamp(pl.hp/pl.maxHp*100,0,100)+'%';
  $('hpText'+s).textContent=pl.alive?Math.ceil(Math.max(0,pl.hp))+' / '+pl.maxHp:'ПАЛ — ПОДНИМИ ЕГО';
  $('hpBar'+s).classList.toggle('low',pl.alive&&pl.hp<pl.maxHp*0.3);
@@ -5451,7 +5489,7 @@ function renderPrep(){
  for(const id in HEROES){const h=HEROES[id],unlocked=id==='viking'||save.heroes[id];
   const d=document.createElement('div');
   d.className='hcard'+(save.hero===id?' sel':'')+(!unlocked?' lock':'');
-  d.innerHTML='<span class="hRune">'+h.rune+'</span><div class="hName">'+h.name+'</div><div class="hDesc">'+h.desc+'</div>'
+  d.innerHTML='<div class="heroArtwork"><img class="heroArtAvatar" src="'+HERO_ART[id].avatar+'" alt="Аватар '+h.name+'"></div><div class="hName">'+h.name+'</div><div class="hDesc">'+h.desc+'</div>'
    +(save.hero===id?'<span class="hSel">ВЫБРАН</span>':(unlocked?'':'<span class="hCost">'+h.cost+' ✦</span>'));
   d.onclick=(function(hid,unl,cost){return function(){
    if(dailyMode||weeklyMode)return;

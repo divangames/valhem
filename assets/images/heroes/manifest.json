@@ -1,0 +1,66 @@
+{
+  "generator": "built-in imagegen",
+  "transparent_background": true,
+  "heroes": [
+    {
+      "file": "viking-full.png",
+      "source": "exec-da90bf8f-42ed-4d66-8f07-11cceda62fda.png",
+      "prompt": "VALHEM original Norse dark fantasy game hero: VIKING, a brutal veteran shield-warrior. Single adult rugged broad stocky powerful male, weathered face, scar across eyebrow, thick graying auburn braided beard, iron nasal helmet without horns, dark blue wool cloak over heavy iron lamellar armor, bronze trim, leather boots, battered blue round shield and plain steel sword. Premium hand-painted painterly game character illustration, grounded tough Scandinavian materials, readable strong silhouette, cold steel and desaturated blue with restrained bronze highlights. Full body from helmet to both boot soles fully visible, standing front three-quarter combat-ready stance, centered with clear padding on all sides. Character only, NO ground, NO scenery, NO pedestal, NO background, NO cast ground shadow, NO smoke, NO text, no framing. Genuinely transparent alpha background. Cohesive gritty game art, realistic adult anatomy, NOT cartoon, NOT chibi."
+    },
+    {
+      "file": "viking-avatar.png",
+      "source": "exec-b684fa84-59fe-41f2-b4c0-7191d9c9e246.png",
+      "prompt": "Use reference as CHARACTER IDENTITY: same Viking veteran, same face, nasal iron helmet without horns, braided auburn-gray beard, dark blue wool cloak, bronze armor trim. Produce a separate square portrait avatar: rugged stern scarred adult face, head and upper shoulders centered and filling most of frame, entire helmet visible with small safe padding. Gritty premium realistic painterly Norse game art, readable facial planes and strong silhouette. NO weapons, NO frame, NO lettering, NO scenery, NO smoke, NO glow halo, NO ground. Clean isolated cutout with genuinely transparent alpha everywhere outside the head-and-shoulders silhouette, no colored backdrop or atmospheric pixels. Match reference armor and identity precisely."
+    },
+    {
+      "file": "viking-sprite.png",
+      "source": "exec-67f191dc-6632-4d94-9187-2bdf80bda9a0.png",
+      "prompt": "Reference is CHARACTER IDENTITY only. Create ONE gameplay body sprite of the same rugged Viking veteran for a strictly TOP-DOWN orthographic 2D game, camera DIRECTLY OVERHEAD 90 degrees looking at crown of head, NOT front view, NOT isometric. Character faces NORTH (top of image). Broad iron helmet crown at upper center, big armored shoulders, blue wool fur-trimmed cape trailing toward bottom, gauntleted EMPTY hands slightly outward left/right, boots subtly visible at bottom. NO sword, NO shield, NO weapon, NO floor, NO cast shadow, NO halo, NO text. Strong compact broad silhouette, proportioned for a tiny 48px game sprite, details simplified into readable bold material shapes. Same dark blue, worn iron and bronze palette as reference. Center character with at least 15 percent clear TRANSPARENT padding on ALL sides. Square canvas, genuinely transparent alpha outside body. Top-down premium painterly sprite, adult warrior not chibi. Crucial: overhead head seen from above, body horizontal ground projection, no visible frontal face or tall standing front illustration."
+    },
+    {
+      "file": "berserk-full.png",
+      "source": "exec-f24b8d01-a46e-4b75-b812-13c2f4ec08b9.png",
+      "prompt": "VALHEM hero BERSERK. Reference is STYLE reference only, do NOT copy its character or blue armor. Create a radically distinct brutal massive muscular adult male berserker: shaved scalp with a short red mohawk, thick fiery copper-red beard, scarred stern face, black and crimson warpaint, enormous bear-pelt mantle, bare scarred powerful chest, dark leather straps with iron rings, crimson cloth wraps at waist and forearms, iron bracers, rugged fur boots. He carries two battered heavy axes. Same premium grounded realistic painterly Norse dark-fantasy art and detailed materials as reference. Full body from head to both boot soles completely visible, centered frontal three-quarter battle-ready stance, safe padding all sides. NO backdrop, NO scenery, NO platform, NO floor, NO shadows outside silhouette, NO smoke, NO glow, NO text. Truly transparent alpha background with clean tight cutout. Adult rugged Viking, never cartoon or chibi."
+    },
+    {
+      "file": "berserk-avatar.png",
+      "source": "exec-ee353994-d054-48d4-9300-cf84ec7440c4.png",
+      "prompt": "Create a square avatar of reference BERSERK, preserve his exact rugged face, copper red braided beard, shaved scalp red mohawk, black and crimson facial warpaint, enormous bear-fur shoulders and leather strap. Head and upper shoulders closeup, helmet-free, adult stern muscular scarred male. Entire hair visible with safe padding. Premium realistic painterly Norse dark fantasy game art. CLEAN isolated character silhouette on genuinely transparent alpha: remove ALL atmospheric haze and any colored glow around subject. No scenery, no ground, no frame, no smoke, no text, no weapons. Only face and shoulders, reference is character identity, not a background reference."
+    },
+    {
+      "file": "berserk-sprite.png",
+      "source": "exec-d065b1a1-2ebc-4b00-b29a-5d3c431b2143.png",
+      "prompt": "Reference is BERSERK identity only. Generate ONE compact gameplay body sprite in overhead TOP-DOWN view for a 2D roguelite, looking straight down at scalp and shoulders, facing NORTH top of canvas. Very broad muscular male, red mohawk crown, copper beard barely visible, bear-fur shoulder mantle, bare scarred chest, red wraps, dark leather trousers. EMPTY hands to sides: remove axes and all weapons, no shield. Adult anatomy, strong broad silhouette, simplified crisp readable material shapes suitable at 48px, premium painterly Norse art. Square canvas, character centered with at least 15% empty transparent padding on every side. No ground, no backdrop, no glow/haze, no cast shadow, no text. Actual transparent alpha outside body. Do NOT make a frontal standing illustration: show the head crown from above, shoulders broad side-to-side, cape toward bottom. Match supplied overhead Viking sprite's camera and footprint while remaining unmistakably red and bear-furred."
+    },
+    {
+      "file": "maiden-full.png",
+      "source": "exec-d8e05bad-3310-4031-8af5-e7fcdf017776.png",
+      "prompt": "VALHEM hero SPEAR MAIDEN, an original brutal battle-hardened ADULT Norse female warrior. Reference only sets painterly material quality, do NOT duplicate male Viking. Athletic muscular sturdy adult woman, stern angular weathered scarred face, ash-blonde tight long braids, shaved temples, icy gray-blue eyes. CLOSED practical iron scale armor and breastplate, NO exposed cleavage, dark teal cloak, worn bronze fittings, leather belt, fur-trimmed boots, leather gloves. Plain strong spear in one hand and small battered round iron shield in other. Grounded premium realistic painterly Norse dark fantasy game art, powerful practical adult anatomy, fierce not glamorous, not pin-up. FULL BODY including complete spear tip and both boot soles, centered combat-ready three-quarter standing pose, safe padding. Only character, NO environment, NO floor, NO pedestal, NO atmospheric haze, NO colored glow, NO cast shadow outside silhouette, NO text or frame. Clean hard-edged cutout on genuinely TRANSPARENT alpha background; all pixels outside warrior and equipment must be clear transparent, zero background light."
+    },
+    {
+      "file": "maiden-avatar.png",
+      "source": "exec-fb613886-d178-439d-94b7-81289d4e4822.png",
+      "prompt": "Square portrait avatar of reference SPEAR MAIDEN, same stern battle-hardened adult woman, ash-blonde braids and shaved temples, scar on cheek, gray blue eyes, CLOSED practical scale armor and dark TEAL wool mantle with bronze clasp. Head and upper shoulders close-up, no helmet, centered, entire braids crown visible with safe padding. Premium realistic painterly Norse game art, rugged and fierce, not beauty glamour. Transparent alpha cutout with NO background pixels, NO haze, NO glow, NO weapon, NO frame or text. Preserve identity and practical armor. Only head and shoulders silhouette, no environmental lighting cloud outside it."
+    },
+    {
+      "file": "maiden-sprite.png",
+      "source": "exec-016edfc8-ffad-489b-9d4a-3f65efa26d60.png",
+      "prompt": "ONE gameplay sprite of reference SPEAR MAIDEN, overhead top-down camera looking down at crown and shoulders, facing north top of square image. Same stern athletic adult female, ash-blonde tight braids clearly visible from above, NO helmet, iron scale shoulder armor, dark TEAL cape, bronze fittings, empty gloved hands, compact agile silhouette visibly narrower than large male Viking sprite reference. Do NOT include spear or shield or any weapon. Match supplied Viking sprite overhead camera and size footprint, NOT a front standing character art. Bold simplified readable shapes for 48px game render, painterly Norse dark fantasy materials. Character centered, entire silhouette within central 70% of square canvas with transparent padding all sides. Absolutely no backdrop, no floor, no shadow, no glow, no particles, no text. Genuinely transparent alpha everywhere outside body."
+    },
+    {
+      "file": "ulf-full.png",
+      "source": "exec-33ec5067-9f29-450c-976d-5213633b6411.png",
+      "prompt": "VALHEM hero ULFHEDNAR, an original feral lean muscular ADULT male Norse wolf-warrior. Reference STYLE only, do not copy blue-armored veteran. Narrow agile silhouette, gaunt stern weathered face, gray-white braided beard, ash-gray hair, cold green-gray eyes, faded dark green warpaint. Distinctive gray WOLF PELT HOOD with wolf's head and ears above his brow, fur trailing on shoulders. Dark brown worn leather armor, charcoal cloth, muted forest-green scarf and waist bindings, iron bracers and fur boots. One short axe and a seax at belt. Premium realistic painterly dark Norse game illustration, brutal grounded warrior, no cartoon, no chibi. Full body including wolf ears and both boot soles, front three-quarter vigilant combat-ready pose, centered safe padding. Character only on actual TRANSPARENT alpha. NO backdrop, no ground or pedestal, no atmospheric haze, no halo, no cast ground shadow, no text. Clean isolated silhouette."
+    },
+    {
+      "file": "ulf-avatar.png",
+      "source": "exec-5aafa9ae-fb35-4ea7-8c36-ca45305677b3.png",
+      "prompt": "Square avatar portrait of reference ULFHEDNAR. Preserve exact lean scarred stern adult male face, gray-white braided beard, dark green vertical facial warpaint, gray wolf-pelt hood with wolf head and two ears above forehead, charcoal leather and forest-green scarf. Closeup head and shoulders, ENTIRE WOLF EARS visible with safe top padding, center head. Premium grounded realistic painterly Norse game art, feral brutal weathered warrior. No axe or weapons. CLEAN isolated silhouette on true transparent alpha; no smoky background, no haze, no colored glow, no frame, no floor, no text. Reference character identity only."
+    },
+    {
+      "file": "ulf-sprite.png",
+      "source": "exec-35ec9c98-e46b-463e-8a16-9199fa4f1768.png",
+      "prompt": "ONE gameplay body sprite of reference ULFHEDNAR in overhead top-down view, facing NORTH top of square canvas. Match supplied Viking overhead sprite camera and footprint. Lean narrow agile adult male body, gray WOLF PELT HOOD with recognizable wolf head and ears, gray-white beard, dark charcoal brown leather, muted forest GREEN scarf and cloth strips, fur shoulder cape trailing bottom. EMPTY hands, no axe, no knife, no shield, no weapon. Head crown and wolf skull viewed from above, NOT frontal standing portrait. Compact readable silhouette for 48px game sprite, simplified crisp premium painterly Norse materials. Centered character entirely within central 70% of canvas, large clear transparent padding on every side. True transparent alpha outside body, no scenery, ground, cast shadow, glow, haze or text."
+    }
+  ]
+}

@@ -301,7 +301,9 @@ async function main() {
     await until(() => guest.eval("wave.num===5&&state==='path'&&team.relics.length>0"),10000);
     assert.equal(await guest.eval('kills'),await host.eval('kills'));
     console.log('[QA] Automatic combat pipeline completed waves I–V and the Jotun in both browsers');
-    await host.eval("document.getElementById('pathScreen').classList.add('hidden');state='playing';wave.num=29;wave.breakT=0;beginWave(30);wave.queue=[];enemies=[];spawnSagaFinal()");
+    // Условие wave V может выполниться раньше следующего тика автозачистки.
+    // Останавливаем её до создания босса, иначе она убьёт его до снимка для гостя.
+    await host.eval("clearInterval(window.qaFight);delete window.qaFight;document.getElementById('pathScreen').classList.add('hidden');state='playing';wave.num=29;wave.breakT=0;beginWave(30);wave.queue=[];enemies=[];spawnSagaFinal()");
     await until(() => guest.eval("wave.num===30&&enemies.some(e=>e.sagaFinal)"));
     await host.eval('enemies=[];waveClear()');
     await until(() => guest.eval("state==='saga'&&team.sagaComplete&&!document.getElementById('sagaScreen').classList.contains('hidden')"));
