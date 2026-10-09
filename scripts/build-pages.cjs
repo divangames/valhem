@@ -3,7 +3,7 @@ const path = require('node:path');
 
 const root = path.resolve(__dirname, '..');
 const required = ['index.html', 'icon.svg', 'icon-192.png', 'icon-512.png',
-  'manifest.webmanifest', 'startup.css', 'startup.js', 'sw.js'];
+  'manifest.webmanifest', 'startup.css', 'startup.js', 'sw.js', 'viking-rig.js'];
 const webExtensions = new Set(['.avif', '.gif', '.jpeg', '.jpg', '.png', '.svg', '.webp',
   '.m4a', '.mp3', '.ogg', '.opus', '.woff', '.woff2']);
 const wavFallback = 'assets/music/VALHEM - Viking Trail.wav';

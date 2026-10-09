@@ -18,7 +18,7 @@
 <link rel="preload" as="image" href="assets/images/main_menu/main_vertical.webp" media="(orientation: portrait)">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Forum&family=Alegreya:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Forum&family=Alegreya:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
 <style>
 :root{
   --gold:#d8a93c; --gold-hi:#ffd97a; --gold-dim:#7c6128;
@@ -1210,6 +1210,34 @@ button,a,[role="button"],.titleChoice,.hubChoice,.sbtn{touch-action:manipulation
  body.pc-mode .desktopQuickbar{top:22px}
  body.pc-mode #titleScreen .mainMenuFooter{min-height:56px;padding-top:6px;padding-bottom:6px}
 }
+/* Purchased heroes share the hearth, independently of the combat selection. */
+#titleHero{position:absolute;z-index:2;left:3%;bottom:-38%;height:136%;width:49%;object-fit:contain;object-position:center top;pointer-events:none;filter:drop-shadow(12px 8px 24px rgba(0,0,0,.45))}
+#titleScreen .mainMenuIntro{position:relative;z-index:1}
+@media(min-width:1024px){
+ body.pc-mode #titleScreen .mainMenuLayout{grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);gap:8vw;padding:80px 12% 72px 8%}
+ body.pc-mode #titleScreen .mainMenuIntro{transform:none;align-self:center}
+ body.pc-mode #titleScreen .mainMenuIntro .runeRow,body.pc-mode #titleScreen .mainMenuIntro .orn,body.pc-mode #titleScreen .mainLoreLine{display:none}
+ body.pc-mode #titleScreen .mainMenuIntro h1{font-size:clamp(72px,7vw,132px);font-weight:400;letter-spacing:.08em;color:#e9ddbd;text-shadow:0 3px 18px #171310}
+ body.pc-mode #titleScreen .mainMenuIntro .packBadge{margin-top:22px;padding:5px 20px;background:linear-gradient(90deg,#b88725,#e3c568,#b88725);color:#3a2a13;border:0;clip-path:polygon(8px 0,calc(100% - 8px) 0,100% 50%,calc(100% - 8px) 100%,8px 100%,0 50%)}
+ body.pc-mode #titleScreen .mainMenuIntro .tag{font-size:clamp(11px,1vw,15px);color:#c4b495;max-width:440px;margin:24px auto 0;text-shadow:0 2px 6px #000}
+ body.pc-mode #titleScreen .titleChoice,body.pc-mode #titleScreen .titleChoice.primary,body.pc-mode #titleScreen .titleChoice.compact{min-height:clamp(60px,8vh,82px)}
+ body.pc-mode #titleScreen .titleChoice.resume{min-height:clamp(70px,9vh,96px)}
+ body.pc-mode #titleScreen .titleChoice.resumeDiscard{min-height:42px;font-size:clamp(9px,.75vw,12px)}
+ body.pc-mode #titleScreen .mainMenuFooter{min-height:50px}
+}
+@media(max-width:1023px) and (orientation:landscape){
+ #titleHero{left:0;width:45%;bottom:-40%;height:140%}
+ body.touch #titleScreen .mainMenuLayout{grid-template-columns:minmax(0,.85fr) minmax(0,1.15fr);gap:20px}
+ #titleScreen .mainMenuIntro .runeRow,#titleScreen .mainMenuIntro .orn,#titleScreen .mainLoreLine{display:none}
+}
+@media(orientation:portrait){
+ #titleHero{height:78%;width:100%;left:0;bottom:auto;top:0;object-position:center top;mask-image:linear-gradient(#000 65%,transparent 100%)}
+ #titleScreen .mainMenuIntro .runeRow,#titleScreen .mainMenuIntro .orn,#titleScreen .mainLoreLine{display:none}
+ #titleScreen .mainMenuIntro .tag{display:none}
+ #titleScreen .mainMenuIntro h1{text-shadow:0 2px 12px #000}
+ #titleScreen .mainMenuLayout{gap:18px}
+ #titleScreen .titleChoice{clip-path:polygon(12px 0,calc(100% - 12px) 0,100% 50%,calc(100% - 12px) 100%,12px 100%,0 50%)}
+}
 @media(prefers-reduced-motion:reduce){
  #titleBackdrop{animation:none;transform:scale(1.04)}
  #titleSnow{display:none}
@@ -1478,6 +1506,7 @@ body.touch .trainingActions{margin-top:3px}
       <span style="--x:78%;--s:2px;--d:11.1s;--delay:-3.2s;--drift:17px"></span>
       <span style="--x:90%;--s:3px;--d:14.1s;--delay:-8.4s;--drift:-13px"></span>
     </div>
+    <img id="titleHero" src="assets/images/heroes/viking-full.png" alt="" aria-hidden="true" decoding="async">
     <nav class="desktopQuickbar" aria-label="Быстрые действия ПК">
       <button id="pcQuickSettings" class="pcQuickBtn" type="button" aria-label="Руны очага" title="Руны очага">
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 8.2a3.8 3.8 0 1 0 0 7.6 3.8 3.8 0 0 0 0-7.6Z"/><path d="M19 13.2v-2.4l-2-.7a7.7 7.7 0 0 0-.7-1.6l.9-1.9-1.8-1.8-1.9.9a7.7 7.7 0 0 0-1.6-.7L11.2 3H8.8l-.7 2a7.7 7.7 0 0 0-1.6.7l-1.9-.9-1.8 1.8.9 1.9a7.7 7.7 0 0 0-.7 1.6l-2 .7v2.4l2 .7c.2.6.4 1.1.7 1.6l-.9 1.9 1.8 1.8 1.9-.9c.5.3 1 .5 1.6.7l.7 2h2.4l.7-2c.6-.2 1.1-.4 1.6-.7l1.9.9 1.8-1.8-.9-1.9c.3-.5.5-1 .7-1.6l2-.7Z"/></svg>
@@ -1964,6 +1993,7 @@ body.touch .trainingActions{margin-top:3px}
 <audio id="biomeMusic" preload="none" loop></audio>
 <audio id="deathMusic" preload="none" src="assets/music/Death.m4a"></audio>
 
+<script src="viking-rig.js"></script>
 <script>
 'use strict';
  /* CHANGELOG v2.2 «ONLINE COOP»
@@ -2264,10 +2294,10 @@ function applyOnlinePlayers(snapshotPlayers,phase){
  if(!guestPredictionReady||src.alive===false){
   Object.assign(local,src);local.idx=1;players=next;guestPredictionReady=true;return;
  }
- const keep={x:local.x,y:local.y,vx:local.vx,vy:local.vy,aim:local.aim,bob:local.bob};
+ const keep={x:local.x,y:local.y,vx:local.vx,vy:local.vy,aim:local.aim,bob:local.bob,rigPhase:local.rigPhase};
  const err=Math.hypot((src.x||0)-keep.x,(src.y||0)-keep.y);
  Object.assign(local,src);local.idx=1;
- if(err<320&&src.alive!==false){local.x=keep.x;local.y=keep.y;local.vx=keep.vx;local.vy=keep.vy;local.aim=keep.aim;local.bob=keep.bob;}
+ if(err<320&&src.alive!==false){local.x=keep.x;local.y=keep.y;local.vx=keep.vx;local.vy=keep.vy;local.aim=keep.aim;local.bob=keep.bob;local.rigPhase=keep.rigPhase;}
  players=next;guestPredictionReady=true;
 }
 function netAngleLerp(a,b,k){let d=(b-a+Math.PI)%(TAU)-Math.PI;if(d<-Math.PI)d+=TAU;return a+d*k;}
@@ -2284,6 +2314,7 @@ function updateGuestPrediction(rdt){
  if(!onlineGuest||!onlineActive||!pl||state!=='playing'){updCam(rdt);return;}
  updateRemoteInterpolation(rdt);
  const dt=Math.min(.05,rdt),ctl=guestControlState();
+ const rigOldX=pl.x,rigOldY=pl.y,rigDodge=pl.dodgeT>0;
  if(!pl.alive){if(guestAuthState){pl.x=guestAuthState.x;pl.y=guestAuthState.y;}updCam(rdt);return;}
  pl.bob=(pl.bob||0)+dt*(Math.hypot(pl.vx||0,pl.vy||0)>30?1:.3);
  if(pl.dodgeT>0){pl.dodgeT=Math.max(0,pl.dodgeT-dt);pl.vx=(pl.dodgeDX||0)*780;pl.vy=(pl.dodgeDY||0)*780;}
@@ -2295,6 +2326,7 @@ function updateGuestPrediction(rdt){
   pl.vx+=(ctl.mx*sp-pl.vx)*Math.min(1,dt*k);pl.vy+=(ctl.my*sp-pl.vy)*Math.min(1,dt*k);
  }
  pl.x+=pl.vx*dt;pl.y+=pl.vy*dt;collideWorld(pl);
+ if(window.ValhemRig)ValhemRig.advance(pl,pl.x-rigOldX,pl.y-rigOldY,!rigDodge&&Math.hypot(ctl.mx,ctl.my)>.1);
  let bst=null,bd=560*560;for(let i=0;i<enemies.length;i++){const e=enemies[i],d=(e.x-pl.x)*(e.x-pl.x)+(e.y-pl.y)*(e.y-pl.y);if(d<bd){bd=d;bst=e;}}
  if(bst)pl.aim=angTo(pl.x,pl.y,bst.x,bst.y);else if(Math.hypot(ctl.mx,ctl.my)>.1)pl.aim=Math.atan2(ctl.my,ctl.mx);
  if(guestAuthState){
@@ -2617,7 +2649,7 @@ function playBiomeMusic(biome){
  const playing=biomeMusic.play();
  if(playing&&playing.catch)playing.catch(function(){if(state==='playing')AU.setGameMusic(true);});
  const began=performance.now();
- function fade(now){const target=gameMusicTarget(),t=Math.min(1,(now-began)/650);
+ function fade(now){const target=gameMusicTarget(),t=clamp((now-began)/650,0,1);
   biomeMusic.volume=target*t;
   if(t<1)biomeMusicFade=requestAnimationFrame(fade);}
  biomeMusicFade=requestAnimationFrame(fade);
@@ -2637,7 +2669,7 @@ function menuMusicVolume(fade){
  const target=AU.muted?0:Math.min(1,(save.sett.vol/100)*0.65);
  if(!fade){menuMusic.volume=target;return;}
  const from=menuMusic.volume,start=performance.now();
- function step(now){const t=Math.min(1,(now-start)/800);menuMusic.volume=from+(target-from)*t;
+ function step(now){const t=clamp((now-start)/800,0,1);menuMusic.volume=from+(target-from)*t;
   if(t<1)menuMusicFade=requestAnimationFrame(step);}
  menuMusicFade=requestAnimationFrame(step);
  menuMusicFadeFallback=setTimeout(function(){menuMusic.volume=target;},900);
@@ -3123,6 +3155,7 @@ for(const id of Object.keys(HEROES)){
  image.src='assets/images/heroes/'+id+'-sprite.png';HERO_ART[id]=art;
 }
 function playerHero(pl){return HEROES[pl.hero]?pl.hero:(HEROES[save.hero]?save.hero:'viking');}
+const vikingRigLoaded=window.ValhemRig?ValhemRig.load('assets/images/heroes/viking-rig.png'):Promise.resolve(false);
 // Аватарка берётся из героя игрока, в том числе из авторитетного сетевого снимка.
 function syncHeroPortrait(pl,s){
  const id=playerHero(pl),el=$('portrait'+s);if(el.dataset.hero===id||el.dataset.hero===id+'-missing')return;
@@ -3322,7 +3355,7 @@ function makePlayer(idx){
  return {idx:idx,x:ARENA.w/2+(idx?80:-80),y:ARENA.h/2+150,vx:0,vy:0,r:15,
   hp:100,maxHp:100,speed:225,alive:true,revProgress:0,
   dmg:22,atkRate:1,atkCd:0,swing:null,swingDir:1,thrust:null,aim:-Math.PI/2,bob:0,
-  dodgeCd:0,dodgeT:0,dodgeDX:0,dodgeDY:0,dodgeCdMax:1.15,dodgeDur:0.3,iframes:0.8,
+  dodgeCd:0,dodgeT:0,dodgeDX:0,dodgeDY:0,dodgeCdMax:1.15,dodgeDur:0.3,iframes:0.8,rigPhase:0,rigMoving:false,
   parryCd:0,parryCdMax:0.9,parryT:0,parryDur:0.3,parryWin:0.18,parryPow:false,
   stanceCd:0,combo:0,comboT:0,counterT:0,
   rage:0,berserk:0,rageMul:1,axeCd:0,axeCdMax:2.1,axeCount:1,
@@ -4396,6 +4429,7 @@ function updatePlayer(pl,dt){
  for(const k in pl.buffs)if(pl.buffs[k]>0)pl.buffs[k]-=dt;
  if(pl.berserk>0){pl.berserk-=dt;if(pl.berserk<=0)pl.berserk=0;}
  const mv=getMove(pl),mx=mv.mx,my=mv.my;
+ const rigOldX=pl.x,rigOldY=pl.y,rigDodge=pl.dodgeT>0;
  pl.bob+=dt*(Math.hypot(pl.vx,pl.vy)>30?1:0.3);
  if(pl.dodgeT>0){pl.dodgeT-=dt;pl.vx=pl.dodgeDX*780;pl.vy=pl.dodgeDY*780;}
  else{let sp=pl.speed*(pl.berserk>0?1.5:1);if(pl.buffs.speed>0)sp*=1.25;if(pl.snareT>0)sp*=0.34;if(pl.chillT>0)sp*=0.62;
@@ -4404,6 +4438,7 @@ function updatePlayer(pl,dt){
   const k=zones.some(function(z){return z.kind==='icefield'&&z.t<z.dur&&Math.hypot(pl.x-z.x,pl.y-z.y)<z.r+pl.r;})?3.2:10;
   pl.vx+=(mx*sp-pl.vx)*Math.min(1,dt*k);pl.vy+=(my*sp-pl.vy)*Math.min(1,dt*k);}
  pl.x+=pl.vx*dt;pl.y+=pl.vy*dt;collideWorld(pl);
+ if(window.ValhemRig)ValhemRig.advance(pl,pl.x-rigOldX,pl.y-rigOldY,!rigDodge&&Math.hypot(mx,my)>.1);
  if(pl.idx===0){
   if(touchMode){
    let bst=null,bd=640*640;
@@ -5300,6 +5335,7 @@ function drawEnemy(e,ts){
 function drawPlayer(pl,ts){
  const pal=PAL[pl.idx];
  const sprite=HERO_ART[playerHero(pl)].sprite;
+ const rig=playerHero(pl)==='viking'&&pl.weapon==='sword'&&window.ValhemRig&&ValhemRig.ready();
  ctx.save();ctx.translate(pl.x,pl.y);
  if(pl.iframes>0&&Math.floor(ts*18)%2===0)ctx.globalAlpha=0.45;
  ctx.fillStyle='rgba(0,0,0,0.4)';ctx.beginPath();ctx.ellipse(0,pl.r*0.8,pl.r*1.15,pl.r*0.45,0,0,TAU);ctx.fill();
@@ -5317,6 +5353,8 @@ function drawPlayer(pl,ts){
   ctx.globalCompositeOperation='source-over';}
  ctx.rotate(pl.aim+Math.PI/2);
  const mv=Math.hypot(pl.vx,pl.vy)>30?1:0.3,bob=Math.sin(pl.bob*10)*1.2*mv;
+ if(rig)ValhemRig.draw(ctx,pl,ts);
+ else{
  if(sprite)ctx.drawImage(sprite,-HERO_SPRITE_SIZE/2,-HERO_SPRITE_SIZE/2+bob,HERO_SPRITE_SIZE,HERO_SPRITE_SIZE);
  else{ctx.fillStyle=pal.cape;ctx.beginPath();ctx.ellipse(0,8,11,13,0,0,TAU);ctx.fill();}
  ctx.fillStyle=pal.shield;ctx.beginPath();ctx.arc(-13,2,8.5,0,TAU);ctx.fill();
@@ -5369,6 +5407,7 @@ function drawPlayer(pl,ts){
  ctx.strokeStyle='#ded6bd';ctx.lineWidth=3;
  ctx.beginPath();ctx.moveTo(-6,-4);ctx.quadraticCurveTo(-13,-8,-14,-14);ctx.stroke();
  ctx.beginPath();ctx.moveTo(6,-4);ctx.quadraticCurveTo(13,-8,14,-14);ctx.stroke();}
+ }
  ctx.restore();
  const playerName=cleanOnlineName(pl.netName,18,pl.idx===0?((save.net&&save.net.name)||'СКАЛЬД'):'ТОВАРИЩ');
  if(players.length>1||mode==='online'){
@@ -5468,7 +5507,13 @@ function syncHUD(){
 
 /* ============ meta screens ============ */
 const ALL_SCREENS=['titleScreen','offlineHubScreen','howScreen','loreHubScreen','onlineScreen','prepScreen','hallScreen','chronScreen','bestScreen','contractScreen','settScreen','deathScreen','sagaScreen','pauseScreen','levelScreen','pathScreen'];
-function showOnly(id){for(let i=0;i<ALL_SCREENS.length;i++)$(ALL_SCREENS[i]).classList.toggle('hidden',ALL_SCREENS[i]!==id);}
+function showOnly(id){if(id==='titleScreen')randomizeTitleHero();for(let i=0;i<ALL_SCREENS.length;i++)$(ALL_SCREENS[i]).classList.toggle('hidden',ALL_SCREENS[i]!==id);}
+function randomizeTitleHero(){
+ const available=Object.keys(HEROES).filter(function(id){return id==='viking'||save.heroes[id]===true;});
+ const id=available[Math.floor(Math.random()*available.length)],img=$('titleHero');
+ img.dataset.hero=id;img.src=HERO_ART[id].full;
+ img.onerror=function(){this.onerror=null;this.dataset.hero='viking';this.src=HERO_ART.viking.full;};
+}
 function updateTitleStats(){
  updateSoloCheckpointMenu();
  $('titleStats').innerHTML=save.best>0
@@ -5776,7 +5821,7 @@ async function toggleFS(){
   else if(document.documentElement.requestFullscreen)await document.documentElement.requestFullscreen();
  }catch(e){}
 }
-ensureContracts();ensureNetId();soloCheckpoint=readSoloCheckpoint();updateTitleStats();resize();
+ensureContracts();ensureNetId();soloCheckpoint=readSoloCheckpoint();randomizeTitleHero();updateTitleStats();resize();
 
 /* ============ rite of naming ============ */
 $('fighterNameInput').addEventListener('input',syncNameRiteInput);

@@ -12,6 +12,10 @@ set "VPS_HOST=213.139.209.107"
 set "VPS_USER=root"
 set "VPS_KEY=%USERPROFILE%\.ssh\valhem_deploy_ed25519"
 set "VPS_HEALTH_URL=https://213.139.209.107/api/health"
+set "VPS_SSH=%ProgramFiles%\Git\usr\bin\ssh.exe"
+set "VPS_SCP=%ProgramFiles%\Git\usr\bin\scp.exe"
+if not exist "%VPS_SSH%" set "VPS_SSH=%SystemRoot%\System32\OpenSSH\ssh.exe"
+if not exist "%VPS_SCP%" set "VPS_SCP=%SystemRoot%\System32\OpenSSH\scp.exe"
 if /i "%~1"=="--check" goto check_only
 if /i "%~1"=="--check-local" goto check_local_cli
 if /i "%~1"=="--qa" goto qa_cli
@@ -291,14 +295,17 @@ exit /b 0
 
 :deploy_vps
 :check_vps_tools
-where ssh >nul 2>nul
-if errorlevel 1 (
-  echo [ОШИБКА] ssh не найден в PATH.
+if not exist "%VPS_SSH%" (
+  echo [ОШИБКА] SSH-клиент не найден: %VPS_SSH%
   exit /b 1
 )
-where scp >nul 2>nul
+if not exist "%VPS_SCP%" (
+  echo [ОШИБКА] SCP-клиент не найден: %VPS_SCP%
+  exit /b 1
+)
+"%VPS_SSH%" -V >nul 2>nul
 if errorlevel 1 (
-  echo [ОШИБКА] scp не найден в PATH.
+  echo [ОШИБКА] SSH-клиент не запускается: %VPS_SSH%
   exit /b 1
 )
 where tar >nul 2>nul
@@ -326,13 +333,25 @@ tar -czf "%LOCAL_ARCHIVE%" -C "server" package.json package-lock.json src/server
 if errorlevel 1 exit /b 1
 
 echo Загружаю серверную сборку на VPS...
-scp -i "%VPS_KEY%" -o StrictHostKeyChecking=accept-new "%LOCAL_ARCHIVE%" "%VPS_USER%@%VPS_HOST%:%REMOTE_ARCHIVE%"
-if errorlevel 1 goto vps_deploy_failed
-scp -i "%VPS_KEY%" -o StrictHostKeyChecking=accept-new "deploy\update-vps.sh" "%VPS_USER%@%VPS_HOST%:%REMOTE_SCRIPT%"
-if errorlevel 1 goto vps_deploy_failed
+echo [VPS 1/3] Архив %REMOTE_ARCHIVE%
+"%VPS_SCP%" -i "%VPS_KEY%" -o BatchMode=yes -o ConnectTimeout=12 -o StrictHostKeyChecking=accept-new "%LOCAL_ARCHIVE%" "%VPS_USER%@%VPS_HOST%:%REMOTE_ARCHIVE%"
+if errorlevel 1 (
+  echo [ОШИБКА] VPS: не удалось загрузить архив.
+  goto vps_deploy_failed
+)
+echo [VPS 2/3] Скрипт обновления %REMOTE_SCRIPT%
+"%VPS_SCP%" -i "%VPS_KEY%" -o BatchMode=yes -o ConnectTimeout=12 -o StrictHostKeyChecking=accept-new "deploy\update-vps.sh" "%VPS_USER%@%VPS_HOST%:%REMOTE_SCRIPT%"
+if errorlevel 1 (
+  echo [ОШИБКА] VPS: не удалось загрузить update-vps.sh.
+  goto vps_deploy_failed
+)
 
-ssh -i "%VPS_KEY%" -o StrictHostKeyChecking=accept-new "%VPS_USER%@%VPS_HOST%" "bash %REMOTE_SCRIPT% %REMOTE_ARCHIVE%"
-if errorlevel 1 goto vps_deploy_failed
+echo [VPS 3/3] Установка, тесты и перезапуск valhem-online.service
+"%VPS_SSH%" -i "%VPS_KEY%" -o BatchMode=yes -o ConnectTimeout=12 -o StrictHostKeyChecking=accept-new "%VPS_USER%@%VPS_HOST%" "bash %REMOTE_SCRIPT% %REMOTE_ARCHIVE%"
+if errorlevel 1 (
+  echo [ОШИБКА] VPS: удалённый update-vps.sh завершился ошибкой.
+  goto vps_deploy_failed
+)
 
 del /q "%LOCAL_ARCHIVE%" >nul 2>nul
 curl.exe --fail --silent --show-error --max-time 20 "%VPS_HEALTH_URL%" >nul

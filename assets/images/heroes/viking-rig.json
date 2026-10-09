@@ -1,0 +1,40 @@
+{
+  "generator": "built-in imagegen",
+  "transparent_background": true,
+  "prompt": "Create ONE production cutout animation PARTS ATLAS for the supplied original VALHEM Viking veteran. Reference only identity/materials: iron nasal helmet, auburn-gray beard, blue wool fur-trimmed cloak, iron lamellar armor with bronze trim. Actual TRANSPARENT alpha background. EXACTLY 4 columns by 4 rows of equal square cells, no visible grid and NO labels or text. Sixteen ISOLATED body components, ONE part centered in EACH cell, with wide empty transparent margins, NO overlap across cells. Camera: consistent overhead TOP-DOWN game view, north-facing, NOT full frontal standing character. Parts with natural complete hidden ends for joints. Row 1: (1) helmeted head only viewed from above, (2) torso armor only with NO arms/head/legs, (3) pelvis belt and short leather skirt only, (4) blue fur-trimmed cape only. Row 2: (5) LEFT upper arm from shoulder to elbow including shoulder pauldron, (6) LEFT forearm from elbow to wrist with iron bracer and NO hand, (7) LEFT gloved closed hand only for weapon grip, (8) RIGHT upper arm from shoulder to elbow including pauldron. Row 3: (9) RIGHT forearm bracer elbow to wrist with NO hand, (10) RIGHT gloved closed hand only, (11) LEFT thigh leather-clad hip to knee, (12) LEFT lower leg knee to ankle with NO foot. Row 4: (13) LEFT leather boot only, (14) RIGHT thigh hip to knee, (15) RIGHT lower leg knee to ankle with NO foot, (16) RIGHT leather boot only. Limb pieces point vertically DOWN within their cell, attachment at top and distal end at bottom, neutral straight pose. Both boots toes point toward TOP of image, seen from above. Head top faces NORTH. Torso and cape face NORTH. Premium crisp painterly gritty Norse game materials, adult muscular anatomy, clean strong readable silhouettes at small size, matching palette across all parts. NO assembled character, NO sword/shield/weapon, NO floor, NO shadow, NO decorative frame, NO smoke/glow. Every component must be separately floating on fully transparent alpha; leave at least 15% transparent padding in each cell. This is a functional modular sprite atlas for skeletal animation, not a concept sheet.",
+  "source": "exec-85b01a12-04c0-4269-9967-dcad1f05597c.png",
+  "referenceSize": 1254,
+  "columns": [
+    0,
+    314,
+    627,
+    940,
+    1254
+  ],
+  "rows": [
+    0,
+    329,
+    625,
+    901,
+    1254
+  ],
+  "sourceRects": [[60,26,200,297],[342,30,255,288],[634,58,306,232],[940,25,285,297],[60,335,170,282],[409,365,117,230],[721,398,117,159],[1021,334,174,283],[108,659,117,226],[411,683,119,178],[708,630,147,261],[1032,628,129,270],[104,932,109,240],[396,901,150,264],[715,901,132,270],[1042,932,109,240]],
+  "parts": [
+    "head",
+    "torso",
+    "hips",
+    "cape",
+    "upperArmL",
+    "forearmL",
+    "handL",
+    "upperArmR",
+    "forearmR",
+    "handR",
+    "thighL",
+    "shinL",
+    "footL",
+    "thighR",
+    "shinR",
+    "footR"
+  ]
+}

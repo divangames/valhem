@@ -1,7 +1,12 @@
-const CACHE='valhem-v29-hero-avatars';
+const CACHE='valhem-v31-hearth-heroes';
 const APP_SHELL=['./','./index.html','./icon.svg','./icon-192.png','./icon-512.png','./manifest.webmanifest','./startup.css','./startup.js','./assets/divan/divan_logo.webp','./assets/images/main_menu/main_horizon.webp','./assets/images/main_menu/main_vertical.webp','./assets/music/VALHEM - Viking Trail.opus','./assets/music/Death.m4a','./assets/music/bioms/01 VALHEM - Crypt Battle Charge.m4a'];
 APP_SHELL.push('./assets/images/arena/hall-floor.png');
+APP_SHELL.push('./viking-rig.js','./assets/images/heroes/viking-rig.png');
 APP_SHELL.push(
+ './assets/images/heroes/viking-full.png',
+ './assets/images/heroes/berserk-full.png',
+ './assets/images/heroes/maiden-full.png',
+ './assets/images/heroes/ulf-full.png',
  './assets/images/heroes/viking-avatar.png',
  './assets/images/heroes/viking-sprite.png',
  './assets/images/heroes/berserk-avatar.png',

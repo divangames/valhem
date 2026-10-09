@@ -25,9 +25,10 @@ async function until(task, timeout = 15000) {
 }
 class Cdp {
   constructor(ws) {
-    this.ws = ws; this.next = 1; this.pending = new Map();
+    this.ws = ws; this.next = 1; this.pending = new Map();this.errors=[];
     ws.addEventListener('message', event => {
       const message = JSON.parse(event.data);
+      if(message.method==='Runtime.exceptionThrown')this.errors.push(message.params.exceptionDetails.exception?.description||message.params.exceptionDetails.text);
       if (!message.id) return;
       const pending = this.pending.get(message.id);
       if (!pending) return;
@@ -58,9 +59,9 @@ async function reload(cdp) {
   const base = await cdp.eval('location.origin + location.pathname');
   await cdp.send('Page.navigate', {url:base + '?qa=' + (++navigationNumber)});
   try {
-    await until(() => cdp.eval(`performance.timeOrigin>${previous} && document.readyState==='complete' && typeof resumeSoloCheckpoint==='function' && state==='title'`));
+    await until(() => cdp.eval(`performance.timeOrigin>${previous} && document.readyState!=='loading' && typeof resumeSoloCheckpoint==='function' && state==='title'`));
   } catch (error) {
-    console.error('[QA] Navigation state:', {previous, current:await cdp.eval(`({url:location.href,origin:performance.timeOrigin,state,ready:document.readyState,resume:typeof resumeSoloCheckpoint})`)});
+    console.error('[QA] Navigation state:', {previous,errors:cdp.errors.slice(-4),current:await cdp.eval(`(() => {let status;try{status=state;}catch(e){status=e.message;}return {url:location.href,origin:performance.timeOrigin,state:status,ready:document.readyState,resume:typeof resumeSoloCheckpoint,rig:typeof ValhemRig,html:document.documentElement.outerHTML.length};})()`)});
     throw error;
   }
 }
@@ -168,6 +169,27 @@ async function main() {
     })()`);
     assert.deepEqual(mainMenuDesktop,{horizontal:true,snow:true,buttons:true,visible:true,pcQuickbar:true,footerMark:true,
       oneColumn:true,sideBySide:true,pcPlatform:true,quickHandlers:true});
+    const titleHeroOwnership=await cdp.eval(`(() => {
+      const owned=save.heroes,selected=save.hero,rng=Math.random;let count=0;
+      try{
+        for(let mask=0;mask<8;mask++){
+          save.heroes={berserk:!!(mask&1),maiden:!!(mask&2),ulf:!!(mask&4)};
+          const allowed=['viking',...['berserk','maiden','ulf'].filter(id=>save.heroes[id])];
+          const seen=new Set();
+          for(let i=0;i<allowed.length;i++){
+            Math.random=()=> (i+.5)/allowed.length;randomizeTitleHero();
+            const id=document.getElementById('titleHero').dataset.hero;
+            if(!allowed.includes(id)||save.hero!==selected)throw new Error('Locked hero or combat selection changed');
+            seen.add(id);
+          }
+          if(seen.size!==allowed.length)throw new Error('Purchased hero omitted');count++;
+        }
+        return count;
+      }finally{save.heroes=owned;Math.random=rng;randomizeTitleHero();}
+    })()`);
+    assert.equal(titleHeroOwnership,8);
+    await until(()=>cdp.eval("document.getElementById('titleHero').complete && document.getElementById('titleHero').naturalWidth>0"));
+    console.log('[QA] Main menu hero: all eight ownership combinations, combat selection preserved');
     if(process.env.VALHEM_QA_PC_SHOT){
       const shot=await cdp.send('Page.captureScreenshot',{format:'png'});
       fs.writeFileSync(process.env.VALHEM_QA_PC_SHOT,Buffer.from(shot.data,'base64'));
@@ -211,6 +233,10 @@ async function main() {
         targets:buttons.every(r=>r.height>=48)};
     })()`);
     assert.deepEqual(mainMenuPortrait,{vertical:true,inside:true,targets:true});
+    if(process.env.VALHEM_QA_MENU_MOBILE_SHOT){
+      const shot=await cdp.send('Page.captureScreenshot',{format:'png'});
+      fs.writeFileSync(process.env.VALHEM_QA_MENU_MOBILE_SHOT,Buffer.from(shot.data,'base64'));
+    }
     await cdp.send('Emulation.clearDeviceMetricsOverride');await cdp.eval("document.body.classList.remove('touch')");
     console.log('[QA] Cinematic main menu passed on desktop, 844×390 landscape and 390×844 portrait');
     await cdp.send('Emulation.setDeviceMetricsOverride',{width:844,height:390,deviceScaleFactor:2,mobile:true});
@@ -283,6 +309,85 @@ async function main() {
     }
     await cdp.eval('backToTitle()');await cdp.send('Emulation.clearDeviceMetricsOverride');
     console.log('[QA] Four selectable heroes, transparent sprite caches and matching HUD avatars passed');
+    assert.equal(await cdp.eval(`(() => {
+      const original=requestAnimationFrame,muted=AU.muted;let next;
+      try{window.requestAnimationFrame=callback=>{next=callback;return 0;};AU.muted=false;menuMusic.volume=0;
+        menuMusicVolume(true);next(performance.now()-30);return menuMusic.volume===0;
+      }finally{window.requestAnimationFrame=original;AU.muted=muted;menuMusicVolume(false);}
+    })()`),true);
+    console.log('[QA] A frame timestamp preceding the music fade cannot produce a negative volume');
+    assert.equal(await cdp.eval('vikingRigLoaded'),true);
+    const rigChecks=await cdp.eval(`(() => {
+      const hero=save.hero,oaths=save.oaths;save.hero='viking';save.oaths={iron:false,fury:false,horde:false,blood:false};
+      startGame('solo');wave.queue=[];enemies=[];wave.breakT=999;
+      const pl=players[0];pl.aim=-Math.PI/2;ms.x=pl.x-cam.x;ms.y=pl.y-cam.y-120;
+      const radius=pl.r,range=pl.range,hp=pl.hp;
+      keys.KeyW=true;for(let i=0;i<8;i++)updatePlayer(pl,.04);keys.KeyW=false;
+      const walking=pl.rigPhase>0&&pl.rigMoving;
+      pl.vx=pl.vy=0;updatePlayer(pl,.04);const phase=pl.rigPhase;
+      const idle=ValhemRig.pose(pl);for(let i=0;i<8;i++)updatePlayer(pl,.04);
+      const stopped=pl.rigPhase===phase&&!pl.rigMoving&&JSON.stringify(ValhemRig.pose(pl))===JSON.stringify(idle);
+      keys.KeyW=true;pl.dodgeCd=0;tryDodge(pl);const x=pl.x,y=pl.y;
+      updatePlayer(pl,.05);keys.KeyW=false;
+      const dash=pl.rigPhase===phase&&!pl.rigMoving&&Math.hypot(pl.x-x,pl.y-y)>10;
+      pl.dodgeT=0;pl.atkCd=0;pl.aim=-Math.PI/2;
+      const foe=spawnEnemy('draugr',pl.x,pl.y-62,true),health=foe.hp;tryAttack(pl);
+      const contact=foe.hp<health&&!!pl.swing&&ValhemRig.pose(pl).attack===0;
+      const knees=[0,Math.PI/2,Math.PI,Math.PI*1.5].every(phase=>{
+        const p=ValhemRig.pose({...pl,rigMoving:true,dodgeT:0,aim:-Math.PI/2,vx:0,vy:-225},phase);
+        return p.leftLeg.joint.x<p.rightLeg.joint.x;
+      });
+      draw(performance.now()/1000);
+      const physics=pl.r===radius&&pl.range===range&&pl.hp===hp;
+      backToTitle();save.hero=hero;save.oaths=oaths;
+      return {parts:ValhemRig.partCount(),walking,stopped,dash,contact,knees,physics};
+    })()`);
+    assert.deepEqual(rigChecks,{parts:16,walking:true,stopped:true,dash:true,contact:true,knees:true,physics:true});
+    console.log('[QA] Viking rig: distance-based feet, stationary idle, dash pose, immediate hit and unchanged physics passed');
+    if(process.env.VALHEM_QA_RIG_PC_SHOT){
+      await cdp.send('Emulation.setDeviceMetricsOverride',{width:1920,height:1080,deviceScaleFactor:1,mobile:false});
+      await cdp.eval("window.qaRigHero=save.hero;save.hero='viking';startGame('solo');enemies=[];wave.queue=[];wave.breakT=999;syncHUD();draw(performance.now()/1000)");
+      const shot=await cdp.send('Page.captureScreenshot',{format:'png'});
+      fs.writeFileSync(process.env.VALHEM_QA_RIG_PC_SHOT,Buffer.from(shot.data,'base64'));
+      await cdp.eval('backToTitle();save.hero=window.qaRigHero;delete window.qaRigHero');
+      await cdp.send('Emulation.clearDeviceMetricsOverride');
+    }
+    if(process.env.VALHEM_QA_RIG_VIDEO){
+      const clip=await cdp.eval(`(async()=>{
+        const hero=save.hero,oaths=save.oaths;save.hero='viking';save.oaths={iron:false,fury:false,horde:false,blood:false};
+        startGame('solo');enemies=[];wave.queue=[];wave.breakT=999;
+        const pl=players[0],preview=document.createElement('canvas');preview.width=640;preview.height=360;
+        const pc=preview.getContext('2d'),chunks=[],samples=[],stream=preview.captureStream(30);
+        const recorder=new MediaRecorder(stream,{mimeType:'video/webm;codecs=vp9'});
+        recorder.ondataavailable=e=>{if(e.data.size)chunks.push(e.data);};
+        let finish;const stopped=new Promise(resolve=>{finish=resolve;});recorder.onstop=()=>finish();
+        let frame=0;const began=performance.now();recorder.start();
+        await new Promise(resolve=>{
+          const tick=()=>{
+            const seconds=(performance.now()-began)/1000;
+            keys.KeyW=seconds<1.3;keys.KeyS=seconds>=1.3&&seconds<2.6;keys.KeyD=seconds>=2.6&&seconds<3.7;
+            ms.x=pl.x-cam.x;ms.y=pl.y-cam.y-120;
+            if(seconds>=4&&seconds<4.12&&pl.dodgeCd<=0)tryDodge(pl);
+            if(seconds>=4.7&&pl.atkCd<=0)tryAttack(pl);
+            const ratio=cvs.width/W,sx=pl.x-cam.x,sy=pl.y-cam.y;
+            pc.fillStyle='#070b11';pc.fillRect(0,0,640,360);
+            pc.drawImage(cvs,(sx-100)*ratio,(sy-55)*ratio,200*ratio,110*ratio,0,0,640,352);
+            pc.fillStyle='rgba(4,7,11,.9)';pc.fillRect(0,0,640,34);pc.fillStyle='#e0bf75';pc.font='18px sans-serif';
+            pc.fillText(seconds<1.3?'Ходьба':seconds<2.6?'Шаги назад':seconds<3.7?'Движение боком':seconds<4?'Остановка':seconds<4.7?'Рывок':'Удары мечом',14,23);
+            if((samples.length===0&&seconds>=1)||(samples.length===1&&seconds>=5.2))samples.push(preview.toDataURL('image/png').split(',')[1]);
+            frame++;if(seconds<6.6)requestAnimationFrame(tick);else resolve();
+          };requestAnimationFrame(tick);
+        });
+        keys.KeyW=keys.KeyS=keys.KeyD=false;recorder.stop();await stopped;stream.getTracks().forEach(track=>track.stop());
+        const blob=new Blob(chunks,{type:recorder.mimeType});
+        const encoded=await new Promise(resolve=>{const reader=new FileReader();reader.onload=()=>resolve(reader.result.split(',')[1]);reader.readAsDataURL(blob);});
+        backToTitle();save.hero=hero;save.oaths=oaths;return {data:encoded,bytes:blob.size,frames:frame,samples};
+      })()`);
+      assert.equal(clip.bytes>10000&&clip.frames>30,true);
+      fs.writeFileSync(process.env.VALHEM_QA_RIG_VIDEO,Buffer.from(clip.data,'base64'));
+      clip.samples.forEach((frame,i)=>fs.writeFileSync(process.env.VALHEM_QA_RIG_VIDEO.replace(/\.webm$/,'-frame-'+i+'.png'),Buffer.from(frame,'base64')));
+      console.log('[QA] Recorded actual browser gameplay: walk, backpedal, strafe, idle, dash and sword');
+    }
     const earlyBalance=await cdp.eval(`(() => {
       const oldHero=save.hero,oldDaily=dailyMode,oldWeekly=weeklyMode;
       dailyMode=false;weeklyMode=false;
@@ -784,13 +889,16 @@ async function main() {
     console.log('[QA] Painted hall floor loaded from offline PWA cache');
     await until(()=>cdp.eval('Object.values(HERO_ART).every(a=>!!a.sprite)'));
     assert.equal(await cdp.eval(`(async()=>{
-      for(const id of Object.keys(HEROES))for(const kind of ['avatar','sprite']){
+      for(const id of Object.keys(HEROES))for(const kind of ['avatar','sprite','full']){
         const cached=await caches.match('assets/images/heroes/'+id+'-'+kind+'.png');
         if(!cached||!cached.ok)return false;
       }
       return true;
     })()`),true);
-    console.log('[QA] All eight active hero assets available in offline PWA cache');
+    await until(()=>cdp.eval("document.getElementById('titleHero').complete && document.getElementById('titleHero').naturalWidth>0"));
+    console.log('[QA] All twelve hero assets and main menu portrait available in offline PWA cache');
+    assert.equal(await cdp.eval(`(async()=>{const cached=await caches.match('viking-rig.js');const atlas=await caches.match('assets/images/heroes/viking-rig.png');return !!cached&&cached.ok&&!!atlas&&atlas.ok&&await vikingRigLoaded;})()`),true);
+    console.log('[QA] Viking rig module and all sixteen atlas parts available offline');
     assert.equal(await cdp.eval(`document.querySelector('#brandSplash img').naturalWidth>0 &&
       document.getElementById('menuMusic').currentSrc.endsWith('.opus')`), true);
     const offlineAudioRanges=await cdp.eval(`(async() => {
@@ -1039,6 +1147,12 @@ async function main() {
     })()`);
     assert.deepEqual(mobileBuild,{pauseReadable:true,compactBuild:true,actionsPinned:true,levelReachable:true});
     console.log('[QA] Mobile two-pane pause, compact huge build and reroll layout passed');
+    if(process.env.VALHEM_QA_RIG_MOBILE_SHOT){
+      await cdp.eval("window.qaRigHero=save.hero;save.hero='viking';startTraining();draw(performance.now()/1000)");
+      const shot=await cdp.send('Page.captureScreenshot',{format:'png'});
+      fs.writeFileSync(process.env.VALHEM_QA_RIG_MOBILE_SHOT,Buffer.from(shot.data,'base64'));
+      await cdp.eval('exitTraining();save.hero=window.qaRigHero;delete window.qaRigHero');
+    }
     if(process.env.VALHEM_QA_HERO_MOBILE_SHOT){
       await cdp.eval(`(async()=>{openPrep(false);await Promise.all([...document.querySelectorAll('#heroGrid img')].map(img=>img.decode()));})()`);
       const shot=await cdp.send('Page.captureScreenshot',{format:'png'});
@@ -1192,6 +1306,14 @@ async function main() {
     assert.equal(fullSaga.wave,30);assert.equal(fullSaga.routes,28);
     assert.equal(fullSaga.record&&fullSaga.reward>0,true);
     console.log('[QA] Automated uninterrupted saga I–XXX reached the finale:',fullSaga);
+    const fileUrl=require('node:url').pathToFileURL(path.join(root,'index.html')).href;
+    await cdp.send('Network.emulateNetworkConditions',{offline:false,latency:0,downloadThroughput:-1,uploadThroughput:-1});
+    const fileNavigation=await cdp.send('Page.navigate',{url:fileUrl});
+    try{await until(()=>cdp.eval("location.protocol==='file:'&&typeof vikingRigLoaded!=='undefined'"));}
+    catch(error){console.error('[QA] File navigation:',fileNavigation,cdp.errors.slice(-4),await cdp.eval(`({url:location.href,ready:document.readyState,text:document.body?.innerText.slice(0,200),scripts:[...document.scripts].map(s=>s.src)})`));throw error;}
+    assert.equal(await cdp.eval('vikingRigLoaded'),true);
+    assert.equal(await cdp.eval("(() => {const pl=makePlayer(0);pl.hero='viking';drawPlayer(pl,performance.now()/1000);return ValhemRig.partCount()===16;})()"),true);
+    console.log('[QA] Viking rig loads and draws from file:// without Canvas pixel-read permission');
     console.log('[OK] Solo checkpoint: route, build, combat rollback, purchase, contracts, death, discard, mobile and offline PWA');
   } finally {
     if (cdp) { try { await cdp.send('Browser.close'); } catch (_) {} }

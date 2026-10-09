@@ -161,6 +161,9 @@ async function main() {
     await guest.eval("save.sett.touch='on';detectTouch();touchMove.x=-1;touchMove.y=0;sendGuestInput(performance.now(),true)");
     const touchStartX=await host.eval('players[1].x');
     await until(() => host.eval("players[1].x<"+(touchStartX-12)),10000);
+    await until(()=>guest.eval('ValhemRig.ready()&&players[1].rigPhase>0'),5000);
+    assert.equal(await host.eval('players[1].rigPhase>0'),true);
+    console.log('[QA] Viking gait phase advances on host and predicted guest with loaded rig atlas');
     assert.deepEqual(await guest.eval("({idx:localControlledPlayer().idx,mx:guestControlState().mx,touch:touchMode})"),{idx:1,mx:-1,touch:true});
     await guest.eval("touchMove.x=0;touchMove.y=0;touchAttack=false;sendGuestInput(performance.now(),true);save.sett.touch='off';detectTouch()");
     await guest.eval("onlineInputSeq+=100;sendOnline({type:'input',mx:99,my:-99,attack:false,seq:onlineInputSeq})");

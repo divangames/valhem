@@ -6,6 +6,7 @@ const {build, verify} = require('./build-pages.cjs');
 
 const root = join(__dirname, '..');
 const assets = [
+  'viking-rig.js', 'assets/images/heroes/viking-rig.png',
   'assets/images/heroes/viking-full.png',
   'assets/images/heroes/viking-avatar.png',
   'assets/images/heroes/viking-sprite.png',
@@ -42,7 +43,7 @@ if (scripts.length < 2 || !html.includes('VALHEM')) {
   throw new Error('VALHEM HTML or inline scripts are missing');
 }
 scripts.forEach((match, index) => new Script(match[1], {filename: `index.html script ${index + 1}`}));
-for (const file of ['startup.js', 'sw.js']) {
+for (const file of ['startup.js', 'sw.js', 'viking-rig.js']) {
   new Script(readFileSync(join(root, file), 'utf8'), {filename: file});
 }
 JSON.parse(readFileSync(join(root, 'manifest.webmanifest'), 'utf8'));
